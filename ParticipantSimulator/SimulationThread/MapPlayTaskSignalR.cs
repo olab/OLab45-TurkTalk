@@ -20,6 +20,16 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
       var tmpToken = $"{authInfo.AuthInfo.Token.Substring(0, 5)}***";
       _logger.Info($"{param.Participant.UserId} thread: TTalk Url. {param.Settings.SignalRHubUrl}?access_token={tmpToken}");
 
+      var connection = GetConnection(param, authInfo);
+
+      if (!await ConnectWithRetryAsync(connection, param))
+        throw new Exception("Cannot connect to signal");
+
+      return true;
+    }
+
+    private HubConnection GetConnection(WorkerThreadParameter param, AuthenticateResponse authInfo)
+    {
       var url = $"{param.Settings.SignalRHubUrl}?access_token={authInfo.AuthInfo.Token}";
       HubConnection connection = new HubConnectionBuilder()
         .WithUrl(url)
@@ -59,13 +69,10 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
         return Task.CompletedTask;
       };
 
-      if (!await ConnectWithRetryAsync(connection, param))
-        throw new Exception("Cannot connect to signal");
-
-      return true;
+      return connection;
     }
 
-    public async Task<bool> ConnectWithRetryAsync(HubConnection connection, WorkerThreadParameter param)
+    private async Task<bool> ConnectWithRetryAsync(HubConnection connection, WorkerThreadParameter param)
     {
       // Keep trying to until we can start or the token is canceled.
       CancellationToken token = param.Settings.GetToken();
