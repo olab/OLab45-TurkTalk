@@ -89,7 +89,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
             Logger.LogDebug($"Returning existing unmoderated room '{room.Name}'");
 
           else
-          { 
+          {
             var newRoom = new Room(this, _rooms.Count);
             int index = _rooms.Add(newRoom);
 

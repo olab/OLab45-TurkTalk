@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// A connection is disconnected from the Hub

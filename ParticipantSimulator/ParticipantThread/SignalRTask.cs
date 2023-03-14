@@ -17,6 +17,8 @@ using NLog;
 using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.Model;
 using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.TurkTalk.Methods;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
@@ -25,7 +27,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     private bool _roomAssigned = false;
     private NodeTrail _nodeTrail;
 
-    public async Task<bool> MapNodeSignalRPlayTask(NodeTrail nodeTrail)
+    public async Task<bool> SignalRTask(NodeTrail nodeTrail)
     {
       if (nodeTrail.TurkTalkTrail == null)
         return true;
@@ -96,45 +98,31 @@ namespace OLab.TurkTalk.ParticipantSimulator
         return Task.CompletedTask;
       };
 
-      return connection;
-    }
-
-    private async Task<bool> ConnectWithRetryAsync(HubConnection connection)
-    {
-      connection.On<Learner>("atriumassignment", (learner) =>
+      connection.On<AtriumAssignmentCommand>("command", (method) =>
       {
-        var options = new JsonSerializerOptions { WriteIndented = false };
-        string jsonString = System.Text.Json.JsonSerializer.Serialize(learner, options);
-        _logger.Info($"{_param.Participant.UserId} thread: atriumassignment {jsonString}");
+        _logger.Info($"{_param.Participant.UserId} thread: command received {method.MethodName}");
 
-        _learner = learner;
-      });
-
-      connection.On<RoomAssignmentPayload>("roomassignment", (payload) =>
-      {
-        var options = new JsonSerializerOptions { WriteIndented = false };
-        string jsonString = System.Text.Json.JsonSerializer.Serialize(payload, options);
-        _logger.Info($"{_param.Participant.UserId} thread: roomassignment {jsonString}");
-
-        _roomAssigned = true;
+        OnCommandCallback(connection, method);
+        return Task.CompletedTask;
       });
 
       connection.On<string, string, string>("message", (data, sessionId, from) =>
       {
         _logger.Info($"{_param.Participant.UserId} thread: message {data} from {from}");
+        return Task.CompletedTask;
       });
 
       connection.On<string, string, string>("jumpnode", (data, sessionId, from) =>
       {
         _logger.Info($"{_param.Participant.UserId} thread: jumpnode {data} from {from}");
+        return Task.CompletedTask;
       });
 
-      connection.On<Participant, int>("learnerunassignment", (participant, slotIndex) =>
-      {
-        var options = new JsonSerializerOptions { WriteIndented = false };
-        string jsonString = System.Text.Json.JsonSerializer.Serialize(participant, options);
-        _logger.Info($"{_param.Participant.UserId} thread: learnerunassignment {jsonString} index {slotIndex}");
-      });
+      return connection;
+    }
+
+    private async Task<bool> ConnectWithRetryAsync(HubConnection connection)
+    {
 
       // Keep trying to until we can start or the token is canceled.
       CancellationToken token = _param.Settings.GetToken();
@@ -142,12 +130,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
       {
         try
         {
-          _logger.Info($"{_param.Participant.UserId} thread: attempting to connect to SignalR.");
+          _logger.Info($"{_param.Participant.UserId} thread: connecting to SignalR.");
 
           await connection.StartAsync(token);
           Debug.Assert(connection.State == HubConnectionState.Connected);
 
-          _logger.Info($"{_param.Participant.UserId} thread: connected to SignalR.");
+          _logger.Info($"{_param.Participant.UserId} thread: connected to SignalR.  connectionId: {connection.ConnectionId}");
 
           return true;
         }
@@ -164,6 +152,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
       }
     }
+
     private async Task<bool> RegisterAttendeeAsync(HubConnection connection)
     {
       var payload = new RegisterAttendeePayload
@@ -175,9 +164,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
         RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}"
       };
 
-      _logger.Info($"{_param.Participant.UserId} thread: attempting to register as an attendee to room {payload.RoomName}.");
-
       await connection.InvokeAsync("registerAttendee", payload);
+
+      _logger.Info($"{_param.Participant.UserId} thread: register attendee for room '{payload.RoomName}'.");
 
       return true;
     }

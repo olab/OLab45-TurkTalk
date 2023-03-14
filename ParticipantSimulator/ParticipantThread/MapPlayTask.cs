@@ -52,7 +52,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         _node = await olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
         _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
-        await MapNodeSignalRPlayTask(nodeTrail);
+        await SignalRTask(nodeTrail);
       }
 
       return true;
