@@ -1,10 +1,8 @@
 using Dawn;
 using Microsoft.Extensions.Logging;
-using OLabWebAPI.Services.TurkTalk.Contracts;
 using OLabWebAPI.TurkTalk.Commands;
 using OLabWebAPI.Utils;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -224,8 +222,6 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       {
         _rooms.Lock();
 
-        Room emptyRoom = null;
-
         // go thru each newRoom and remove a (potential)
         // Participant
         foreach (Room room in Rooms)
@@ -305,7 +301,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // moderators of atrium change
         if (_atrium.Remove(connectionId))
           Conference.SendMessage(
-            new AtriumUpdateCommand(this, _atrium.GetContents()));
+            new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
       }
       finally
@@ -334,7 +330,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // moderators of atrium content change
         if (_atrium.Remove(participant))
           Conference.SendMessage(
-            new AtriumUpdateCommand(this, _atrium.GetContents()));
+            new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
         return learner;
 
@@ -377,7 +373,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // notify all topic moderators of atrium change
         Conference.SendMessage(
-          new AtriumUpdateCommand(this, _atrium.GetContents()));
+          new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
       }
       finally

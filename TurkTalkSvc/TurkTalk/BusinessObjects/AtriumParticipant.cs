@@ -1,4 +1,6 @@
-﻿namespace OLabWebAPI.TurkTalk.BusinessObjects
+﻿using OLabWebAPI.TurkTalk.BusinessObjects;
+
+namespace OLabWebAPI.TurkTalk.BusinessObjects
 {
   public class AtriumParticipant
   {

@@ -25,10 +25,10 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public uint MapId { get; set; }
 
     [JsonPropertyName("PauseMs")]
-    public PauseMs? PauseMs { get; set; }
+    public PauseMs PauseMs { get; set; }
 
     [JsonPropertyName("NodeTrail")]
-    public List<NodeTrail>? NodeTrail { get; set; }
+    public List<NodeTrail> NodeTrail { get; set; }
   }
 
   public partial class NodeTrail
@@ -48,10 +48,10 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public uint NodeId { get; set; }
 
     [JsonPropertyName("PauseMs")]
-    public PauseMs? PauseMs { get; set; }
+    public PauseMs PauseMs { get; set; }
 
     [JsonPropertyName("TurkTalkTrail")]
-    public TurkTalkTrail? TurkTalkTrail { get; set; }
+    public TurkTalkTrail TurkTalkTrail { get; set; }
   }
 
   public class Participant
@@ -95,10 +95,10 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public string Password { get; set; } = string.Empty;
 
     [JsonPropertyName("PauseMs")]
-    public PauseMs? PauseMs { get; set; }
+    public PauseMs PauseMs { get; set; }
 
     [JsonPropertyName("MapTrail")]
-    public MapTrail? MapTrail { get; set; }
+    public MapTrail MapTrail { get; set; }
   }
 
   public partial class PauseMs
@@ -144,7 +144,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public string LogDirectory { get; set; } = string.Empty;
 
     [JsonPropertyName("PauseMs")]
-    public PauseMs? PauseMs { get; set; }
+    public PauseMs PauseMs { get; set; }
 
     [JsonPropertyName("SignalRHubUrl")]
     public string SignalRHubUrl { get; set; } = string.Empty;
@@ -153,7 +153,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public string OLabRestApiUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("MapTrail")]
-    public MapTrail? MapTrail { get; set; }
+    public MapTrail MapTrail { get; set; }
 
     [JsonPropertyName("Participants")]
     public List<Participant> Participants { get; set; }
@@ -161,11 +161,28 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
   public class TurkTalkTrail
   {
+    [JsonPropertyName("QuestionId")]
+    public uint QuestionId { get; set; }
+
+    [JsonPropertyName("RoomName")]
+    public string RoomName{ get; set; }
+
     [JsonPropertyName("MessageCount")]
-    public int? MessageCount { get; set; }
+    public int MessageCount { get; set; }
 
     [JsonPropertyName("PauseMs")]
-    public PauseMs? PauseMs { get; set; }
+    public PauseMs PauseMs { get; set; }
+
+    public int GetDelayMs( NodeTrail nodeTrail)
+    {
+      if (PauseMs != null)
+        return PauseMs.GetDelayMs();
+
+      if ( nodeTrail.PauseMs != null)
+        return nodeTrail.PauseMs.GetDelayMs();
+
+      return 10000;
+    }
   }
 
 }

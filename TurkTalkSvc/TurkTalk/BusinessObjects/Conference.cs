@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OLabWebAPI.Services.TurkTalk;
 using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.TurkTalk.Methods;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;

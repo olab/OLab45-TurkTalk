@@ -1,6 +1,6 @@
 ﻿using Common.Utils;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Services.TurkTalk.Contracts;
+using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
 using System;
 using System.Threading.Tasks;

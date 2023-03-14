@@ -9,7 +9,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 {
   internal class Program
   {
-    public static IConfiguration? Configuration { get; set; }
+    public static IConfiguration Configuration { get; set; }
     private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
 
     static void Main(string[] args)

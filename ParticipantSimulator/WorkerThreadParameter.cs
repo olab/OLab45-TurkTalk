@@ -20,8 +20,8 @@ public class WorkerThreadParameter
 
   public ConcurrentBag<KeyValuePair<string, string>> Statuses { get; set; }
   public Participant Participant { get; set; }
-  public CountdownEvent? CountdownEvent { get; internal set; }
+  public CountdownEvent CountdownEvent { get; internal set; }
   public Settings Settings { get; internal set; }
-  public Random? Rnd { get; internal set; }
+  public Random Rnd { get; internal set; }
   public NLog.ILogger Logger { get; internal set; }
 }

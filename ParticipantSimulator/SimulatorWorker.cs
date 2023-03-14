@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using NLog;
+using OLabWebAPI.Dto;
+using OLabWebAPI.Model;
 
 namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
 {
@@ -52,8 +54,8 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
               Logger = _logger
             };
 
-            // create and dispatch the thread
-            ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessParticipantProcAsync), workerThreadParam);
+            var proc = new ParticipantThread(workerThreadParam);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(o => proc.RunProc()), workerThreadParam);
           }
 
           // Decrease the counter (as it was initialized with the value 1).
