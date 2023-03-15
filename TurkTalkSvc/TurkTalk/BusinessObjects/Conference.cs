@@ -78,7 +78,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       else
         Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
 
-      HubContext.Clients.Group(groupName).SendAsync(method.MethodName, method.ToJson());
+      HubContext.Clients.Group(groupName).SendAsync(method.MethodName, method);
 
     }
 

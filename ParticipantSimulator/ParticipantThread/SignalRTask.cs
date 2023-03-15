@@ -47,9 +47,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       // wait until attendee is assigned.
       while (!_roomAssigned)
-        Thread.Sleep(1000);
+      {
+        _logger.Info($"{_param.Participant.UserId} thread: checking for room assignment...");
+        Thread.Sleep(10000);
+      }
 
-      if (!await SendMessagesAsync(connection, nodeTrail))
+      _logger.Info($"{_param.Participant.UserId} thread: room assigned");
+
+      if (!await SendMessagesAsync(connection, _param.Participant, nodeTrail))
         throw new Exception("Failure sending messages");
 
       return true;
@@ -66,57 +71,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       _logger.Info($"{_param.Participant.UserId} thread: created TTalk connection.");
 
-      connection.Closed += error =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: Connection closed");
-
-        Debug.Assert(connection.State == HubConnectionState.Disconnected);
-
-        // Notify users the connection has been closed or manually try to restart the connection.
-        return Task.CompletedTask;
-      };
-
-      connection.Reconnecting += error =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: Reconnecting");
-
-        Debug.Assert(connection.State == HubConnectionState.Reconnecting);
-
-        // Notify users the connection was lost and the client is reconnecting.
-        // Start queuing or dropping messages.
-        return Task.CompletedTask;
-      };
-
-      connection.Reconnected += connectionId =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: Reconnected");
-
-        Debug.Assert(connection.State == HubConnectionState.Connected);
-
-        // Notify users the connection was reestablished.
-        // Start dequeuing messages queued while reconnecting if any.
-        return Task.CompletedTask;
-      };
-
-      connection.On<string>("Command", (payload) =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: command received {payload}");
-
-        OnCommandCallback(connection, payload);
-        return Task.CompletedTask;
-      });
-
-      connection.On<string, string, string>("message", (data, sessionId, from) =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: message {data} from {from}");
-        return Task.CompletedTask;
-      });
-
-      connection.On<string, string, string>("jumpnode", (data, sessionId, from) =>
-      {
-        _logger.Info($"{_param.Participant.UserId} thread: jumpnode {data} from {from}");
-        return Task.CompletedTask;
-      });
+      EventCallbacks(connection);
+      MethodCallbacks(connection);
 
       return connection;
     }
@@ -171,8 +127,19 @@ namespace OLab.TurkTalk.ParticipantSimulator
       return true;
     }
 
+    private string lorenIpsum = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+    private static Random rnd = new Random();
+
+    private string RandomText()
+    {
+      int start = rnd.Next(0, lorenIpsum.Length-20);
+      int end = rnd.Next(0, 20);
+      return lorenIpsum.Substring(start, end);
+    }
+
     private async Task<bool> SendMessagesAsync(
       HubConnection connection,
+      Participant participant,
       NodeTrail nodeTrail)
     {
       if (nodeTrail.TurkTalkTrail == null)
@@ -180,12 +147,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       for (int i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++)
       {
-        var message = $"Sim message {i}";
+        var message = $"#{i+1}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
 
         int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
         Thread.Sleep(sleepMs);
 
-        _logger.Info($"{_param.Participant.UserId} thread: sending message '{message}'");
+        _logger.Info($"{_param.Participant.UserId} thread: sending message #{i+1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
 
         var payload = new MessagePayload
         {
