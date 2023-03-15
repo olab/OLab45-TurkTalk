@@ -2,6 +2,9 @@ using HubServiceInterfaces;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.TurkTalk.Methods;
 
 namespace Clients.ConsoleTwo
 {
@@ -19,14 +22,27 @@ namespace Clients.ConsoleTwo
           .WithUrl(Strings.HubUrl)
           .Build();
 
-      _connection.On<DateTime>(Strings.Events.TimeSent, ShowTime);
+      _connection.On<string>(Strings.Events.TimeSent, Command);
     }
 
-    public Task ShowTime(DateTime currentTime)
+    public async Task Command(string payload)
     {
-      _logger.LogInformation("{CurrentTime}", currentTime.ToShortTimeString());
+      try
+      {
+        _logger.LogInformation($"{DateTime.UtcNow.ToShortTimeString()} {payload}");
+        var method = JsonConvert.DeserializeObject<AtriumAssignmentCommand>(payload);
 
-      return Task.CompletedTask;
+        await _connection.InvokeAsync("ReceiveEcho", payload);
+
+      }
+      catch (Exception ex)
+      {
+        _logger.LogInformation($"{ex.Message}");
+        throw;
+      }
+
+
+      return;
     }
     #endregion
 

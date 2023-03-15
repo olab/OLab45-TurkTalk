@@ -2,10 +2,10 @@ namespace HubServiceInterfaces;
 
 public static class Strings
 {
-    public static string HubUrl => "https://localhost:51898/hubs/clock";
+    public static string HubUrl => "https://localhost:5002/hubs/clock";
 
     public static class Events
     {
-        public static string TimeSent => nameof(IClock.ShowTime);
+        public static string TimeSent => nameof(IClock.Command);
     }
 }

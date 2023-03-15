@@ -98,11 +98,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
         return Task.CompletedTask;
       };
 
-      connection.On<AtriumAssignmentCommand>("command", (method) =>
+      connection.On<string>("Command", (payload) =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: command received {method.MethodName}");
+        _logger.Info($"{_param.Participant.UserId} thread: command received {payload}");
 
-        OnCommandCallback(connection, method);
+        OnCommandCallback(connection, payload);
         return Task.CompletedTask;
       });
 
@@ -166,7 +166,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       await connection.InvokeAsync("registerAttendee", payload);
 
-      _logger.Info($"{_param.Participant.UserId} thread: register attendee for room '{payload.RoomName}'.");
+      _logger.Info($"{_param.Participant.UserId} thread: registered attendee for room '{payload.RoomName}'.");
 
       return true;
     }

@@ -24,50 +24,42 @@ namespace OLab.TurkTalk.ParticipantSimulator
 {
   public partial class ParticipantThread
   {
-    private Task OnCommandCallback(HubConnection connection, CommandMethod method)
+    private Task OnCommandCallback(HubConnection connection, string payload)
     {
-      if (method.MethodName == "atriumassignment")
-        OnAtriumAssignmentCallback(connection, method);
+      var method = System.Text.Json.JsonSerializer.Deserialize<CommandMethod>(payload);
 
-      else if (method.MethodName == "roomassignment")
-        OnRoomAssignmentCallback(connection, method);
+      if (method.Command == "atriumassignment")
+        OnAtriumAssignmentCallback(connection, payload);
 
-      else if (method.MethodName == "learnerunassignment")
-        OnLearnerUnassignedCallback(connection, method);
+      else if (method.Command == "roomassignment")
+        OnRoomAssignmentCallback(connection, payload);
+
+      else if (method.Command == "learnerunassignment")
+        OnLearnerUnassignedCallback(connection, payload);
 
       return Task.CompletedTask;
     }
 
-    private void OnAtriumAssignmentCallback(HubConnection connection, CommandMethod method)
+    private void OnAtriumAssignmentCallback(HubConnection connection, string payload)
     {
-      var payload = (method as AtriumAssignmentCommand).Data;
+      _logger.Info($"{_param.Participant.UserId} thread: atriumassignment {payload}");
+      var method = System.Text.Json.JsonSerializer.Deserialize<AtriumAssignmentCommand>(payload);
 
-      var options = new JsonSerializerOptions { WriteIndented = false };
-      string jsonString = System.Text.Json.JsonSerializer.Serialize(payload, options);
-
-      _logger.Info($"{_param.Participant.UserId} thread: atriumassignment {jsonString}");
-
-      _learner = payload;
+      _learner = method.Data;
     }
 
-    private void OnRoomAssignmentCallback(HubConnection connection, CommandMethod method)
+    private void OnRoomAssignmentCallback(HubConnection connection, string payload)
     {
-      var payload = ( method as RoomAssignmentCommand).Data;
-
-      var options = new JsonSerializerOptions { WriteIndented = false };
-      string jsonString = System.Text.Json.JsonSerializer.Serialize(payload, options);
-      _logger.Info($"{_param.Participant.UserId} thread: roomassignment {jsonString}");
+      _logger.Info($"{_param.Participant.UserId} thread: roomassignment {payload}");
+      var method = System.Text.Json.JsonSerializer.Deserialize<RoomAssignmentCommand>(payload);
 
       _roomAssigned = true;
     }
 
-    private void OnLearnerUnassignedCallback(HubConnection connection, CommandMethod method)
+    private void OnLearnerUnassignedCallback(HubConnection connection, string payload)
     {
-      var payload = ( method as RoomUnassignmentCommand).Data;
-
-      var options = new JsonSerializerOptions { WriteIndented = false };
-      string jsonString = System.Text.Json.JsonSerializer.Serialize(payload, options);
-      _logger.Info($"{_param.Participant.UserId} thread: roomunassignment {jsonString}");
+      _logger.Info($"{_param.Participant.UserId} thread: roomassignment {payload}");
+      var method = System.Text.Json.JsonSerializer.Deserialize<RoomUnassignmentCommand>(payload);
 
       _roomAssigned = true;    }
   }

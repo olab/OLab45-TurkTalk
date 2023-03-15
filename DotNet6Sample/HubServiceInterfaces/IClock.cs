@@ -1,8 +1,10 @@
-﻿namespace HubServiceInterfaces;
+﻿using OLabWebAPI.TurkTalk.Commands;
+
+namespace HubServiceInterfaces;
 
 #region IClock
 public interface IClock
 {
-    Task ShowTime(DateTime currentTime);
+    Task Command(string payload);
 }
 #endregion
