@@ -132,9 +132,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     private string RandomText()
     {
-      int start = rnd.Next(0, lorenIpsum.Length-20);
-      int end = rnd.Next(0, 20);
-      return lorenIpsum.Substring(start, end);
+      var parts = lorenIpsum.Split(' ');
+      int start = rnd.Next(0, parts.Length - 10);
+      int end = rnd.Next(0, 10);
+
+      var subParts = parts.Skip(start).Take(end).ToArray();
+      return string.Join(" ", subParts);
     }
 
     private async Task<bool> SendMessagesAsync(
