@@ -51,6 +51,17 @@ public class Moderator
 
     return 10000;
   }
+
+  public MapTrail GetMapTrail(Settings settings)
+  {
+    if (MapTrail != null)
+      return MapTrail;
+
+    if (settings.MapTrail != null)
+      return settings.MapTrail;
+
+    throw new Exception("Missing MapTrail setting");
+  }
 }
 
 public class NodeTrail
@@ -108,6 +119,16 @@ public class Settings
   [JsonPropertyName("Moderators")]
   public List<Moderator> Moderators { get; set; }
 
+  [JsonPropertyName("MapTrail")]
+  public MapTrail MapTrail { get; set; }
+
+  private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+
+  public CancellationToken GetToken()
+  {
+    return CancelTokenSource.Token;
+  }
+
   public int GetDelayMs()
   {
     if (PauseMs != null)
@@ -126,7 +147,7 @@ public class TurkTalkTrail
   public string RoomName { get; set; }
 
   [JsonPropertyName("MessageCount")]
-  public string MessageCount { get; set; }
+  public int MessageCount { get; set; }
 
   [JsonPropertyName("AutoAccept")]
   public bool AutoAccept { get; set; }
@@ -140,13 +161,10 @@ public class TurkTalkTrail
   [JsonPropertyName("Participants")]
   public List<Participant> Participants { get; set; }
 
-  public int GetDelayMs(Settings settings, MapTrail mapTrail)
+  public int GetDelayMs(Settings settings)
   {
     if (PauseMs != null)
       return PauseMs.GetDelayMs();
-
-    if (mapTrail.PauseMs != null)
-      return mapTrail.PauseMs.GetDelayMs();
 
     if (settings.PauseMs != null)
       return settings.PauseMs.GetDelayMs();
