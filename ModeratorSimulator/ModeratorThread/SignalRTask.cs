@@ -71,8 +71,8 @@ namespace OLab.TurkTalk.ModeratorSimulator
 
       _logger.Info($"{_param.Moderator.UserId} thread: created TTalk connection.");
 
-      //EventCallbacks(connection);
-      //MethodCallbacks(connection);
+      EventCallbacks(connection);
+      MethodCallbacks(connection);
 
       return connection;
     }

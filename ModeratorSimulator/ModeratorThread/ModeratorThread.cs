@@ -39,6 +39,8 @@ namespace OLab.TurkTalk.ModeratorSimulator
           return;
         }
 
+        _room = new SignalRRoom( _param , _logger, _authInfo );
+
         var mapPlayTask = MapPlayTaskAsync();
         mapPlayTask.Wait();
 

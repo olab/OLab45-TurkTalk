@@ -125,8 +125,6 @@ namespace OLab.TurkTalk.ParticipantSimulator
       Participants = new List<Participant>();
     }
 
-    private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-
     public CancellationToken GetToken()
     {
       return CancelTokenSource.Token;
@@ -139,6 +137,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       return 10000;
     }
+
+    private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
 
     [JsonPropertyName("LogDirectory")]
     public string LogDirectory { get; set; } = string.Empty;
