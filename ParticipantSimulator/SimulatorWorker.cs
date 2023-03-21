@@ -34,6 +34,10 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
       {
         Random rnd = new Random();
 
+        // see if users need to be generated
+        if (_settings.ParticipantInfo != null)
+          GenerateParticipants();
+
         // set up a thread execution counter. Needs to be set to '1'
         // initially so it can be incremented without error
         using (CountdownEvent cde = new CountdownEvent(1))
@@ -72,5 +76,37 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
 
     }
 
+    private void GenerateParticipants()
+    {
+      // wipe existing participant list, if present
+      _settings.Participants.Clear();
+
+      int indexWidth = _settings.ParticipantInfo.UserIdPrefix.Count(x => x == '#');
+      var userIdPrefix = _settings.ParticipantInfo.UserIdPrefix.Replace("#", "");
+
+      PauseMs pauseMs = new PauseMs();
+
+      if (_settings.ParticipantInfo.PauseMs != null)
+        pauseMs = _settings.ParticipantInfo.PauseMs;
+      else
+        pauseMs = _settings.PauseMs;
+
+      for (int i = 1; i <= _settings.ParticipantInfo.NumUsers; i++)
+      {
+        var index = i.ToString($"D{indexWidth}");
+        var userId = $"{userIdPrefix}{index}";
+
+        _logger.Info($"generating user {userId}");
+
+        _settings.Participants.Add(
+          new Participant
+          {
+            UserId = userId,
+            Password = _settings.ParticipantInfo.Password,
+            PauseMs = pauseMs
+          }
+          );
+      }
+    }
   }
 }

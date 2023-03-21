@@ -155,8 +155,37 @@ namespace OLab.TurkTalk.ParticipantSimulator
     [JsonPropertyName("MapTrail")]
     public MapTrail MapTrail { get; set; }
 
-    [JsonPropertyName("Participants")]
+    [JsonPropertyName("ParticipantInfo")]
+    public ParticipantInfo ParticipantInfo{ get; set; }
+
+    [JsonPropertyName("ParticipantList")]
     public List<Participant> Participants { get; set; }
+  }
+
+  public class ParticipantInfo
+  {
+    [JsonPropertyName("UserIdPrefix")]
+    public string UserIdPrefix { get; set; }
+
+    [JsonPropertyName("Password")]
+    public string Password { get; set; }
+
+    [JsonPropertyName("NumUsers")]
+    public int NumUsers { get; set; }
+
+    [JsonPropertyName("PauseMs")]
+    public PauseMs PauseMs { get; set; }
+
+    public int GetDelayMs(Settings settings)
+    {
+      if (PauseMs != null)
+        return PauseMs.GetDelayMs();
+
+      if (settings.PauseMs != null)
+        return settings.PauseMs.GetDelayMs();
+
+      return 10000;
+    }
   }
 
   public class TurkTalkTrail
@@ -165,7 +194,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     public uint QuestionId { get; set; }
 
     [JsonPropertyName("RoomName")]
-    public string RoomName{ get; set; }
+    public string RoomName { get; set; }
 
     [JsonPropertyName("MessageCount")]
     public int MessageCount { get; set; }
@@ -173,12 +202,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
     [JsonPropertyName("PauseMs")]
     public PauseMs PauseMs { get; set; }
 
-    public int GetDelayMs( NodeTrail nodeTrail)
+    public int GetDelayMs(NodeTrail nodeTrail)
     {
       if (PauseMs != null)
         return PauseMs.GetDelayMs();
 
-      if ( nodeTrail.PauseMs != null)
+      if (nodeTrail.PauseMs != null)
         return nodeTrail.PauseMs.GetDelayMs();
 
       return 10000;

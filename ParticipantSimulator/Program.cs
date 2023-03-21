@@ -32,8 +32,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
       if (settings == null)
         throw new ArgumentException("Could not load settings");
 
-      if ( settings.LogDirectory == null)
-        LogManager.Configuration.Variables["logdirectory"] 
+      if (settings.LogDirectory == null)
+        LogManager.Configuration.Variables["logdirectory"]
           = System.Reflection.Assembly.GetExecutingAssembly().Location;
       else
         LogManager.Configuration.Variables["logdirectory"]
