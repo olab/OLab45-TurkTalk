@@ -33,7 +33,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         return true;
 
       var tmpToken = $"{_authInfo.AuthInfo.Token.Substring(0, 5)}***";
-      _logger.Info($"{_param.Participant.UserId} thread: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}");
+      _logger.Info($"{_param.Participant.UserId}: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}");
 
       var connection = SetupConnection();
 
@@ -48,14 +48,18 @@ namespace OLab.TurkTalk.ParticipantSimulator
       // wait until attendee is assigned.
       while (!_roomAssigned)
       {
-        _logger.Info($"{_param.Participant.UserId} thread: checking for room assignment...");
+        _logger.Info($"{_param.Participant.UserId}: checking for room assignment...");
         Thread.Sleep(10000);
       }
 
-      _logger.Info($"{_param.Participant.UserId} thread: room assigned");
+      _logger.Info($"{_param.Participant.UserId}: room assigned");
 
       if (!await SendMessagesAsync(connection, _param.Participant, nodeTrail))
         throw new Exception("Failure sending messages");
+
+      _logger.Info($"{_param.Participant.UserId}: signalR task completed");
+
+      await connection.StopAsync();
 
       return true;
     }
@@ -69,7 +73,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         .WithUrl(url)
         .Build();
 
-      _logger.Info($"{_param.Participant.UserId} thread: created TTalk connection.");
+      _logger.Info($"{_param.Participant.UserId}: created TTalk connection.");
 
       EventCallbacks(connection);
       MethodCallbacks(connection);
@@ -86,12 +90,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
       {
         try
         {
-          _logger.Info($"{_param.Participant.UserId} thread: connecting to SignalR.");
+          _logger.Info($"{_param.Participant.UserId}: connecting to SignalR.");
 
           await connection.StartAsync(token);
           Debug.Assert(connection.State == HubConnectionState.Connected);
 
-          _logger.Info($"{_param.Participant.UserId} thread: connected to SignalR.  connectionId: {connection.ConnectionId}");
+          _logger.Info($"{_param.Participant.UserId}: connected to SignalR.  connectionId: {connection.ConnectionId}");
 
           return true;
         }
@@ -101,7 +105,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch
         {
-          _logger.Info($"{_param.Participant.UserId} thread: failed to connect, trying again in 5000 ms.");
+          _logger.Info($"{_param.Participant.UserId}: failed to connect, trying again in 5000 ms.");
 
           Debug.Assert(connection.State == HubConnectionState.Disconnected);
           await Task.Delay(5000, token);
@@ -122,7 +126,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       await connection.InvokeAsync("registerAttendee", payload);
 
-      _logger.Info($"{_param.Participant.UserId} thread: registered attendee for room '{payload.RoomName}'.");
+      _logger.Info($"{_param.Participant.UserId}: registered attendee for room '{payload.RoomName}'.");
 
       return true;
     }
@@ -155,7 +159,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
         Thread.Sleep(sleepMs);
 
-        _logger.Info($"{_param.Participant.UserId} thread: sending message #{i+1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
+        _logger.Info($"{_param.Participant.UserId}: sending message #{i+1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
 
         var payload = new MessagePayload
         {
@@ -177,6 +181,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
           "Message",
           payload);
       }
+
+      _logger.Info($"{_param.Participant.UserId}: all messages completed");
 
       return true;
     }

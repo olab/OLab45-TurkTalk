@@ -35,7 +35,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         _authInfo = loginTask.Result;
         if (_authInfo == null)
         {
-          _logger.Error($"{_param.Participant.UserId} thread: unable to login");
+          _logger.Error($"{_param.Participant.UserId}: unable to login");
           return;
         }
 
@@ -45,7 +45,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
       }
       catch (Exception ex)
       {
-        _logger.Error($"{_param.Participant.UserId} thread: exception '{ex.Message}'");
+        _logger.Error($"{_param.Participant.UserId}: exception '{ex.Message}'");
       }
       finally
       {

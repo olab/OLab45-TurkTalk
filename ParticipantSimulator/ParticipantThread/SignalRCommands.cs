@@ -49,7 +49,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         var json = payload.ToString();
 
         var commandMethod = JsonConvert.DeserializeObject<CommandMethod>(json);
-        _logger.Info($"{_param.Participant.UserId} thread: command received: {commandMethod.Command}");
+        _logger.Info($"{_param.Participant.UserId}: command received: {commandMethod.Command}");
 
         if (commandMethod.Command == "atriumassignment")
           OnAtriumAassignedCommand(json);
@@ -65,13 +65,13 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.On<string, string, string>("message", (data, sessionId, from) =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: message {data} from {from}");
+        _logger.Info($"{_param.Participant.UserId}: message {data} from {from}");
         return Task.CompletedTask;
       });
 
       connection.On<string, string, string>("jumpnode", (data, sessionId, from) =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: jumpnode {data} from {from}");
+        _logger.Info($"{_param.Participant.UserId}: jumpnode {data} from {from}");
         return Task.CompletedTask;
       });
     }

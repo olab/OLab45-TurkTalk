@@ -57,7 +57,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       var url = $"maps/{mapId}";
 
-      _logger.Debug($"{_param.Participant.UserId} thread: get map url: {url}");
+      _logger.Debug($"{_param.Participant.UserId}: get map url: {url}");
 
       HttpResponseMessage response = await _client.GetAsync(url);
       response.EnsureSuccessStatusCode();

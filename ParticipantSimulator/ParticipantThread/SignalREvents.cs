@@ -28,7 +28,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       connection.Closed += error =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: Connection closed");
+        _logger.Info($"{_param.Participant.UserId}: Connection closed");
 
         Debug.Assert(connection.State == HubConnectionState.Disconnected);
 
@@ -38,7 +38,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnecting += error =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: Reconnecting");
+        _logger.Info($"{_param.Participant.UserId}: Reconnecting");
 
         Debug.Assert(connection.State == HubConnectionState.Reconnecting);
 
@@ -49,7 +49,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnected += connectionId =>
       {
-        _logger.Info($"{_param.Participant.UserId} thread: Reconnected");
+        _logger.Info($"{_param.Participant.UserId}: Reconnected");
 
         Debug.Assert(connection.State == HubConnectionState.Connected);
 

@@ -19,12 +19,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       int sleepMs = _param.Rnd.Next(0, _param.Participant.GetDelayMs(_param.Settings));
 
-      _logger.Debug($"{_param.Participant.UserId} thread: sleeping for {sleepMs} ms");
+      _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms");
 
       // pause for a random time up to a max time 
       Thread.Sleep(sleepMs);
 
-      _logger.Info($"{_param.Participant.UserId} thread: logging in");
+      _logger.Info($"{_param.Participant.UserId}: logging in");
 
       var olabClient = new OLabHttpClient(_param, null);
       var loginResult = await olabClient.LoginAsync(new LoginRequest
@@ -33,7 +33,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         Password = _param.Participant.Password
       });
 
-      _logger.Info($"{_param.Participant.UserId} thread: logged into OLab");
+      _logger.Info($"{_param.Participant.UserId}: logged into OLab");
 
       return loginResult;
     }
