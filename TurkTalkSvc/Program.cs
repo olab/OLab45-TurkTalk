@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace OLabWebAPI
+namespace TurkTalkSvc
 {
   public class Program
   {

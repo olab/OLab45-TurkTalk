@@ -16,7 +16,7 @@ using OLabWebAPI.Utils;
 using IOLabSession = OLabWebAPI.Data.Interface.IOLabSession;
 using IUserService = OLabWebAPI.Services.IUserService;
 
-namespace OLabWebAPI
+namespace TurkTalkSvc
 {
   public class Startup
   {
