@@ -51,7 +51,8 @@ namespace TurkTalkSvc
         builder.ClearProviders();
         builder.AddConsole(configure =>
         {
-          configure.FormatterName = ConsoleFormatterNames.Simple;
+          //configure.FormatterName = ConsoleFormatterNames.Simple;
+          configure.FormatterName = ConsoleFormatterNames.Systemd;
         });
         builder.AddConfiguration(config);
       });
