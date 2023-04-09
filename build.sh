@@ -3,15 +3,14 @@ cd ../Common
 find . -type d -name bin -ls -exec rm -Rf {} \; > /dev/null
 find . -type d -name obj -ls -exec rm -Rf {} \; > /dev/null
 git pull
-cd ../Api
+cd ../TurkTalkSvc
 git pull
-service olab46api stop
+service olab46ttalk stop
 find . -type d -name bin -ls -exec rm -Rf {} \;
 find . -type d -name obj -ls -exec rm -Rf {} \;
-cd WebApiService
-ln -s /opt/olab46/api bin
-cd ..
-dotnet clean OLab4WebApi.sln
-dotnet build -c Release OLab4WebApi.sln
-service olab46api start
-service olab46api status
+cd TurkTalkSvc
+ln -s /opt/olab46/ttalk bin
+dotnet clean TurkTalkSvc.sln
+dotnet build -c Release TurkTalkSvc.sln
+service olab46ttalk start
+service olab46ttalk status

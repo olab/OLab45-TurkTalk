@@ -16,7 +16,7 @@ using OLabWebAPI.Utils;
 using IOLabSession = OLabWebAPI.Data.Interface.IOLabSession;
 using IUserService = OLabWebAPI.Services.IUserService;
 
-namespace OLabWebAPI
+namespace TurkTalkSvc
 {
   public class Startup
   {
@@ -51,7 +51,8 @@ namespace OLabWebAPI
         builder.ClearProviders();
         builder.AddConsole(configure =>
         {
-          configure.FormatterName = ConsoleFormatterNames.Simple;
+          //configure.FormatterName = ConsoleFormatterNames.Simple;
+          configure.FormatterName = ConsoleFormatterNames.Systemd;
         });
         builder.AddConfiguration(config);
       });
