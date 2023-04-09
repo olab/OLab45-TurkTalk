@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLabWebAPI.Data;
-using OLabWebAPI.Services.TurkTalk.Contracts;
+using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
 using OLabWebAPI.TurkTalk.Commands;
-using OLabWebAPI.TurkTalk.Contracts;
 using System;
 
 namespace OLabWebAPI.Services.TurkTalk
@@ -54,7 +53,7 @@ namespace OLabWebAPI.Services.TurkTalk
       }
       catch (Exception ex)
       {
-        _logger.LogError($"AssignAttendeeASync exception: {ex.Message}");
+        _logger.LogError($"Message exception: {ex.Message}");
       }
     }
   }

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Services.TurkTalk.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Contracts;
+using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.Common.Contracts;
 using System;
 using System.Text.Json;
 
@@ -32,7 +32,7 @@ namespace OLabWebAPI.Services.TurkTalk
 
         // dispatch message
         topic.Conference.SendMessage(
-          new JumpNodeMethod(payload));
+          new JumpNodeCommand(payload));
 
       }
       catch (Exception ex)

@@ -1,16 +1,16 @@
 ﻿using Common.Utils;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Services.TurkTalk.Contracts;
+using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
 using System;
 using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// A connection is disconnected from the Hub
