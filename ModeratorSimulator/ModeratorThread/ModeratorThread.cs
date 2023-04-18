@@ -35,7 +35,7 @@ namespace OLab.TurkTalk.ModeratorSimulator
         _authInfo = loginTask.Result;
         if (_authInfo == null)
         {
-          _logger.Error($"{_param.Moderator.UserId} thread: unable to login");
+          _logger.Error($"{_param.Moderator.UserId}: unable to login");
           return;
         }
 
@@ -47,7 +47,7 @@ namespace OLab.TurkTalk.ModeratorSimulator
       }
       catch (Exception ex)
       {
-        _logger.Error($"{_param.Moderator.UserId} thread: exception '{ex.Message}'");
+        _logger.Error($"{_param.Moderator.UserId}: exception '{ex.Message}'");
       }
       finally
       {

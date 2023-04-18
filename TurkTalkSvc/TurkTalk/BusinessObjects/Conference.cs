@@ -61,6 +61,27 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     }
 
     /// <summary>
+    /// Send message payload to single client
+    /// </summary>
+    /// <param name="connectionId">connection id to transmit payload to</param>
+    /// <param name="method">message payload</param>
+    public void SendMessage(string connectionId, Method method )
+    {
+      var groupName = method.CommandChannel;
+      Guard.Argument(groupName).NotEmpty(groupName);
+
+      if (method is CommandMethod)
+      {
+        var commandMethod = method as CommandMethod;
+        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+      }
+      else
+        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
+
+      HubContext.Clients.Client(connectionId).SendAsync(method.MethodName, method);
+    }
+
+    /// <summary>
     /// Send message payload to group
     /// </summary>
     /// <param name="groupName">group name id to transmit payload to</param>

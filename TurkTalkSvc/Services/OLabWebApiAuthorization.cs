@@ -26,6 +26,11 @@ namespace OLabWebAPI.Services
 
         }
 
+        public IUserContext GetUserContext()
+        {
+            return userContext;
+        }
+
         public IActionResult HasAccess(string acl, ScopedObjectDto dto)
         {
             // test if user has access to write to parent.

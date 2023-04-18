@@ -24,36 +24,36 @@ namespace OLab.TurkTalk.ModeratorSimulator
 {
   public partial class ModeratorThread
   {
-    private void EventCallbacks(HubConnection connection)
+    private void EventCallbacks()
     {
-      connection.Closed += error =>
+      _connection.Closed += error =>
       {
-        _logger.Info($"{_param.Moderator.UserId} thread: Connection closed");
+        _logger.Info($"{_param.Moderator.UserId}: Connection closed");
 
-        Debug.Assert(connection.State == HubConnectionState.Disconnected);
+        Debug.Assert(_connection.State == HubConnectionState.Disconnected);
 
-        // Notify users the connection has been closed or manually try to restart the connection.
+        // Notify users the _connection has been closed or manually try to restart the _connection.
         return Task.CompletedTask;
       };
 
-      connection.Reconnecting += error =>
+      _connection.Reconnecting += error =>
       {
-        _logger.Info($"{_param.Moderator.UserId} thread: Reconnecting");
+        _logger.Info($"{_param.Moderator.UserId}: Reconnecting");
 
-        Debug.Assert(connection.State == HubConnectionState.Reconnecting);
+        Debug.Assert(_connection.State == HubConnectionState.Reconnecting);
 
-        // Notify users the connection was lost and the client is reconnecting.
+        // Notify users the _connection was lost and the client is reconnecting.
         // Start queuing or dropping messages.
         return Task.CompletedTask;
       };
 
-      connection.Reconnected += connectionId =>
+      _connection.Reconnected += connectionId =>
       {
-        _logger.Info($"{_param.Moderator.UserId} thread: Reconnected");
+        _logger.Info($"{_param.Moderator.UserId}: Reconnected");
 
-        Debug.Assert(connection.State == HubConnectionState.Connected);
+        Debug.Assert(_connection.State == HubConnectionState.Connected);
 
-        // Notify users the connection was reestablished.
+        // Notify users the _connection was reestablished.
         // Start dequeuing messages queued while reconnecting if any.
         return Task.CompletedTask;
       };

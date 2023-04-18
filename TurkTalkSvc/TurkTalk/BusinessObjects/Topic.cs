@@ -1,5 +1,6 @@
 using Dawn;
 using Microsoft.Extensions.Logging;
+using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.Commands;
 using OLabWebAPI.Utils;
 using System;
@@ -351,6 +352,18 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       try
       {
         atriumMutex.WaitOne();
+
+        // test for duplicate learner login
+        if (_atrium.AtriumLearners.Values.Any(x => (x.UserId == participant.UserId) && (x.RemoteIpAddress != participant.RemoteIpAddress)))
+        {
+          Conference.SendMessage(
+            participant.ConnectionId,
+            new LearnerMessageCommand(
+              new MessagePayload(
+                participant,
+                $"User is already logged in. Unable to connect.")));
+          return;
+        }
 
         // add/replace Participant in atrium
         var learnerReplaced = _atrium.Upsert(participant);

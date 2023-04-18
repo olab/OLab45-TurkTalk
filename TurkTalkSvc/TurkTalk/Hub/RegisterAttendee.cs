@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Register attendee to room
@@ -30,7 +30,7 @@ namespace OLabWebAPI.Services.TurkTalk
 
         var learner = new Learner(payload, Context);
 
-        _logger.LogDebug($"RegisterAttendee: room: {payload.ToJson()} '{learner.CommandChannel} ({ConnectionId.Shorten(Context.ConnectionId)})");
+        _logger.LogDebug($"RegisterAttendee: room: {payload.ToJson()} '{learner.CommandChannel} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);
@@ -47,7 +47,6 @@ namespace OLabWebAPI.Services.TurkTalk
         // user already 'known' to an existing room
         else
         {
-
           // if room has no moderator (i.e. moderator may have
           // disconnected) add the attendee to the topic atrium
           if (room.Moderator == null)

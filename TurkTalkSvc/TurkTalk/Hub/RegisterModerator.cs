@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Register moderator to atrium
@@ -29,9 +29,10 @@ namespace OLabWebAPI.Services.TurkTalk
       {
         Guard.Argument(roomName).NotNull(nameof(roomName));
 
-        _logger.LogInformation($"RegisterModerator: '{roomName}', {isBot} ({ConnectionId.Shorten(Context.ConnectionId)})");
-
         var moderator = new Moderator(roomName, Context);
+
+        _logger.LogInformation($"RegisterModerator: '{roomName}', {isBot} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
+
         Room room = _conference.GetCreateTopicRoom(moderator);
 
         // add room index to moderator info

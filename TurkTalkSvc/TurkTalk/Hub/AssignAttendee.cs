@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Moderator assigns a learner (remove from atrium)
@@ -53,7 +53,10 @@ namespace OLabWebAPI.Services.TurkTalk
 
         Room room = topic.GetRoom(roomName);
         if (room != null)
-          await room.AddLearnerAsync(learner);
+        {
+          if (!(await room.AddLearnerAsync(learner) ) )
+            return;
+        }
 
         // add the moderator to the newly
         // assigned learner's group name
@@ -64,7 +67,7 @@ namespace OLabWebAPI.Services.TurkTalk
         // post a message to the learner that they've
         // been assigned to a room
         topic.Conference.SendMessage(
-          new RoomAssignmentCommand(learner, room.Moderator ));
+          new RoomAssignmentCommand(learner, room.Moderator));
 
       }
       catch (Exception ex)

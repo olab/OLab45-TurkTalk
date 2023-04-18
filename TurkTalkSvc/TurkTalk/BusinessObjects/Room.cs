@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace OLabWebAPI.TurkTalk.BusinessObjects
 {
@@ -52,7 +53,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="learnerName">Learner user name</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task AddLearnerAsync(Learner learner)
+    internal async Task<bool> AddLearnerAsync(Learner learner)
     {
       try
       {
@@ -60,6 +61,19 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         learner.AssignToRoom(_index);
 
         _learners.Lock();
+
+        // test if duplicate learner logging in. If so, then
+        // we need to reject the request.
+        if (IsDuplicateLearner(learner))
+        {
+          _topic.Conference.SendMessage(
+            learner.ConnectionId,
+            new LearnerMessageCommand(
+              new MessagePayload(
+                learner,
+                $"User is already logged in. Unable to connect.")));
+          return false;
+        }
 
         // associate Participant connection to participate group
         await _topic.Conference.AddConnectionToGroupAsync(learner);
@@ -80,6 +94,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         _learners.Unlock();
       }
 
+      return true;
     }
 
     /// <summary>
@@ -89,6 +104,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="mapId">Map id for topic</param>
     internal async Task AddModeratorAsync(Moderator moderator, uint mapId, uint nodeId)
     {
+      // test if duplicate moderator logging in. If so, then
+      // we need to reject the request.
+      if (IsDuplicateModerator(moderator))
+        throw new Exception("Multiple logins not supported");
+
       if (!IsModerated)
         _moderator = moderator;
 
@@ -123,7 +143,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
       // notify all learners in room of
       // moderator (re)connection
-      foreach (Learner learner in learners )
+      foreach (Learner learner in learners)
         _topic.Conference.SendMessage(
             new RoomAssignmentCommand(learner));
     }
@@ -231,7 +251,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     }
 
     /// <summary>
-    /// TESt if Participant exists in room
+    /// Test if Participant exists in room
     /// </summary>
     /// <param name="participant">Participant to look for</param>
     /// <returns>true/false</returns>
@@ -252,5 +272,45 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       return found;
     }
 
+    /// <summary>
+    /// Test for duplicate moderator login (from another machine)
+    /// </summary>
+    /// <param name="testModerator">Moderator to test</param>
+    /// <returns>true/false</returns>
+    internal bool IsDuplicateModerator(Moderator testModerator)
+    {
+      if (!IsModerated)
+        return false;
+
+      if ((_moderator.UserId == testModerator.UserId) &&
+           (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress))
+      {
+        Logger.LogDebug($"Duplicate moderator '{testModerator.UserId}' login detected from different machine.");
+        return true;
+      }
+
+      return false;
+    }
+
+    /// <summary>
+    /// Test for duplicate learner login (from another machine)
+    /// </summary>
+    /// <param name="learner">Learner to test</param>
+    /// <returns>true/false</returns>
+    internal bool IsDuplicateLearner(Learner learner)
+    {
+      try
+      {
+        _learners.Lock();
+        return _learners.Items.Any(
+          x => (x.UserId == learner.UserId) && (x.RemoteIpAddress != learner.RemoteIpAddress)
+        );
+      }
+      finally
+      {
+        _learners.Unlock();
+      }
+
+    }
   }
 }
