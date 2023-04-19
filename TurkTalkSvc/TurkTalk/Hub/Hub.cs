@@ -9,6 +9,7 @@ using OLabWebAPI.Model;
 using OLabWebAPI.TurkTalk.BusinessObjects;
 using OLabWebAPI.Utils;
 using System;
+using System.Net;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
@@ -68,6 +69,24 @@ namespace OLabWebAPI.Services.TurkTalk
       //request.Headers.Add("Authorization", accessToken);
 
       return new UserContext(_logger, DbContext, request);
+    }
+
+    // Extract user IP
+    public IPAddress GetIp(HubCallerContext context)
+    {
+      // Return the Context IP address
+      if (context != null)
+      {
+        HttpContext httpContext = context.GetHttpContext();
+        if (httpContext != null)
+        {
+          IPAddress clientIp;
+          IPAddress.TryParse(httpContext.Request.Headers["cf-connecting-ip"], out clientIp);
+          return clientIp;
+        }
+      }
+
+      return null;
     }
 
   }

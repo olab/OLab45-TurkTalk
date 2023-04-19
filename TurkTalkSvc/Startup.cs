@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,7 @@ using OLabWebAPI.TurkTalk.BusinessObjects;
 using OLabWebAPI.Utils;
 using IOLabSession = OLabWebAPI.Data.Interface.IOLabSession;
 using IUserService = OLabWebAPI.Services.IUserService;
+using System.Net;
 
 namespace TurkTalkSvc
 {
@@ -55,6 +58,19 @@ namespace TurkTalkSvc
           configure.FormatterName = ConsoleFormatterNames.Systemd;
         });
         builder.AddConfiguration(config);
+      });
+
+      // added for logging
+      services.AddHttpLogging(options =>
+      {
+        options.LoggingFields = HttpLoggingFields.Request;
+      });
+
+      services.Configure<ForwardedHeadersOptions>(options =>
+      {
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownProxies.Add(IPAddress.Parse("10.168.1.8"));
       });
 
       // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
@@ -108,6 +124,10 @@ namespace TurkTalkSvc
       app.UseCors("CorsPolicy");
       app.UseRouting();
       app.UseAuthorization();
+
+      // added for logging
+      app.UseForwardedHeaders();
+      app.UseHttpLogging();
 
       // custom jwt auth middleware
       app.UseMiddleware<OLabJWTService>();
