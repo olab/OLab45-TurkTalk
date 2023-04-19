@@ -66,18 +66,20 @@ namespace TurkTalkSvc
         options.LoggingFields = HttpLoggingFields.Request;
       });
 
+      // configure strongly typed settings object
+      services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
+      var ProxyServer = Configuration["AppSettings:ProxyServer"];
+
       services.Configure<ForwardedHeadersOptions>(options =>
       {
         options.ForwardedHeaders =
             ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownProxies.Add(IPAddress.Parse("10.168.1.8"));
+        options.KnownProxies.Add(IPAddress.Parse(ProxyServer));
       });
 
       // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
       services.AddSingleton(typeof(ILogger), typeof(Logger<Startup>));
-
-      // configure strongly typed settings object
-      services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
       var serverVersion = ServerVersion.AutoDetect(Configuration.GetConnectionString(Constants.DefaultConnectionStringName));
       services.AddDbContext<OLabDBContext>(
