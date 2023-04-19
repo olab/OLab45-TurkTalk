@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLabWebAPI.TurkTalk.Commands;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -23,18 +24,21 @@ namespace OLabWebAPI.Services.TurkTalk
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task RegisterAttendee(RegisterAttendeePayload payload)
     {
+      Learner learner = null;
+      Room room = null;
+
       try
       {
         Guard.Argument(payload).NotNull(nameof(payload));
         Guard.Argument(payload.RoomName).NotNull("RoomName");
 
-        var learner = new Learner(payload, Context);
+        learner = new Learner(payload, Context);
 
         _logger.LogDebug($"RegisterAttendee: room: {payload.ToJson()} '{learner.CommandChannel} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);
-        Room room = topic.GetParticipantRoom(learner);
+        room = topic.GetParticipantRoom(learner);
 
         // if no existing room contains learner, add learner to 
         // topic atrium
@@ -68,6 +72,13 @@ namespace OLabWebAPI.Services.TurkTalk
       catch (Exception ex)
       {
         _logger.LogError($"RegisterAttendee exception: {ex.Message}");
+
+        if ( ( room != null) && ( learner != null ) )
+        {
+          room.Topic.Conference.SendMessage(
+            Context.ConnectionId, 
+            new ServerErrorCommand(Context.ConnectionId, ex.Message));
+        }
       }
     }
   }

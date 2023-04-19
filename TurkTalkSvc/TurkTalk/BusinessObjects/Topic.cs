@@ -353,17 +353,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       {
         atriumMutex.WaitOne();
 
-        // test for duplicate learner login
-        if (_atrium.AtriumLearners.Values.Any(x => (x.UserId == participant.UserId) && (x.RemoteIpAddress != participant.RemoteIpAddress)))
-        {
-          Conference.SendMessage(
-            participant.ConnectionId,
-            new LearnerMessageCommand(
-              new MessagePayload(
-                participant,
-                $"User is already logged in. Unable to connect.")));
-          return;
-        }
+        // test if duplicate moderator logging in. If so, then
+        // we need to reject the request.
+        if (_atrium.IsDuplicateLearner(participant))
+          throw new Exception("Multiple logins not supported");
 
         // add/replace Participant in atrium
         var learnerReplaced = _atrium.Upsert(participant);

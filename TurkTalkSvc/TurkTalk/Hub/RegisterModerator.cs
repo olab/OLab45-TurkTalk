@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLabWebAPI.Common.Contracts;
+using OLabWebAPI.Model;
 using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLabWebAPI.TurkTalk.Commands;
 using System;
 using System.Threading.Tasks;
 
@@ -25,15 +27,18 @@ namespace OLabWebAPI.Services.TurkTalk
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task RegisterModerator(uint mapId, uint nodeId, string roomName, bool isBot)
     {
+      Room room = null;
+      Moderator moderator = null;
+
       try
       {
         Guard.Argument(roomName).NotNull(nameof(roomName));
 
-        var moderator = new Moderator(roomName, Context);
+        moderator = new Moderator(roomName, Context);
 
         _logger.LogInformation($"RegisterModerator: '{roomName}', {isBot} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
-        Room room = _conference.GetCreateTopicRoom(moderator);
+        room = _conference.GetCreateTopicRoom(moderator);
 
         // add room index to moderator info
         moderator.AssignToRoom(room.Index);
@@ -44,6 +49,14 @@ namespace OLabWebAPI.Services.TurkTalk
       catch (Exception ex)
       {
         _logger.LogError($"RegisterModerator exception: {ex.Message}");
+
+        if ( ( room != null) && ( moderator != null ) )
+        {
+          room.Topic.Conference.SendMessage(
+            Context.ConnectionId, 
+            new ServerErrorCommand(Context.ConnectionId, ex.Message));
+        }
+
       }
     }
   }

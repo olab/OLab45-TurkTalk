@@ -107,7 +107,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       // test if duplicate moderator logging in. If so, then
       // we need to reject the request.
       if (IsDuplicateModerator(moderator))
-        throw new Exception("Multiple logins not supported");
+        throw new Exception($"'{moderator.UserId}' already logged in. Unable to create another session.");
 
       if (!IsModerated)
         _moderator = moderator;
@@ -207,6 +207,12 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     private async Task RemoveModeratorAsync(Participant participant)
     {
+      if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
+      {
+        Logger.LogDebug($"Participant '{participant.UserId}' is a moderator for room '{Name}' but the remoteIP does not match.");
+        return;
+      }
+
       Logger.LogDebug($"Participant '{participant.UserId}' is a moderator for room '{Name}'. removing all learners.");
 
       // notify all known learners in room of moderator disconnection
@@ -229,6 +235,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       Learner serverParticipant = _learners.Items.FirstOrDefault(x => x.UserId == participant.UserId);
       if (serverParticipant != null)
       {
+        // if user id isn't from the same address as the wxisting learner,
+        // then ignore the remove.
+        if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
+        {
+          Logger.LogDebug($"Participant '{participant.UserId}' is a learner for room '{Name}' but the remoteIP does not match.");
+          return;
+        }
 
         Logger.LogDebug($"Participant '{participant.UserId}' is a participant for room '{Name}'. removing.");
 
@@ -280,12 +293,15 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     internal bool IsDuplicateModerator(Moderator testModerator)
     {
       if (!IsModerated)
+      {
+        Logger.LogDebug($"Not duplicate moderator '{testModerator.UserId}'.  Room has no existing moderator");
         return false;
+      }
 
       if ((_moderator.UserId == testModerator.UserId) &&
            (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress))
       {
-        Logger.LogDebug($"Duplicate moderator '{testModerator.UserId}' login detected from different machine.");
+        Logger.LogError($"Duplicate moderator '{testModerator.UserId}' login detected from different machine {testModerator.RemoteIpAddress}.");
         return true;
       }
 
