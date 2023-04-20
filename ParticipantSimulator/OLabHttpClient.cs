@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 //using Newtonsoft.Json;
 using NLog;
+using NLog.Web.LayoutRenderers;
 using NuGet.Protocol.Plugins;
 using OLabWebAPI.Common;
 using OLabWebAPI.Dto;
@@ -116,6 +117,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
       if (apiResponse != null)
       {
         var olabApiResponse = apiResponse as OLabAPIResponse<MapsNodesFullRelationsDto>;
+        _client.DefaultRequestHeaders.Add("OLabSessionId", olabApiResponse.Data.ContextId);   
+
         return olabApiResponse.Data;
       }
 

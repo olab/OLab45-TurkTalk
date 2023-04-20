@@ -20,6 +20,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     private MapsNodesFullRelationsDto _node;
     private OLabWebAPI.Dto.Designer.ScopedObjectsDto _mapScoped;
     private OLabWebAPI.Dto.Designer.ScopedObjectsDto _nodeScoped;
+    private string _sessionId;
 
     public async Task<bool> MapPlayTaskAsync()
     {
@@ -61,6 +62,13 @@ namespace OLab.TurkTalk.ParticipantSimulator
         Thread.Sleep(sleepMs);
 
         _node = await _olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
+
+        if (string.IsNullOrEmpty(_sessionId))
+        {
+          _sessionId = _node.ContextId;
+          _logger.Debug($"{_param.Participant.UserId}: sessionId: {_sessionId}");
+        }
+
         _nodeScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
         // test if there's a turk talk question in the node
