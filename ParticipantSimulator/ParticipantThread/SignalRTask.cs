@@ -173,6 +173,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
           {
             MapId = _map.Id.Value,
             NodeId = _node.Id.Value,
+            QuestionId = nodeTrail.TurkTalkTrail.QuestionId,
             ContextId = _sessionId
           }
         };
