@@ -49,11 +49,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
       // wait until attendee is assigned.
       while (!_roomAssigned)
       {
-        _logger.Info($"{_param.Participant.UserId}: checking for room assignment...");
+        _logger.Info($"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'");
         Thread.Sleep(10000);
       }
 
-      _logger.Info($"{_param.Participant.UserId}: room assigned");
+      _logger.Info($"{_param.Participant.UserId}: room assigned '{nodeTrail.TurkTalkTrail.RoomName}'");
 
       if (!await SendMessagesAsync(connection, _param.Participant, nodeTrail))
         throw new Exception("Failure sending messages");
@@ -129,7 +129,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       await connection.InvokeAsync("registerAttendee", payload);
 
-      _logger.Info($"{_param.Participant.UserId}: registered attendee for room '{payload.RoomName}'.");
+      _logger.Info($"{_param.Participant.UserId}: invoked 'registerAttendee' for room '{payload.RoomName}'.");
 
       return true;
     }
