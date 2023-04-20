@@ -190,8 +190,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
   public class TurkTalkTrail
   {
-    [JsonPropertyName("QuestionId")]
-    public uint QuestionId { get; set; }
+    //[JsonPropertyName("QuestionId")]
+    //public uint QuestionId { get; set; }
 
     [JsonPropertyName("RoomName")]
     public string RoomName { get; set; }

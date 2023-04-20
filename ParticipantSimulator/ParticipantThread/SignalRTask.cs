@@ -25,15 +25,16 @@ namespace OLab.TurkTalk.ParticipantSimulator
   public partial class ParticipantThread
   {
     private bool _roomAssigned = false;
+
     private NodeTrail _nodeTrail;
+    public JumpNodePayload JumpNodePayload = null;
 
     public async Task<bool> SignalRTask(NodeTrail nodeTrail)
     {
-      if (nodeTrail.TurkTalkTrail == null)
-        return true;
-
       var tmpToken = $"{_authInfo.AuthInfo.Token.Substring(0, 5)}***";
       _logger.Info($"{_param.Participant.UserId}: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}");
+
+      _logger.Info($"{_param.Participant.UserId}: TTalk question. room: {nodeTrail.TurkTalkTrail.RoomName}");
 
       var connection = SetupConnection();
 
@@ -120,7 +121,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ContextId = _node.ContextId,
         MapId = _map.Id.Value,
         NodeId = _node.Id.Value,
-        QuestionId = _nodeTrail.TurkTalkTrail.QuestionId,
+        //QuestionId = _nodeTrail.TurkTalkTrail.QuestionId,
         RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}"
       };
 
@@ -149,17 +150,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
       Participant participant,
       NodeTrail nodeTrail)
     {
-      if (nodeTrail.TurkTalkTrail == null)
-        return true;
-
       for (int i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++)
       {
-        var message = $"#{i+1}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
+        var message = $"#{i + 1}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
 
         int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
         Thread.Sleep(sleepMs);
 
-        _logger.Info($"{_param.Participant.UserId}: sending message #{i+1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
+        _logger.Info($"{_param.Participant.UserId}: sending message #{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
 
         var payload = new MessagePayload
         {
@@ -180,6 +178,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
         await connection.InvokeAsync(
           "Message",
           payload);
+
+        // test if a jump node command was received
+        if (JumpNodePayload != null)
+        {
+          _logger.Info($"{_param.Participant.UserId}: jump node received.  Messages interrupted.");
+          return true;
+        }
+
       }
 
       _logger.Info($"{_param.Participant.UserId}: all messages completed");
