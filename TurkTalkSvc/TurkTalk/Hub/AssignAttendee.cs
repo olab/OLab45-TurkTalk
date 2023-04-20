@@ -48,8 +48,8 @@ namespace OLabWebAPI.Services.TurkTalk
           return;
         }
 
-        // remove from topic atrium
         topic.RemoveFromAtrium(learner);
+        // remove from topic atrium
 
         Room room = topic.GetRoom(roomName);
         if (room != null)

@@ -237,11 +237,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       {
         // if user id isn't from the same address as the wxisting learner,
         // then ignore the remove.
-        if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
-        {
-          Logger.LogDebug($"Participant '{participant.UserId}' is a learner for room '{Name}' but the remoteIP does not match.");
-          return;
-        }
+        //if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
+        //{
+        //  Logger.LogDebug($"Participant '{participant.UserId}' is a learner for room '{Name}' but the remoteIP does not match.");
+        //  return;
+        //}
 
         Logger.LogDebug($"Participant '{participant.UserId}' is a participant for room '{Name}'. removing.");
 

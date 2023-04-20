@@ -324,7 +324,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         atriumMutex.WaitOne();
 
         // save so we can return the entire Participant
-        // (which contains the contextId
+        // (which contains the contextId)
         Learner learner = _atrium.Get(participant.UserId);
 
         // try and remove Participant.  if removed, notify all topic

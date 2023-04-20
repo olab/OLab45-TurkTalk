@@ -25,10 +25,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       MapTrail mapTrail = _param.Participant.GetMapTrail(_param.Settings);
 
-      var olabClient = new OLabHttpClient(_param, _authInfo);
-
-      _map = await olabClient.LoadMapAsync(mapTrail.MapId);
-      _mapScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+      _map = await _olabClient.LoadMapAsync(mapTrail.MapId);
+      _mapScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
       // if no node trail, load root node
       if (mapTrail.NodeTrail == null)
@@ -37,8 +35,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
         Thread.Sleep(sleepMs);
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await _olabClient.LoadMapNodeAsync(mapTrail);
+        _nodeScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
         return true;
       }
@@ -62,8 +60,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
         Thread.Sleep(sleepMs);
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await _olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
+        _nodeScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
         // test if there's a turk talk question in the node
         if (nodeTrail.TurkTalkTrail != null)

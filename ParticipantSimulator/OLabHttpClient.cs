@@ -30,10 +30,10 @@ namespace OLab.TurkTalk.ParticipantSimulator
       _logger = param.Logger;
       _client.BaseAddress = new Uri($"{_settings.OLabRestApiUrl}/");
 
-      _logger.Debug($"OLab base address: {_client.BaseAddress}");
+      _logger.Debug($"{_param.Participant.UserId}: url: {_client.BaseAddress} timeout: {_client.Timeout.TotalMilliseconds} ms");
 
-      if (authInfo != null)
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authInfo.AuthInfo.Token}");
+      //if (authInfo != null)
+      //  _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authInfo.AuthInfo.Token}");
     }
 
     public async Task<AuthenticateResponse> LoginAsync(LoginRequest model)
@@ -48,7 +48,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
       // Deserialize the updated product from the response body.
       var loginResponse = await response.Content.ReadFromJsonAsync(typeof(AuthenticateResponse));
       if (loginResponse != null)
-        return loginResponse as AuthenticateResponse;
+      {
+        var authResponse = loginResponse as AuthenticateResponse;
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authResponse.AuthInfo.Token}");
+        return authResponse;
+      }
 
       return null;
     }

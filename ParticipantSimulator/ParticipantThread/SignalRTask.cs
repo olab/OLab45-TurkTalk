@@ -62,6 +62,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       await connection.StopAsync();
 
+      _roomAssigned = false;
+
       return true;
     }
 

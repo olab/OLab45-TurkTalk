@@ -83,6 +83,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         AtriumLearners.Remove(GetDictionaryKey(participant));
         _logger.LogDebug($"Removing Participant '{participant.UserId}' ({participant.ConnectionId}) from '{_topic.Name}' atrium");
       }
+      else
+        _logger.LogDebug($"Removing Participant '{participant.UserId}' ({participant.ConnectionId}) was not found in '{_topic.Name}' atrium");
 
       Dump();
 
@@ -138,15 +140,20 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     private void Dump()
     {
-      _logger.LogDebug($"Atrium contents");
-      foreach (Learner item in AtriumLearners.Values)
-        _logger.LogDebug($"  {item.CommandChannel} ({ConnectionId.Shorten(item.ConnectionId)})");
+      _logger.LogDebug($"Atrium contents:");
+      if (AtriumLearners.Values.Count == 0)
+        _logger.LogDebug($"  none");
+      else
+      {
+        foreach (Learner item in AtriumLearners.Values)
+          _logger.LogDebug($"  {item.CommandChannel} ({ConnectionId.Shorten(item.ConnectionId)})");
+      }
     }
 
     internal bool IsDuplicateLearner(Participant participant)
     {
-      return ( (AtriumLearners.Values.Any(x => (x.UserId == participant.UserId) && 
-               (x.RemoteIpAddress != participant.RemoteIpAddress ) ) ) );
+      return ((AtriumLearners.Values.Any(x => (x.UserId == participant.UserId) &&
+               (x.RemoteIpAddress != participant.RemoteIpAddress))));
     }
   }
 }

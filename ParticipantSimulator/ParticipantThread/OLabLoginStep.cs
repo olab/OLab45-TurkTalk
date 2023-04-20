@@ -26,8 +26,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       _logger.Info($"{_param.Participant.UserId}: logging in");
 
-      var olabClient = new OLabHttpClient(_param, null);
-      var loginResult = await olabClient.LoginAsync(new LoginRequest
+      var loginResult = await _olabClient.LoginAsync(new LoginRequest
       {
         Username = _param.Participant.UserId,
         Password = _param.Participant.Password
