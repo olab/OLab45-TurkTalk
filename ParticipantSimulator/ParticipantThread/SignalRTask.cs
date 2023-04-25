@@ -154,7 +154,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       for (int i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++)
       {
-        var message = $"#{i + 1}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
+        var message = $"{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
 
         int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
         Thread.Sleep(sleepMs);

@@ -58,10 +58,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
           response.EnsureSuccessStatusCode();
 
           // Deserialize the updated product from the response body.
-          var loginResponse = await response.Content.ReadFromJsonAsync(typeof(AuthenticateResponse));
+          var loginResponse = await response.Content.ReadFromJsonAsync(typeof(OLabAPIResponse<AuthenticateResponse>));
+
           if (loginResponse != null)
           {
-            var authResponse = loginResponse as AuthenticateResponse;
+            AuthenticateResponse authResponse = ( loginResponse as OLabAPIResponse<AuthenticateResponse> ).Data;
             _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authResponse.AuthInfo.Token}");
             return authResponse;
           }
