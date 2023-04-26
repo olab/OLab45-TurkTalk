@@ -1,3 +1,4 @@
+using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,13 +51,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     public async Task AddConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"Added connection '{connectionId}' to group '{groupName}'");
+      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
       await HubContext.Groups.AddToGroupAsync(connectionId, groupName);
     }
 
     public async Task RemoveConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"Removing connection '{connectionId}' from group '{groupName}'");
+      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
       await HubContext.Groups.RemoveFromGroupAsync(connectionId, groupName);
     }
 
@@ -72,10 +73,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        Logger.LogDebug($"Send message to '{connectionId}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        Logger.LogDebug($"Send message to '{connectionId}' ({method.MethodName}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Client(connectionId).SendAsync(method.MethodName, method);
     }

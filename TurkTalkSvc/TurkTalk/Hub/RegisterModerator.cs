@@ -36,7 +36,7 @@ namespace OLabWebAPI.Services.TurkTalk
 
         moderator = new Moderator(roomName, Context);
 
-        _logger.LogInformation($"RegisterModerator: '{roomName}', {isBot} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
+        _logger.LogInformation($"{moderator.GetUniqueKey()}: registerModerator: '{roomName}', {isBot} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
         room = _conference.GetCreateTopicRoom(moderator);
 
@@ -48,12 +48,13 @@ namespace OLabWebAPI.Services.TurkTalk
       }
       catch (Exception ex)
       {
-        _logger.LogError($"RegisterModerator exception: {ex.Message}");
 
-        if ( ( room != null) && ( moderator != null ) )
+        if ((room != null) && (moderator != null))
         {
+          _logger.LogError($"{moderator.GetUniqueKey()}: registerModerator exception: {ex.Message}");
+
           room.Topic.Conference.SendMessage(
-            Context.ConnectionId, 
+            Context.ConnectionId,
             new ServerErrorCommand(Context.ConnectionId, ex.Message));
         }
 

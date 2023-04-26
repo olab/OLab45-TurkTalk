@@ -21,7 +21,7 @@ namespace OLabWebAPI.Services.TurkTalk
     {
       try
       {
-        _logger.LogDebug($"OnDisconnectedAsync: '{ConnectionId.Shorten(Context.ConnectionId)}'");
+        _logger.LogDebug($"OnDisconnectedAsync: '{ConnectionIdUtils.Shorten(Context.ConnectionId)}'");
 
         var participant = new Participant(Context);
 

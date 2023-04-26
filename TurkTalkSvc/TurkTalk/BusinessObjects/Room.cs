@@ -80,7 +80,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         _learners.Add(learner);
 
-        Logger.LogDebug($"Added participant {learner} to room '{Name}'");
+        Logger.LogDebug($"{learner.GetUniqueKey()} added to room '{Name}'");
 
         // if have moderator, notify that the participant has been
         // assigned to their room
@@ -107,7 +107,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       // test if duplicate moderator logging in. If so, then
       // we need to reject the request.
       if (IsDuplicateModerator(moderator))
-        throw new Exception($"'{moderator.UserId}' already logged in. Unable to create another session.");
+        throw new Exception($"'{moderator.GetUniqueKey()}' already logged in. Unable to create another session.");
 
       if (!IsModerated)
         _moderator = moderator;
@@ -178,7 +178,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="connectionId"></param>
     internal async Task RemoveParticipantAsync(Participant participant)
     {
-      Logger.LogDebug($"Removing {participant.UserId} from room '{Name}'");
+      Logger.LogDebug($"{participant.GetUniqueKey()} removing from room '{Name}'");
 
       // not a moderated room, return since there's 
       // nothing more to do
@@ -209,11 +209,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     {
       if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
       {
-        Logger.LogDebug($"Participant '{participant.UserId}' is a moderator for room '{Name}' but the remoteIP does not match.");
+        Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the remoteIP does not match.");
         return;
       }
 
-      Logger.LogDebug($"Participant '{participant.UserId}' is a moderator for room '{Name}'. removing all learners.");
+      Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}'. removing all learners.");
 
       // notify all known learners in room of moderator disconnection
       // and add them back into the atrium
@@ -235,15 +235,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       Learner serverParticipant = _learners.Items.FirstOrDefault(x => x.UserId == participant.UserId);
       if (serverParticipant != null)
       {
-        // if user id isn't from the same address as the wxisting learner,
-        // then ignore the remove.
-        //if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
-        //{
-        //  Logger.LogDebug($"Participant '{participant.UserId}' is a learner for room '{Name}' but the remoteIP does not match.");
-        //  return;
-        //}
-
-        Logger.LogDebug($"Participant '{participant.UserId}' is a participant for room '{Name}'. removing.");
+        Logger.LogDebug($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
 
         // build/set assumed command channel for participant
         var commandChannel = $"{_topic.Name}/{Learner.Prefix}/{serverParticipant.UserId}";
@@ -259,7 +251,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
           _learners.Remove(serverParticipant);
       }
       else
-        Logger.LogError($"Participant '{participant.UserId}' is NOT participant for room '{Name}'.");
+        Logger.LogError($"{participant.GetUniqueKey()} is NOT participant for room '{Name}'.");
 
     }
 
@@ -294,14 +286,14 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     {
       if (!IsModerated)
       {
-        Logger.LogDebug($"Not duplicate moderator '{testModerator.UserId}'.  Room has no existing moderator");
+        Logger.LogDebug($"{testModerator.GetUniqueKey()} not duplicate moderator.  Room has no existing moderator");
         return false;
       }
 
       if ((_moderator.UserId == testModerator.UserId) &&
            (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress))
       {
-        Logger.LogError($"Duplicate moderator '{testModerator.UserId}' login detected from different machine {testModerator.RemoteIpAddress}.");
+        Logger.LogError($"{testModerator.GetUniqueKey()} duplicate moderator login detected from different machine {testModerator.RemoteIpAddress}.");
         return true;
       }
 

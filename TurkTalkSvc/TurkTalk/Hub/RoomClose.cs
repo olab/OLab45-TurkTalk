@@ -28,7 +28,7 @@ namespace OLabWebAPI.Services.TurkTalk
       {
         Guard.Argument(roomName).NotNull(nameof(roomName));
 
-        _logger.LogInformation($"RoomClose: '{roomName}', ({ConnectionId.Shorten(Context.ConnectionId)})");
+        _logger.LogInformation($"RoomClose: '{roomName}', ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(roomName, false);

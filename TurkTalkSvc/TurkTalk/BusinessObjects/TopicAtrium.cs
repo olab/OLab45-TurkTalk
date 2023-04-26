@@ -12,7 +12,6 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
   public class TopicAtrium
   {
     public IDictionary<string, Learner> AtriumLearners;
-    //public IDictionary<string, AtriumParticipant> AtriumLearners;
     private readonly ILogger _logger;
     private readonly Topic _topic;
 
@@ -21,11 +20,6 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       _logger = logger;
       _topic = topic;
       AtriumLearners = new ConcurrentDictionary<string, Learner>();
-    }
-
-    private static string GetDictionaryKey(Participant participant)
-    {
-      return participant.UserId;
     }
 
     /// <summary>
@@ -44,17 +38,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <returns>true, if exists</returns>
     public bool Contains(Participant participant)
     {
-      return AtriumLearners.ContainsKey(GetDictionaryKey(participant));
-    }
-
-    /// <summary>
-    /// Test if Participant name already exists in atrium
-    /// </summary>
-    /// <param name="name">Participant name (userId)</param>
-    /// <returns>true, if exists</returns>
-    public bool Contains(string name)
-    {
-      return AtriumLearners.ContainsKey(name);
+      var found = AtriumLearners.ContainsKey(participant.GetUniqueKey());
+      _logger.LogDebug($"{participant.UserId}: in '{_topic.Name}' atrium? {found}");
+      return found;
     }
 
     /// <summary>
@@ -62,10 +48,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="name">Participant name</param>
     /// <returns>true, if exists</returns>
-    public Learner Get(string name)
+    public Learner Get(Participant participant)
     {
-      if (AtriumLearners.ContainsKey(name))
-        return AtriumLearners[name];
+      var key = participant.GetUniqueKey();
+      if (AtriumLearners.ContainsKey(key))
+        return AtriumLearners[key];
 
       return null;
     }
@@ -77,14 +64,14 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     internal bool Remove(Participant participant)
     {
       // search atrium by user id
-      var foundInAtrium = AtriumLearners.ContainsKey(GetDictionaryKey(participant));
+      var foundInAtrium = AtriumLearners.ContainsKey(participant.GetUniqueKey());
       if (foundInAtrium)
       {
-        AtriumLearners.Remove(GetDictionaryKey(participant));
-        _logger.LogDebug($"Removing Participant '{participant.UserId}' ({participant.ConnectionId}) from '{_topic.Name}' atrium");
+        AtriumLearners.Remove(participant.GetUniqueKey());
+        _logger.LogDebug($"{participant.GetUniqueKey()}: remove from '{_topic.Name}' atrium");
       }
       else
-        _logger.LogDebug($"Removing Participant '{participant.UserId}' ({participant.ConnectionId}) was not found in '{_topic.Name}' atrium");
+        _logger.LogDebug($"{participant.GetUniqueKey()}: remove: not found in '{_topic.Name}' atrium");
 
       Dump();
 
@@ -115,10 +102,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     {
       var replaced = false;
 
+      _logger.LogDebug($"{participant.GetUniqueKey()}: upsert to '{_topic.Name}' atrium");
+
       // remove if already exists
-      if (Contains(GetDictionaryKey(participant)))
+      if (Contains(participant))
       {
-        AtriumLearners.Remove(GetDictionaryKey(participant));
+        _logger.LogDebug($"{participant.GetUniqueKey()}: remove from '{_topic.Name}' atrium");
+        AtriumLearners.Remove(participant.GetUniqueKey());
         replaced = true;
       }
 
@@ -134,19 +124,23 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="participant">Participant to add</param>
     internal void Add(Learner participant)
     {
-      _logger.LogDebug($"Adding Participant '{participant.NickName}({GetDictionaryKey(participant)})' to '{_topic.Name}' atrium");
-      AtriumLearners.Add(GetDictionaryKey(participant), participant);
+      _logger.LogDebug($"{participant.GetUniqueKey()}: add to '{_topic.Name}' atrium");
+
+      // used for chronological order querying/sorting
+      participant.ReferenceDate = DateTime.Now;
+
+      AtriumLearners.Add(participant.GetUniqueKey(), participant);
     }
 
     private void Dump()
     {
-      _logger.LogDebug($"'{_topic.Name}' Atrium contents:");
+      _logger.LogDebug($"'{_topic.Name}': atrium contents");
       if (AtriumLearners.Values.Count == 0)
         _logger.LogDebug($"  none");
       else
       {
-        foreach (Learner item in AtriumLearners.Values)
-          _logger.LogDebug($"  {item.CommandChannel} ({ConnectionId.Shorten(item.ConnectionId)})");
+        foreach (Learner item in AtriumLearners.Values.OrderBy( x => x.UserId) )
+          _logger.LogDebug($"  {item.CommandChannel} ({ConnectionIdUtils.Shorten(item.ConnectionId)})");
       }
     }
 

@@ -30,7 +30,7 @@ namespace OLabWebAPI.Services.TurkTalk
         Guard.Argument(roomName).NotNull(nameof(roomName));
 
         _logger.LogInformation(
-          $"AssignAttendeeAsync: '{learner.ToJson()}', {roomName} ({ConnectionId.Shorten(Context.ConnectionId)})");
+          $"{learner.GetUniqueKey()}: assignAttendeeAsync: '{learner.ToJson()}', {roomName}");
 
         Topic topic = _conference.GetCreateTopic(learner.TopicName, false);
         if (topic == null)
@@ -72,7 +72,7 @@ namespace OLabWebAPI.Services.TurkTalk
       }
       catch (Exception ex)
       {
-        _logger.LogError($"AssignAttendeeAsync exception: {ex.Message}");
+        _logger.LogError($"{learner.GetUniqueKey()}: assignAttendeeAsync exception: {ex.Message}");
       }
     }
   }

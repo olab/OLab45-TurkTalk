@@ -34,7 +34,7 @@ namespace OLabWebAPI.Services.TurkTalk
 
         learner = new Learner(payload, Context);
 
-        _logger.LogDebug($"RegisterAttendee: room: {payload.ToJson()} '{learner.CommandChannel} ({ConnectionId.Shorten(Context.ConnectionId)}) IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
+        _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: room: {payload.ToJson()} '{learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);
@@ -43,10 +43,7 @@ namespace OLabWebAPI.Services.TurkTalk
         // if no existing room contains learner, add learner to 
         // topic atrium
         if (room == null)
-        {
-          _logger.LogDebug($"RegisterAttendee: adding to '{payload.RoomName}' atrium");
           await topic.AddToAtriumAsync(learner);
-        }
 
         // user already 'known' to an existing room
         else
@@ -55,7 +52,7 @@ namespace OLabWebAPI.Services.TurkTalk
           // disconnected) add the attendee to the topic atrium
           if (room.Moderator == null)
           {
-            _logger.LogDebug($"RegisterAttendee: room '{payload.RoomName}' has no moderator.  Assigning to atrium.");
+            _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: room '{payload.RoomName}' has no moderator.  Assigning to atrium.");
             await topic.AddToAtriumAsync(learner);
           }
 
@@ -63,7 +60,7 @@ namespace OLabWebAPI.Services.TurkTalk
           // signal room assignment to re-attach the learner to the room
           else
           {
-            _logger.LogInformation($"RegisterAttendee: assigning Participant to existing room '{payload.RoomName}'");
+            _logger.LogInformation($"{learner.GetUniqueKey()}: registerAttendee: assigning to existing room '{payload.RoomName}'");
             await AssignAttendee(learner, room.Name);
           }
         }
@@ -71,7 +68,7 @@ namespace OLabWebAPI.Services.TurkTalk
       }
       catch (Exception ex)
       {
-        _logger.LogError($"RegisterAttendee exception: {ex.Message}");
+        _logger.LogError($"{learner.GetUniqueKey()}: registerAttendee exception: {ex.Message}");
 
         if ( ( room != null) && ( learner != null ) )
         {

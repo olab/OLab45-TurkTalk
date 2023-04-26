@@ -325,7 +325,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // save so we can return the entire Participant
         // (which contains the contextId)
-        Learner learner = _atrium.Get(participant.UserId);
+        Learner learner = _atrium.Get(participant);
 
         // try and remove Participant.  if removed, notify all topic
         // moderators of atrium content change
@@ -375,7 +375,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // notify Participant of atrium assignment
         Conference.SendMessage(
-          new AtriumAssignmentCommand(participant, _atrium.Get(participant.UserId)));
+          new AtriumAssignmentCommand(participant, _atrium.Get(participant)));
 
         // notify all topic moderators of atrium change
         Conference.SendMessage(

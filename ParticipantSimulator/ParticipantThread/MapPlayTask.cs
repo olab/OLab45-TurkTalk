@@ -33,7 +33,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
       if (mapTrail.NodeTrail == null)
       {
         int sleepMs = _param.Rnd.Next(0, mapTrail.GetDelayMs(_param.Settings));
-        _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
+        //_logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
         Thread.Sleep(sleepMs);
 
         _node = await _olabClient.LoadMapNodeAsync(mapTrail);
@@ -58,7 +58,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
 
         int sleepMs = nodeTrail.GetDelayMs(mapTrail);
-        _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
+        //_logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
         Thread.Sleep(sleepMs);
 
         _node = await _olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
