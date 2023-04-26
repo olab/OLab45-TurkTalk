@@ -345,9 +345,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <summary>
     /// Add Participant to topic atrium
     /// </summary>
-    /// <param name="participant">Leaner info</param>
+    /// <param name="learner">Leaner info</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task AddToAtriumAsync(Learner participant)
+    internal async Task AddToAtriumAsync(Learner learner)
     {
       try
       {
@@ -355,27 +355,27 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // test if duplicate moderator logging in. If so, then
         // we need to reject the request.
-        if (_atrium.IsDuplicateLearner(participant))
+        if (_atrium.IsDuplicateLearner(learner))
           throw new Exception("Multiple logins not supported");
 
         // add/replace Participant in atrium
-        var learnerReplaced = _atrium.Upsert(participant);
+        var learnerReplaced = _atrium.Upsert(learner);
 
         // if replaced a atrium contents, remove it from group
         if (learnerReplaced)
         {
-          Logger.LogDebug($"Replacing existing '{Name}' atrium Participant '{participant.CommandChannel}'");
+          Logger.LogDebug($"Replacing existing '{Name}' atrium learner '{learner.CommandChannel}'");
           await Conference.RemoveConnectionToGroupAsync(
-            participant.CommandChannel,
-            participant.ConnectionId);
+            learner.CommandChannel,
+            learner.ConnectionId);
         }
 
         // add Participant to its own group so it can receive newRoom assigments
-        await Conference.AddConnectionToGroupAsync(participant);
+        await Conference.AddConnectionToGroupAsync(learner);
 
         // notify Participant of atrium assignment
         Conference.SendMessage(
-          new AtriumAssignmentCommand(participant, _atrium.Get(participant)));
+          new AtriumAssignmentCommand(learner, _atrium.Get(learner)));
 
         // notify all topic moderators of atrium change
         Conference.SendMessage(
