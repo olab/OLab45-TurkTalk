@@ -82,11 +82,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         Logger.LogDebug($"{learner.GetUniqueKey()} added to room '{Name}'");
 
+        var jumpNodes = GetExitMapNodes(learner.Session.MapId, learner.Session.NodeId );
+
         // if have moderator, notify that the participant has been
         // assigned to their room
         if (Moderator != null)
           _topic.Conference.SendMessage(
-            new LearnerAssignmentCommand(Moderator, learner));
+            new LearnerAssignmentCommand(Moderator, learner, jumpNodes));
 
       }
       finally

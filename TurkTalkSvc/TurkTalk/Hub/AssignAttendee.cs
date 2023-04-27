@@ -21,7 +21,6 @@ namespace OLabWebAPI.Services.TurkTalk
     /// </summary>
     /// <param name="learner">Learner to assign</param>
     /// <param name="roomName">Room name</param>
-    /// <param name="routingIndex">Moderator component slot index</param>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task AssignAttendee(Learner learner, string roomName)
     {
