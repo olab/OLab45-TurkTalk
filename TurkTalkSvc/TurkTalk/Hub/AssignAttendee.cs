@@ -8,6 +8,10 @@ using OLabWebAPI.TurkTalk.Commands;
 using OLabWebAPI.Common.Contracts;
 using System;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using OLabWebAPI.Utils;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
@@ -47,13 +51,24 @@ namespace OLabWebAPI.Services.TurkTalk
           return;
         }
 
-        topic.RemoveFromAtrium(learner);
         // remove from topic atrium
+        topic.RemoveFromAtrium(learner);
 
         Room room = topic.GetRoom(roomName);
         if (room != null)
         {
-          if (!(await room.AddLearnerAsync(learner) ) )
+          var userNodes = new List<MapNodeListItem>();
+          var jumpNodesFull = room.GetExitMapNodes(learner.Session.MapId, learner.Session.NodeId);
+
+          // only add nodes that the user has access to
+          var userContext = GetUserContext();
+          foreach (var jumpNode in jumpNodesFull)
+          {
+            if ( userContext.HasAccess( "R", Constants.ScopeLevelNode, learner.Session.NodeId ) )
+              userNodes.Add( jumpNode );
+          }
+
+          if (!(await room.AddLearnerAsync(learner, userNodes)))
             return;
         }
 

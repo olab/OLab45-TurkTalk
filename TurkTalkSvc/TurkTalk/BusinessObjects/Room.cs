@@ -53,7 +53,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="learnerName">Learner user name</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task<bool> AddLearnerAsync(Learner learner)
+    internal async Task<bool> AddLearnerAsync(Learner learner, IList<MapNodeListItem> jumpNodes)
     {
       try
       {
@@ -81,8 +81,6 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         _learners.Add(learner);
 
         Logger.LogDebug($"{learner.GetUniqueKey()} added to room '{Name}'");
-
-        var jumpNodes = GetExitMapNodes(learner.Session.MapId, learner.Session.NodeId );
 
         // if have moderator, notify that the participant has been
         // assigned to their room
@@ -123,7 +121,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       await _topic.Conference.AddConnectionToGroupAsync(moderator);
 
       // get nodes from the current map that exist the current node
-      IList<MapNodeListItem> mapNodes = GetExitMapNodes(mapId, nodeId);
+      IList<MapNodeListItem> mapNodes = new List<MapNodeListItem>();
 
       // notify moderator of room assignment
       _topic.Conference.SendMessage(
@@ -150,7 +148,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
             new RoomAssignmentCommand(learner));
     }
 
-    private IList<MapNodeListItem> GetExitMapNodes(uint mapId, uint nodeId)
+    public IList<MapNodeListItem> GetExitMapNodes(uint mapId, uint nodeId )
     {
       var mapNodeList = new List<MapNodeListItem>();
 
@@ -162,7 +160,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // get all destination nodes from the non-hidden map links that
         // start from the nodeId we are interested in
         var mapNodeIds = dbContext.MapNodeLinks
-          .Where(x => x.NodeId1 == nodeId && x.MapId == mapId && !x.Hidden.Value)
+          .Where(x => x.NodeId1 == nodeId && x.MapId == mapId )
+          .OrderBy( x => x.Order )
           .Select(x => x.NodeId2)
           .ToList();
 
