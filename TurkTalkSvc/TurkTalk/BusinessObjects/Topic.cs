@@ -24,7 +24,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     private TopicAtrium _atrium;
 
     private static readonly Mutex atriumMutex = new Mutex();
-    public ILogger Logger { get { return _conference.Logger; } }
+    public OLabLogger Logger { get { return _conference.logger; } }
 
     public Conference Conference
     {

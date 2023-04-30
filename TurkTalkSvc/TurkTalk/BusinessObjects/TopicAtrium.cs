@@ -2,6 +2,7 @@ using Common.Utils;
 using Microsoft.Extensions.Logging;
 using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,10 +13,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
   public class TopicAtrium
   {
     public IDictionary<string, Learner> AtriumLearners;
-    private readonly ILogger _logger;
+    private readonly OLabLogger _logger;
     private readonly Topic _topic;
 
-    public TopicAtrium(ILogger logger, Topic topic)
+    public TopicAtrium(OLabLogger logger, Topic topic)
     {
       _logger = logger;
       _topic = topic;

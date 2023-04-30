@@ -10,6 +10,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using Humanizer;
+using static Humanizer.On;
+using Microsoft.EntityFrameworkCore;
+using OLabWebAPI.Endpoints.Player;
+using OLabWebAPI.Dto;
+using OLabWebAPI.Services;
+using OLabWebAPI.Data;
+using Microsoft.AspNetCore.Http;
+using OLabWebAPI.Data.Interface;
 
 namespace OLabWebAPI.TurkTalk.BusinessObjects
 {
@@ -34,7 +43,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     public Moderator Moderator { get { return _moderator; } }
     public string Name { get { return $"{_topic.Name}/{Index}"; } }
     public bool IsModerated { get { return _moderator != null; } }
-    protected ILogger Logger { get { return _topic.Logger; } }
+    protected OLabLogger Logger { get { return _topic.Logger; } }
     public Topic Topic { get { return _topic; } }
 
 
@@ -148,29 +157,25 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
             new RoomAssignmentCommand(learner));
     }
 
-    public IList<MapNodeListItem> GetExitMapNodes(uint mapId, uint nodeId )
+    public async Task<IList<MapNodeListItem>> GetExitMapNodes(HttpContext httpContext, UserContext userContext, uint mapId, uint nodeId)
     {
       var mapNodeList = new List<MapNodeListItem>();
 
       using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
       {
         OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
-        Logger.LogDebug($"Got dbContext");
+        var auth = new OLabWebApiAuthorization(Logger, dbContext, httpContext);
+        var endpoint = new MapsEndpoint(Logger, dbContext);
+        endpoint.SetUserContext(userContext);
 
-        // get all destination nodes from the non-hidden map links that
-        // start from the nodeId we are interested in
-        var mapNodeIds = dbContext.MapNodeLinks
-          .Where(x => x.NodeId1 == nodeId && x.MapId == mapId )
-          .OrderBy( x => x.Order )
-          .Select(x => x.NodeId2)
-          .ToList();
+        var dto = await endpoint.GetMapNodeAsync(auth, mapId, nodeId);
 
-        var mapNodes = dbContext.MapNodes.Where(x => mapNodeIds.Contains(x.Id)).ToList();
-        foreach (MapNodes mapNode in mapNodes)
-          mapNodeList.Add(new MapNodeListItem { Id = mapNode.Id, Name = mapNode.Title });
+        foreach (var item in dto.MapNodeLinks)
+          mapNodeList.Add(new MapNodeListItem { Id = item.Id.Value, Name = item.DestinationTitle });
       }
 
       return mapNodeList;
+
     }
 
     /// <summary>

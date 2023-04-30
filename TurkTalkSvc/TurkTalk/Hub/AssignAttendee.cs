@@ -57,18 +57,10 @@ namespace OLabWebAPI.Services.TurkTalk
         Room room = topic.GetRoom(roomName);
         if (room != null)
         {
-          var userNodes = new List<MapNodeListItem>();
-          var jumpNodesFull = room.GetExitMapNodes(learner.Session.MapId, learner.Session.NodeId);
-
-          // only add nodes that the user has access to
           var userContext = GetUserContext();
-          foreach (var jumpNode in jumpNodesFull)
-          {
-            if ( userContext.HasAccess( "R", Constants.ScopeLevelNode, learner.Session.NodeId ) )
-              userNodes.Add( jumpNode );
-          }
+          var jumpNodes = await room.GetExitMapNodes(Context.GetHttpContext(), userContext, learner.Session.MapId, learner.Session.NodeId);
 
-          if (!(await room.AddLearnerAsync(learner, userNodes)))
+          if (!(await room.AddLearnerAsync(learner, jumpNodes)))
             return;
         }
 
