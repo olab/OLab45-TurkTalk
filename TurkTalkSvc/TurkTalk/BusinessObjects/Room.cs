@@ -171,7 +171,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         var dto = await endpoint.GetMapNodeAsync(auth, mapId, nodeId, false);
 
         foreach (var item in dto.MapNodeLinks)
-          mapNodeList.Add(new MapNodeListItem { Id = item.Id.Value, Name = item.DestinationTitle });
+          mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });
       }
 
       return mapNodeList;
