@@ -168,7 +168,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         var endpoint = new MapsEndpoint(Logger, dbContext);
         endpoint.SetUserContext(userContext);
 
-        var dto = await endpoint.GetMapNodeAsync(auth, mapId, nodeId);
+        var dto = await endpoint.GetMapNodeAsync(auth, mapId, nodeId, false);
 
         foreach (var item in dto.MapNodeLinks)
           mapNodeList.Add(new MapNodeListItem { Id = item.Id.Value, Name = item.DestinationTitle });

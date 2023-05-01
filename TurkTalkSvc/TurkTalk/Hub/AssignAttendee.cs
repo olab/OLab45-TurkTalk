@@ -58,7 +58,11 @@ namespace OLabWebAPI.Services.TurkTalk
         if (room != null)
         {
           var userContext = GetUserContext();
-          var jumpNodes = await room.GetExitMapNodes(Context.GetHttpContext(), userContext, learner.Session.MapId, learner.Session.NodeId);
+          var jumpNodes = await room.GetExitMapNodes(
+            Context.GetHttpContext(), 
+            userContext, 
+            learner.Session.MapId, 
+            learner.Session.NodeId);
 
           if (!(await room.AddLearnerAsync(learner, jumpNodes)))
             return;
