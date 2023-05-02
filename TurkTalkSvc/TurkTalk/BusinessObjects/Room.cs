@@ -116,7 +116,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       // test if duplicate moderator logging in. If so, then
       // we need to reject the request.
       if (IsDuplicateModerator(moderator))
-        throw new Exception($"'{moderator.GetUniqueKey()}' already logged in. Unable to create another session.");
+        throw new Exception($"'{moderator.NickName}' already logged in. Unable to create another session.");
 
       if (!IsModerated)
         _moderator = moderator;
@@ -296,11 +296,15 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         return false;
       }
 
-      if ((_moderator.UserId == testModerator.UserId) &&
-           (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress))
+      if (_moderator.UserId == testModerator.UserId)
       {
-        Logger.LogError($"{testModerator.GetUniqueKey()} duplicate moderator login detected from different machine {testModerator.RemoteIpAddress}.");
-        return true;
+        Logger.LogDebug($"testing existing moderator ip '{_moderator.RemoteIpAddress}' versus new moderator '{testModerator.RemoteIpAddress}'");
+
+        if (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress)
+        {
+          Logger.LogError($"{testModerator.GetUniqueKey()} duplicate moderator login detected from different machine {testModerator.RemoteIpAddress}.");
+          return true;
+        }
       }
 
       return false;
