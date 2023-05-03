@@ -157,7 +157,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
             new RoomAssignmentCommand(learner));
     }
 
-    public async Task<IList<MapNodeListItem>> GetExitMapNodes(HttpContext httpContext, UserContext userContext, uint mapId, uint nodeId)
+    public async Task<IList<MapNodeListItem>> GetExitMapNodes(
+      HttpContext httpContext, 
+      UserContext userContext, 
+      uint mapId, 
+      uint nodeId)
     {
       var mapNodeList = new List<MapNodeListItem>();
 
@@ -168,7 +172,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         var endpoint = new MapsEndpoint(Logger, dbContext);
         endpoint.SetUserContext(userContext);
 
-        var dto = await endpoint.GetMapNodeAsync(auth, mapId, nodeId, false);
+        var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false);
 
         foreach (var item in dto.MapNodeLinks)
           mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });

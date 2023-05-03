@@ -59,7 +59,9 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
             };
 
             var proc = new ParticipantThread(workerThreadParam);
+#pragma warning disable CS4014 
             ThreadPool.QueueUserWorkItem(new WaitCallback(o => proc.RunProc()), workerThreadParam);
+#pragma warning restore CS4014
           }
 
           // Decrease the counter (as it was initialized with the value 1).
