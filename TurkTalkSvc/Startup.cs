@@ -18,6 +18,7 @@ using OLabWebAPI.Utils;
 using IOLabSession = OLabWebAPI.Data.Interface.IOLabSession;
 using IUserService = OLabWebAPI.Services.IUserService;
 using System.Net;
+using System;
 
 namespace TurkTalkSvc
 {
@@ -33,7 +34,11 @@ namespace TurkTalkSvc
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddSignalR();
+      services.AddSignalR(hubOptions =>
+            {
+              hubOptions.EnableDetailedErrors = true;
+              hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
+            });
 
       services.AddCors(options =>
       {
@@ -70,7 +75,7 @@ namespace TurkTalkSvc
       services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
       var ProxyServer = Configuration["AppSettings:ProxyServer"];
-      if ( string.IsNullOrEmpty( ProxyServer ) )
+      if (string.IsNullOrEmpty(ProxyServer))
         services.Configure<ForwardedHeadersOptions>(options =>
         {
           options.ForwardedHeaders =

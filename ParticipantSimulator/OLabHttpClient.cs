@@ -46,7 +46,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       HttpResponseMessage response = null;
 
-      int tries = 5;
+      int tries = 10;
 
       while (tries-- > 0)
       {
