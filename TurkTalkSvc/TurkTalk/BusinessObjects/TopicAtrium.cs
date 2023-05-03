@@ -135,7 +135,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     private void Dump()
     {
-      _logger.LogDebug($"'{_topic.Name}': atrium contents");
+      _logger.LogDebug($"'{_topic.Name}': atrium contents. Count: {AtriumLearners.Values.Count} ");
       if (AtriumLearners.Values.Count == 0)
         _logger.LogDebug($"  none");
       else
