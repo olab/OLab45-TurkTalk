@@ -84,6 +84,30 @@ namespace OLab.TurkTalk.ParticipantSimulator
       return connection;
     }
 
+    private async Task InvokeWithRetryAsync(HubConnection connection, string method, object? payload)
+    {
+      const int retries = 5;
+
+      for (int i = 0; i < retries; i++)
+      {
+        try
+        {
+          await connection.InvokeAsync(method, payload);
+          _logger.Info($"{_param.Participant.UserId}: invoked method {method} successfully.");
+          return;
+        }
+        catch (Exception ex)
+        {
+          _logger.Warn($"{_param.Participant.UserId}: invoked {method} exception. {ex.Message}. try {i} of {retries}");
+        }
+
+        Thread.Sleep(5000);
+      }
+
+      _logger.Error($"{_param.Participant.UserId}: method {method} invoke failed.");
+
+    }
+
     private async Task<bool> ConnectWithRetryAsync(HubConnection connection)
     {
 
@@ -127,7 +151,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ReferringNode = _node.Title
       };
 
-      await connection.InvokeAsync("registerAttendee", payload);
+      await InvokeWithRetryAsync(connection, "registerAttendee", payload);
 
       _logger.Info($"{_param.Participant.UserId}: invoked 'registerAttendee' for room '{payload.RoomName}'.");
 
@@ -178,9 +202,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
           }
         };
 
-        await connection.InvokeAsync(
-          "Message",
-          payload);
+        await InvokeWithRetryAsync(connection, "Message", payload);
+
 
         // test if a jump node command was received
         if (JumpNodePayload != null)
