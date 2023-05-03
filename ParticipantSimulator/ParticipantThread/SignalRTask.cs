@@ -123,8 +123,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ContextId = _node.ContextId,
         MapId = _map.Id.Value,
         NodeId = _node.Id.Value,
-        //QuestionId = _nodeTrail.TurkTalkTrail.QuestionId,
-        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}"
+        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}",
+        ReferringNode = _node.Title
       };
 
       await connection.InvokeAsync("registerAttendee", payload);
