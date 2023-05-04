@@ -25,7 +25,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       Topic = topic;
       AtriumLearners = new ConcurrentDictionary<string, Learner>();
 
-      BuildAtriumScannerThread();
+      //BuildAtriumScannerThread();
     }
 
     private void BuildAtriumScannerThread()

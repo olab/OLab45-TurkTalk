@@ -137,10 +137,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         new ModeratorAssignmentCommand(moderator, mapNodes));
 
       // notify moderator of atrium contents
-      //_topic.Conference.SendMessage(
-      //  new AtriumUpdateCommand(
-      //    moderator.CommandChannel,
-      //    _topic.AtriumGetContents()));
+      _topic.Conference.SendMessage(
+        new AtriumUpdateCommand(
+          moderator.CommandChannel,
+          _topic.AtriumGetContents()));
 
       var learners = _learners.Items;
 

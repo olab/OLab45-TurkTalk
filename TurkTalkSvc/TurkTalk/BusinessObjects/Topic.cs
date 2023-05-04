@@ -300,11 +300,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // try and remove connection.  if removed, notify all topic
         // moderators of atrium change
-        _atrium.Remove(connectionId);
+        //_atrium.Remove(connectionId);
 
-        //if (_atrium.Remove(connectionId))
-        //  Conference.SendMessage(
-        //    new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
+        if (_atrium.Remove(connectionId))
+          Conference.SendMessage(
+            new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
       }
       finally
@@ -331,11 +331,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // try and remove Participant.  if removed, notify all topic
         // moderators of atrium content change
-        _atrium.Remove(participant);
+        //_atrium.Remove(participant);
 
-        //if (_atrium.Remove(participant))
-        //  Conference.SendMessage(
-        //    new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
+        if (_atrium.Remove(participant))
+          Conference.SendMessage(
+            new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
         return learner;
 
@@ -382,8 +382,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
           new AtriumAssignmentCommand(learner, _atrium.Get(learner)));
 
         // notify all topic moderators of atrium change
-        //Conference.SendMessage(
-        //  new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
+        Conference.SendMessage(
+          new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
       }
       finally
