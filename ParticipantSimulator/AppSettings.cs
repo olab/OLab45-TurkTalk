@@ -103,7 +103,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
   public partial class PauseMs
   {
-    private static Random rnd = new Random();
+    public static Random rnd = new Random();
 
     public int GetDelayMs()
     {
