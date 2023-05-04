@@ -123,6 +123,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
           await connection.StartAsync(token);
           Debug.Assert(connection.State == HubConnectionState.Connected);
 
+          _connectionId = connection.ConnectionId;
+
           _logger.Info($"{_param.Participant.UserId}: connected to SignalR.  connectionId: {connection.ConnectionId}");
 
           return true;
@@ -139,6 +141,25 @@ namespace OLab.TurkTalk.ParticipantSimulator
           await Task.Delay(5000, token);
         }
       }
+    }
+
+    private async Task<bool> ReregisterAttendeeAsync(HubConnection connection)
+    {
+      var payload = new RegisterAttendeePayload
+      {
+        ContextId = _node.ContextId,
+        MapId = _map.Id.Value,
+        NodeId = _node.Id.Value,
+        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}",
+        ReferringNode = _node.Title,
+        ConnectionId = _connectionId
+      };
+
+      await InvokeWithRetryAsync(connection, "reregisterAttendee", payload);
+
+      _logger.Info($"{_param.Participant.UserId}: invoked 'reregisterAttendee' for room '{payload.RoomName}'.");
+
+      return true;
     }
 
     private async Task<bool> RegisterAttendeeAsync(HubConnection connection)

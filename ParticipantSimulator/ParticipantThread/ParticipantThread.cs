@@ -18,6 +18,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     private AuthenticateResponse _authInfo;
     private Learner _learner;
     private OLabHttpClient _olabClient;
+    private string _connectionId { get; set; }
 
     public ParticipantThread(WorkerThreadParameter param)
     {
