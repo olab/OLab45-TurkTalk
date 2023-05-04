@@ -73,6 +73,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       var url = $"{_param.Settings.SignalRHubUrl}?access_token={_authInfo.AuthInfo.Token}";
       connection = new HubConnectionBuilder()
+        .WithAutomaticReconnect()
         .WithUrl(url)
         .Build();
 

@@ -33,9 +33,6 @@ namespace OLab.TurkTalk.ParticipantSimulator
       _client.Timeout = TimeSpan.FromSeconds(60);
 
       _logger.Debug($"{_param.Participant.UserId}: url: {_client.BaseAddress} timeout: {_client.Timeout.TotalMilliseconds} ms");
-
-      //if (authInfo != null)
-      //  _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authInfo.AuthInfo.Token}");
     }
 
     public async Task<AuthenticateResponse> LoginAsync(LoginRequest model)
@@ -69,7 +66,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{model.Username}: login exception: {ex.Message}. tries left {tries}");
+          _logger.Warn($"{model.Username}: login exception: {ex.Message}. Tries remaining {tries}");
+          Thread.Sleep(1000);
         }
       }
 
@@ -101,7 +99,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load map exception: {ex.Message}");
+          _logger.Warn($"{_param.Participant.UserId}: load map exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(1000);
         }
       }
 
@@ -130,7 +129,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load map scoped exception: {ex.Message}");
+          _logger.Warn($"{_param.Participant.UserId}: load map scoped exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(1000);
         }
 
       }
@@ -174,7 +174,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load map node exception: {ex.Message}");
+          _logger.Warn($"{_param.Participant.UserId}: load map node exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(1000);
         }
       }
 
@@ -207,7 +208,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load node scoped exception: {ex.Message}");
+          _logger.Warn($"{_param.Participant.UserId}: load node scoped exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(1000);
         }
       }
 

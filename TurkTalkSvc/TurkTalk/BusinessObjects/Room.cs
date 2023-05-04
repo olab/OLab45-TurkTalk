@@ -188,15 +188,12 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="connectionId"></param>
     internal async Task RemoveParticipantAsync(Participant participant)
     {
-      Logger.LogDebug($"{participant.GetUniqueKey()} removing from room '{Name}'");
+      //Logger.LogDebug($"{participant.GetUniqueKey()} removing from room '{Name}'");
 
       // not a moderated room, return since there's 
       // nothing more to do
       if (!IsModerated)
-      {
-        Logger.LogInformation($"Room {Name} is not already moderated");
         return;
-      }
 
       try
       {
@@ -260,8 +257,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         if (instantRemove)
           _learners.Remove(serverParticipant);
       }
-      else
-        Logger.LogError($"{participant.GetUniqueKey()} is NOT participant for room '{Name}'.");
+      //else
+      //  Logger.LogError($"{participant.GetUniqueKey()} is NOT participant for room '{Name}'.");
 
     }
 
