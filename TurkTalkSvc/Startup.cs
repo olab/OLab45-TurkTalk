@@ -37,7 +37,8 @@ namespace TurkTalkSvc
       services.AddSignalR(hubOptions =>
             {
               hubOptions.EnableDetailedErrors = true;
-              //hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
+              hubOptions.ClientTimeoutInterval = TimeSpan.FromSeconds(90);
+              hubOptions.EnableDetailedErrors = true;
             });
 
       services.AddCors(options =>
