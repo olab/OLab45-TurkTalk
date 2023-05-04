@@ -49,8 +49,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
       // wait until attendee is assigned.
       while (!_roomAssigned)
       {
-        _logger.Info($"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'");
-        Thread.Sleep(10000);
+        _logger.Info($"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'");        
+        Thread.Sleep(PauseMs.rnd.Next(7000, 15000));
       }
 
       _logger.Info($"{_param.Participant.UserId}: room assigned '{nodeTrail.TurkTalkTrail.RoomName}'");

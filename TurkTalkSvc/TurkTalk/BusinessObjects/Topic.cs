@@ -347,7 +347,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="learner">Leaner info</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task AddToAtriumAsync(Learner learner)
+    public async Task AddToAtriumAsync(Learner learner)
     {
       try
       {
@@ -378,8 +378,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
           new AtriumAssignmentCommand(learner, _atrium.Get(learner)));
 
         // notify all topic moderators of atrium change
-        Conference.SendMessage(
-          new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
+        //Conference.SendMessage(
+        //  new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
 
       }
       finally
