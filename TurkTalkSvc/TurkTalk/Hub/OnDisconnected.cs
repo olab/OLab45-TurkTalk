@@ -1,4 +1,4 @@
-﻿using Common.Utils;
+using Common.Utils;
 using Microsoft.AspNetCore.SignalR;
 using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.BusinessObjects;
