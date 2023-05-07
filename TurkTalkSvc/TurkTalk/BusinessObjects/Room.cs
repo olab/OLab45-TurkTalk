@@ -214,9 +214,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     private async Task RemoveModeratorAsync(Participant participant)
     {
-      if (participant.RemoteIpAddress != _moderator.RemoteIpAddress)
+      if (participant.ConnectionId != _moderator.ConnectionId)
       {
-        Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the remoteIP does not match.");
+        Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the connectionId does not match.");
         return;
       }
 
@@ -239,7 +239,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     private void RemoveLearner(Participant participant, bool instantRemove = true)
     {
 
-      Learner serverParticipant = _learners.Items.FirstOrDefault(x => x.UserId == participant.UserId);
+      Learner serverParticipant = _learners.Items.FirstOrDefault(x => ( x.UserId == participant.UserId ) && ( x.ConnectionId == participant.ConnectionId ) );
       if (serverParticipant != null)
       {
         Logger.LogDebug($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");

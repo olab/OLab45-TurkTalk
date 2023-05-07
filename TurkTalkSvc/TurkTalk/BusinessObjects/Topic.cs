@@ -226,20 +226,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // go thru each newRoom and remove a (potential)
         // Participant
         foreach (Room room in Rooms)
-        {
           await room.RemoveParticipantAsync(participant);
-
-          // test if newRoom now has no moderator, meaning we can remove the newRoom
-          //if (room.Moderator == null)
-          //{
-          //  Logger.LogDebug($"Room '{room.Name}' has it's moderator disconnected.  Deleting newRoom");
-          //  emptyRoom = room;
-          //}
-        }
-
-        // delete the newRoom (out of the enumeration)
-        //Rooms.Remove(emptyRoom);
-
       }
       finally
       {
