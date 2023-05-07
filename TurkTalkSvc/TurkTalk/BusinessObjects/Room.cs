@@ -158,9 +158,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     }
 
     public async Task<IList<MapNodeListItem>> GetExitMapNodes(
-      HttpContext httpContext, 
-      UserContext userContext, 
-      uint mapId, 
+      HttpContext httpContext,
+      UserContext userContext,
+      uint mapId,
       uint nodeId)
     {
       var mapNodeList = new List<MapNodeListItem>();
@@ -292,20 +292,12 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     internal bool IsDuplicateModerator(Moderator testModerator)
     {
       if (!IsModerated)
-      {
-        Logger.LogDebug($"{testModerator.GetUniqueKey()} not duplicate moderator.  Room has no existing moderator");
         return false;
-      }
 
       if (_moderator.UserId == testModerator.UserId)
       {
-        Logger.LogDebug($"testing existing moderator ip '{_moderator.RemoteIpAddress}' versus new moderator '{testModerator.RemoteIpAddress}'");
-
-        if (_moderator.RemoteIpAddress != testModerator.RemoteIpAddress)
-        {
-          Logger.LogError($"{testModerator.GetUniqueKey()} duplicate moderator login detected from different machine {testModerator.RemoteIpAddress}.");
-          return true;
-        }
+        Logger.LogDebug($"");
+        return true;
       }
 
       return false;
@@ -322,7 +314,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       {
         _learners.Lock();
         return _learners.Items.Any(
-          x => (x.UserId == learner.UserId) && (x.RemoteIpAddress != learner.RemoteIpAddress)
+          x => 
+            (x.UserId == learner.UserId) && 
+            (x.RemoteIpAddress != learner.RemoteIpAddress)
         );
       }
       finally

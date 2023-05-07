@@ -44,7 +44,12 @@ namespace OLabWebAPI.Services.TurkTalk
         // if no existing room contains learner, add learner to 
         // topic atrium
         if (room == null)
-          await topic.AddToAtriumAsync(learner);
+        {
+          if (!(await topic.AddToAtriumAsync(learner)))
+            _conference.SendMessage(
+                Context.ConnectionId,
+                new ServerErrorCommand(Context.ConnectionId, $"User is already logged in. Unable to connect."));
+        }
 
         // user already 'known' to an existing room
         else
@@ -70,13 +75,9 @@ namespace OLabWebAPI.Services.TurkTalk
       catch (Exception ex)
       {
         _logger.LogError($"{learner.GetUniqueKey()}: registerAttendee exception: {ex.Message}");
-
-        if ( ( room != null) && ( learner != null ) )
-        {
-          room.Topic.Conference.SendMessage(
-            Context.ConnectionId, 
+        _conference.SendMessage(
+            Context.ConnectionId,
             new ServerErrorCommand(Context.ConnectionId, ex.Message));
-        }
       }
     }
   }

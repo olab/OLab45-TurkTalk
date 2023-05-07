@@ -351,7 +351,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="learner">Leaner info</param>
     /// <param name="connectionId">Connection id</param>
-    public async Task AddToAtriumAsync(Learner learner)
+    public async Task<bool> AddToAtriumAsync(Learner learner)
     {
       try
       {
@@ -360,7 +360,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // test if duplicate moderator logging in. If so, then
         // we need to reject the request.
         if (_atrium.IsDuplicateLearner(learner))
-          throw new Exception("Multiple logins not supported");
+          return false;
 
         // add/replace Participant in atrium
         var learnerReplaced = _atrium.Upsert(learner);
@@ -391,6 +391,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         atriumMutex.ReleaseMutex();
       }
 
+      return true;
     }
 
     // removes a newRoom from the topic

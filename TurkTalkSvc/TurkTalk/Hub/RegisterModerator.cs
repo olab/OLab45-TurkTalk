@@ -36,7 +36,8 @@ namespace OLabWebAPI.Services.TurkTalk
 
         moderator = new Moderator(roomName, Context);
 
-        _logger.LogInformation($"{moderator.GetUniqueKey()}: registerModerator: '{roomName}', {isBot} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
+        _logger.LogInformation(
+          $"{moderator.GetUniqueKey()}: registerModerator: '{roomName}', {isBot} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
 
         room = _conference.GetCreateTopicRoom(moderator);
 
