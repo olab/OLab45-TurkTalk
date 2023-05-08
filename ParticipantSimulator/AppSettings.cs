@@ -105,9 +105,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
   {
     public static Random rnd = new Random();
 
-    public int GetDelayMs()
+    public int GetDelayMs( int min = 0, int max = 0 )
     {
-      int sleepMs = rnd.Next(this.MinTimeMs, this.MaxTimeMs);
+      int sleepMs = 0;
+      if ( min == 0 && max == 0 )
+        sleepMs = rnd.Next(this.MinTimeMs, this.MaxTimeMs);
+      else
+        sleepMs = rnd.Next(min, max);
+
       return sleepMs;
     }
 

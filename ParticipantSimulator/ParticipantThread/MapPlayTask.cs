@@ -63,6 +63,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
         _node = await _olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
 
+        if (_node == null)
+        {
+          _logger.Error($"{_param.Participant.UserId}: could not get node {nodeTrail.NodeId}");
+          continue;
+        }
+
         if (string.IsNullOrEmpty(_sessionId))
         {
           _sessionId = _node.ContextId;

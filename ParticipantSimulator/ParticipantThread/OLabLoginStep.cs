@@ -19,12 +19,10 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       int sleepMs = _param.Rnd.Next(0, _param.Participant.GetDelayMs(_param.Settings));
 
-      _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms");
+      _logger.Info($"{_param.Participant.UserId}: logging in");
 
       // pause for a random time up to a max time 
       Thread.Sleep(sleepMs);
-
-      _logger.Info($"{_param.Participant.UserId}: logging in");
 
       var loginResult = await _olabClient.LoginAsync(new LoginRequest
       {

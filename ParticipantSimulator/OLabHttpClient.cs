@@ -39,7 +39,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       var url = $"auth/login";
 
-      _logger.Debug($"{model.Username}: login. url: {url} timeout: {_client.Timeout.TotalMilliseconds} ms");
+      _logger.Debug($"{model.Username}: login. url: {url}");
 
       HttpResponseMessage response = null;
 
@@ -67,7 +67,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         catch (Exception ex)
         {
           _logger.Warn($"{model.Username}: login exception: {ex.Message}. Tries remaining {tries}");
-          Thread.Sleep(1000);
+          Thread.Sleep(_param.Settings.PauseMs.GetDelayMs(1000, 3000));
         }
       }
 
@@ -100,7 +100,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         catch (Exception ex)
         {
           _logger.Warn($"{_param.Participant.UserId}: load map exception: {ex.Message} Tries remaining {tries}");
-          Thread.Sleep(1000);
+          Thread.Sleep(_param.Settings.PauseMs.GetDelayMs(1000, 3000));
         }
       }
 
@@ -130,7 +130,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         catch (Exception ex)
         {
           _logger.Warn($"{_param.Participant.UserId}: load map scoped exception: {ex.Message} Tries remaining {tries}");
-          Thread.Sleep(1000);
+          Thread.Sleep(_param.Settings.PauseMs.GetDelayMs(1000, 3000));
         }
 
       }
@@ -174,8 +174,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load map node exception: {ex.Message} Tries remaining {tries}");
-          Thread.Sleep(1000);
+          _logger.Warn($"{_param.Participant.UserId}: load map node {nodeId} exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(_param.Settings.PauseMs.GetDelayMs(1000, 3000));
         }
       }
 
@@ -208,8 +208,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
         }
         catch (Exception ex)
         {
-          _logger.Warn($"{_param.Participant.UserId}: load node scoped exception: {ex.Message} Tries remaining {tries}");
-          Thread.Sleep(1000);
+          _logger.Warn($"{_param.Participant.UserId}: load map node scoped {nodeId} exception: {ex.Message} Tries remaining {tries}");
+          Thread.Sleep(_param.Settings.PauseMs.GetDelayMs(1000, 3000));
         }
       }
 
