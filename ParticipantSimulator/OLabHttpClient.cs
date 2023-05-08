@@ -150,7 +150,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
       {
         Map = null,
         Server = null,
-        Node = null
+        Node = null,
+        NewPlay = ( nodeId == 0 ),
       };
 
       int tries = 5;
