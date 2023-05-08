@@ -87,7 +87,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     private async Task InvokeWithRetryAsync(HubConnection connection, string method, object? payload)
     {
-      const int retries = 5;
+      int retries = _param.Settings.ApiRetryCount;
 
       for (int i = 0; i < retries; i++)
       {

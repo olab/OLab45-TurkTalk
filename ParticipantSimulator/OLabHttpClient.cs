@@ -43,7 +43,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       HttpResponseMessage response = null;
 
-      int tries = 10;
+      int tries = _param.Settings.ApiRetryCount;
 
       while (tries-- > 0)
       {
@@ -80,7 +80,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       _logger.Debug($"{_param.Participant.UserId}: get map url: {url} timeout: {_client.Timeout.TotalMilliseconds} ms");
 
-      int tries = 5;
+      int tries = _param.Settings.ApiRetryCount;
 
       while (tries-- > 0)
       {
@@ -111,7 +111,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       var url = $"maps/{mapId}/scopedObjects";
 
-      int tries = 5;
+      int tries = _param.Settings.ApiRetryCount;
 
       while (tries-- > 0)
       {
@@ -154,7 +154,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         NewPlay = ( nodeId == 0 ),
       };
 
-      int tries = 5;
+      int tries = _param.Settings.ApiRetryCount;
 
       while (tries-- > 0)
       {
@@ -190,7 +190,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       var url = $"nodes/{nodeId}/scopedObjects";
 
-      int tries = 5;
+      int tries = _param.Settings.ApiRetryCount;
 
       while (tries-- > 0)
       {

@@ -145,6 +145,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
 
+    [JsonPropertyName("ApiRetryCount")]
+    public int ApiRetryCount{ get; set; } = 5;
+
     [JsonPropertyName("LogDirectory")]
     public string LogDirectory { get; set; } = string.Empty;
 
