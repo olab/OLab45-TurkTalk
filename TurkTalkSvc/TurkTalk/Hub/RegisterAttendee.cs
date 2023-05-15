@@ -39,6 +39,8 @@ namespace OLabWebAPI.Services.TurkTalk
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);
+
+        // test if participant already in room
         room = topic.GetParticipantRoom(learner);
 
         // if no existing room contains learner, add learner to 
@@ -48,27 +50,31 @@ namespace OLabWebAPI.Services.TurkTalk
           if (!(await topic.AddToAtriumAsync(learner)))
             _conference.SendMessage(
                 Context.ConnectionId,
-                new ServerErrorCommand(Context.ConnectionId, $"User is already logged in. Unable to connect."));
+                new ServerErrorCommand(Context.ConnectionId, $"Session already exists for '{learner.NickName}'. Unable to connect."));
         }
 
         // user already 'known' to an existing room
         else
         {
-          // if room has no moderator (i.e. moderator may have
-          // disconnected) add the attendee to the topic atrium
-          if (room.Moderator == null)
-          {
-            _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: room '{payload.RoomName}' has no moderator.  Assigning to atrium.");
-            await topic.AddToAtriumAsync(learner);
-          }
+          _conference.SendMessage(
+              Context.ConnectionId,
+              new ServerErrorCommand(Context.ConnectionId, $"Session already exists for '{learner.NickName}'. Unable to connect."));
 
-          // user already 'known' to a room AND room is moderated, so
-          // signal room assignment to re-attach the learner to the room
-          else
-          {
-            _logger.LogInformation($"{learner.GetUniqueKey()}: registerAttendee: assigning to existing room '{payload.RoomName}'");
-            await AssignAttendee(learner, room.Name);
-          }
+          //// if room has no moderator (i.e. moderator may have
+          //// disconnected) add the attendee to the topic atrium
+          //if (room.Moderator == null)
+          //{
+          //  _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: room '{payload.RoomName}' has no moderator.  Assigning to atrium.");
+          //  await topic.AddToAtriumAsync(learner);
+          //}
+
+          //// user already 'known' to a room AND room is moderated, so
+          //// signal room assignment to re-attach the learner to the room
+          //else
+          //{
+          //  _logger.LogInformation($"{learner.GetUniqueKey()}: registerAttendee: assigning to existing room '{payload.RoomName}'");
+          //  await AssignAttendee(learner, room.Name);
+          //}
         }
 
       }

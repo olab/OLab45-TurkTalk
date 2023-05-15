@@ -184,7 +184,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     }
 
     /// <summary>
-    /// Gets newRoom for Participant
+    /// Finds Participant in rooms
     /// </summary>
     /// <param name="participant">Participant to check</param>
     internal Room GetParticipantRoom(Participant participant)
@@ -347,7 +347,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // test if duplicate moderator logging in. If so, then
         // we need to reject the request.
         if (_atrium.IsDuplicateLearner(learner))
+        {
+          Logger.LogDebug($"Learner '{learner.NickName}' already exists in atrium '{Name}'.  Not added");
           return false;
+        }
 
         // add/replace Participant in atrium
         var learnerReplaced = _atrium.Upsert(learner);

@@ -163,8 +163,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     internal bool IsDuplicateLearner(Participant participant)
     {
-      return ((AtriumLearners.Values.Any(x => (x.UserId == participant.UserId) &&
-               (x.RemoteIpAddress != participant.RemoteIpAddress))));
+      return (AtriumLearners.Values.Any(x => (x.UserId == participant.UserId)));
     }
   }
 }
