@@ -181,6 +181,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
     [JsonPropertyName("NumUsers")]
     public int NumUsers { get; set; }
 
+    [JsonPropertyName("StartsAt")]
+    public int? StartsAt { get; set; }
+
     [JsonPropertyName("PauseMs")]
     public PauseMs PauseMs { get; set; }
 

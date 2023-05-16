@@ -93,7 +93,13 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
       else
         pauseMs = _settings.PauseMs;
 
-      for (int i = 1; i <= _settings.ParticipantInfo.NumUsers; i++)
+      int startsAt = 1;
+      if (_settings.ParticipantInfo.StartsAt.HasValue)
+        startsAt = _settings.ParticipantInfo.StartsAt.Value;
+
+      int endsAt = startsAt + _settings.ParticipantInfo.NumUsers - 1;
+
+      for (int i = startsAt; i <= endsAt; i++)
       {
         var index = i.ToString($"D{indexWidth}");
         var userId = $"{userIdPrefix}{index}";
