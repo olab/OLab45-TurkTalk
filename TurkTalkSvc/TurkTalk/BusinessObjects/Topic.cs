@@ -1,5 +1,6 @@
 using Dawn;
 using Microsoft.Extensions.Logging;
+using OLabWebAPI.Common.Contracts;
 using OLabWebAPI.TurkTalk.Commands;
 using OLabWebAPI.Utils;
 using System;
@@ -23,7 +24,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     private TopicAtrium _atrium;
 
     private static readonly Mutex atriumMutex = new Mutex();
-    public ILogger Logger { get { return _conference.Logger; } }
+    public OLabLogger Logger { get { return _conference.logger; } }
 
     public Conference Conference
     {
@@ -90,7 +91,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
           else
           {
-            var newRoom = new Room(this, _rooms.Count);
+            var newRoom = new Room(this, _rooms.Count + 1);
             int index = _rooms.Add(newRoom);
 
             Logger.LogDebug($"Created new room '{_rooms[index].Name}'");
@@ -183,7 +184,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     }
 
     /// <summary>
-    /// Gets newRoom for Participant
+    /// Finds Participant in rooms
     /// </summary>
     /// <param name="participant">Participant to check</param>
     internal Room GetParticipantRoom(Participant participant)
@@ -225,20 +226,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // go thru each newRoom and remove a (potential)
         // Participant
         foreach (Room room in Rooms)
-        {
           await room.RemoveParticipantAsync(participant);
-
-          // test if newRoom now has no moderator, meaning we can remove the newRoom
-          //if (room.Moderator == null)
-          //{
-          //  Logger.LogDebug($"Room '{room.Name}' has it's moderator disconnected.  Deleting newRoom");
-          //  emptyRoom = room;
-          //}
-        }
-
-        // delete the newRoom (out of the enumeration)
-        //Rooms.Remove(emptyRoom);
-
       }
       finally
       {
@@ -299,6 +287,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         // try and remove connection.  if removed, notify all topic
         // moderators of atrium change
+        //_atrium.Remove(connectionId);
+
         if (_atrium.Remove(connectionId))
           Conference.SendMessage(
             new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
@@ -323,11 +313,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         atriumMutex.WaitOne();
 
         // save so we can return the entire Participant
-        // (which contains the contextId
-        Learner learner = _atrium.Get(participant.UserId);
+        // (which contains the contextId)
+        Learner learner = _atrium.Get(participant);
 
         // try and remove Participant.  if removed, notify all topic
         // moderators of atrium content change
+        //_atrium.Remove(participant);
+
         if (_atrium.Remove(participant))
           Conference.SendMessage(
             new AtriumUpdateCommand(TopicModeratorsChannel, _atrium.GetContents()));
@@ -344,32 +336,40 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <summary>
     /// Add Participant to topic atrium
     /// </summary>
-    /// <param name="participant">Leaner info</param>
+    /// <param name="learner">Leaner info</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task AddToAtriumAsync(Learner participant)
+    public async Task<bool> AddToAtriumAsync(Learner learner)
     {
       try
       {
         atriumMutex.WaitOne();
 
+        // test if duplicate moderator logging in. If so, then
+        // we need to reject the request.
+        if (_atrium.IsDuplicateLearner(learner))
+        {
+          Logger.LogDebug($"Learner '{learner.NickName}' already exists in atrium '{Name}'.  Not added");
+          return false;
+        }
+
         // add/replace Participant in atrium
-        var learnerReplaced = _atrium.Upsert(participant);
+        var learnerReplaced = _atrium.Upsert(learner);
 
         // if replaced a atrium contents, remove it from group
         if (learnerReplaced)
         {
-          Logger.LogDebug($"Replacing existing '{Name}' atrium Participant '{participant.CommandChannel}'");
+          Logger.LogDebug($"Replacing existing '{Name}' atrium learner '{learner.CommandChannel}'");
           await Conference.RemoveConnectionToGroupAsync(
-            participant.CommandChannel,
-            participant.ConnectionId);
+            learner.CommandChannel,
+            learner.ConnectionId);
         }
 
         // add Participant to its own group so it can receive newRoom assigments
-        await Conference.AddConnectionToGroupAsync(participant);
+        await Conference.AddConnectionToGroupAsync(learner);
 
         // notify Participant of atrium assignment
         Conference.SendMessage(
-          new AtriumAssignmentCommand(participant, _atrium.Get(participant.UserId)));
+          new AtriumAssignmentCommand(learner, _atrium.Get(learner)));
 
         // notify all topic moderators of atrium change
         Conference.SendMessage(
@@ -381,6 +381,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         atriumMutex.ReleaseMutex();
       }
 
+      return true;
     }
 
     // removes a newRoom from the topic

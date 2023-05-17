@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,35 +17,36 @@ namespace OLab.TurkTalk.ParticipantSimulator
     private global::NLog.ILogger _logger;
     private AuthenticateResponse _authInfo;
     private Learner _learner;
+    private OLabHttpClient _olabClient;
+    private string _connectionId { get; set; }
 
     public ParticipantThread(WorkerThreadParameter param)
     {
       _param = param;
       _logger = param.Logger;
+      _olabClient = new OLabHttpClient(_param, null);
     }
 
-    public void RunProc()
+    public async Task RunProc()
     {
 
       try
       {
-        var loginTask = OLabLoginStepAsync();
-        loginTask.Wait();
+        var loginTask = await OLabLoginStepAsync();
 
-        _authInfo = loginTask.Result;
+        _authInfo = loginTask;
         if (_authInfo == null)
         {
           _logger.Error($"{_param.Participant.UserId}: unable to login");
           return;
         }
 
-        var mapPlayTask = MapPlayTaskAsync();
-        mapPlayTask.Wait();
+        var mapPlayTask = await MapPlayTaskAsync();
 
       }
       catch (Exception ex)
       {
-        _logger.Error($"{_param.Participant.UserId}: exception '{ex.Message}'");
+        _logger.Error($"{_param.Participant.UserId}: exception '{ex.Message}. {ex.StackTrace}'");
       }
       finally
       {

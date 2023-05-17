@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -42,6 +42,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
       _roomAssigned = false;
     }
 
+    private void OnJumpRoomCommand(string json)
+    {
+      JumpNodePayload = JsonConvert.DeserializeObject<JumpNodePayload>(json);      
+    }    
+
     private void MethodCallbacks(HubConnection connection)
     {
       connection.On<object>("Command", (payload) =>
@@ -60,6 +65,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
         if (commandMethod.Command == "learnerunassignment")
           OnRoomUnassignmentCommand(json);
 
+        if (commandMethod.Command == "jumpnode")
+          OnJumpRoomCommand(json);
+        
         return Task.CompletedTask;
       });
 

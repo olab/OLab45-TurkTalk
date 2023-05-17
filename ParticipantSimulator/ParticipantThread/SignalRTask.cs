@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -25,15 +25,16 @@ namespace OLab.TurkTalk.ParticipantSimulator
   public partial class ParticipantThread
   {
     private bool _roomAssigned = false;
+
     private NodeTrail _nodeTrail;
+    public JumpNodePayload JumpNodePayload = null;
 
     public async Task<bool> SignalRTask(NodeTrail nodeTrail)
     {
-      if (nodeTrail.TurkTalkTrail == null)
-        return true;
-
       var tmpToken = $"{_authInfo.AuthInfo.Token.Substring(0, 5)}***";
       _logger.Info($"{_param.Participant.UserId}: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}");
+
+      _logger.Info($"{_param.Participant.UserId}: TTalk question. room: {nodeTrail.TurkTalkTrail.RoomName}");
 
       var connection = SetupConnection();
 
@@ -48,11 +49,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
       // wait until attendee is assigned.
       while (!_roomAssigned)
       {
-        _logger.Info($"{_param.Participant.UserId}: checking for room assignment...");
-        Thread.Sleep(10000);
+        _logger.Info($"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'");        
+        Thread.Sleep(PauseMs.rnd.Next(7000, 15000));
       }
 
-      _logger.Info($"{_param.Participant.UserId}: room assigned");
+      _logger.Info($"{_param.Participant.UserId}: room assigned '{nodeTrail.TurkTalkTrail.RoomName}'");
 
       if (!await SendMessagesAsync(connection, _param.Participant, nodeTrail))
         throw new Exception("Failure sending messages");
@@ -60,6 +61,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
       _logger.Info($"{_param.Participant.UserId}: signalR task completed");
 
       await connection.StopAsync();
+
+      _roomAssigned = false;
 
       return true;
     }
@@ -70,6 +73,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       var url = $"{_param.Settings.SignalRHubUrl}?access_token={_authInfo.AuthInfo.Token}";
       connection = new HubConnectionBuilder()
+        .WithAutomaticReconnect()
         .WithUrl(url)
         .Build();
 
@@ -79,6 +83,30 @@ namespace OLab.TurkTalk.ParticipantSimulator
       MethodCallbacks(connection);
 
       return connection;
+    }
+
+    private async Task InvokeWithRetryAsync(HubConnection connection, string method, object? payload)
+    {
+      int retries = _param.Settings.ApiRetryCount;
+
+      for (int i = 0; i < retries; i++)
+      {
+        try
+        {
+          await connection.InvokeAsync(method, payload);
+          _logger.Info($"{_param.Participant.UserId}: invoked method {method} successfully.");
+          return;
+        }
+        catch (Exception ex)
+        {
+          _logger.Warn($"{_param.Participant.UserId}: invoked {method} exception. {ex.Message}. try {i} of {retries}");
+        }
+
+        Thread.Sleep(5000);
+      }
+
+      _logger.Error($"{_param.Participant.UserId}: method {method} invoke failed.");
+
     }
 
     private async Task<bool> ConnectWithRetryAsync(HubConnection connection)
@@ -94,6 +122,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
           await connection.StartAsync(token);
           Debug.Assert(connection.State == HubConnectionState.Connected);
+
+          _connectionId = connection.ConnectionId;
 
           _logger.Info($"{_param.Participant.UserId}: connected to SignalR.  connectionId: {connection.ConnectionId}");
 
@@ -113,6 +143,25 @@ namespace OLab.TurkTalk.ParticipantSimulator
       }
     }
 
+    private async Task<bool> ReregisterAttendeeAsync(HubConnection connection)
+    {
+      var payload = new RegisterAttendeePayload
+      {
+        ContextId = _node.ContextId,
+        MapId = _map.Id.Value,
+        NodeId = _node.Id.Value,
+        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}",
+        ReferringNode = _node.Title,
+        ConnectionId = _connectionId
+      };
+
+      await InvokeWithRetryAsync(connection, "reregisterAttendee", payload);
+
+      _logger.Info($"{_param.Participant.UserId}: invoked 'reregisterAttendee' for room '{payload.RoomName}'.");
+
+      return true;
+    }
+
     private async Task<bool> RegisterAttendeeAsync(HubConnection connection)
     {
       var payload = new RegisterAttendeePayload
@@ -120,13 +169,13 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ContextId = _node.ContextId,
         MapId = _map.Id.Value,
         NodeId = _node.Id.Value,
-        QuestionId = _nodeTrail.TurkTalkTrail.QuestionId,
-        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}"
+        RoomName = $"{_map.Name}|{_nodeTrail.TurkTalkTrail.RoomName}",
+        ReferringNode = _node.Title
       };
 
-      await connection.InvokeAsync("registerAttendee", payload);
+      await InvokeWithRetryAsync(connection, "registerAttendee", payload);
 
-      _logger.Info($"{_param.Participant.UserId}: registered attendee for room '{payload.RoomName}'.");
+      _logger.Info($"{_param.Participant.UserId}: invoked 'registerAttendee' for room '{payload.RoomName}'.");
 
       return true;
     }
@@ -149,17 +198,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
       Participant participant,
       NodeTrail nodeTrail)
     {
-      if (nodeTrail.TurkTalkTrail == null)
-        return true;
-
       for (int i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++)
       {
-        var message = $"#{i+1}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
+        var message = $"{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
 
         int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
         Thread.Sleep(sleepMs);
 
-        _logger.Info($"{_param.Participant.UserId}: sending message #{i+1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
+        _logger.Info($"{_param.Participant.UserId}: sending message #{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
 
         var payload = new MessagePayload
         {
@@ -173,13 +219,21 @@ namespace OLab.TurkTalk.ParticipantSimulator
           {
             MapId = _map.Id.Value,
             NodeId = _node.Id.Value,
-            ContextId = _node.ContextId
+            QuestionId = nodeTrail.TurkTalkTrail.QuestionId,
+            ContextId = _sessionId
           }
         };
 
-        await connection.InvokeAsync(
-          "Message",
-          payload);
+        await InvokeWithRetryAsync(connection, "Message", payload);
+
+
+        // test if a jump node command was received
+        if (JumpNodePayload != null)
+        {
+          _logger.Info($"{_param.Participant.UserId}: jump node received.  Messages interrupted.");
+          return true;
+        }
+
       }
 
       _logger.Info($"{_param.Participant.UserId}: all messages completed");

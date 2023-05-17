@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -28,7 +28,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       connection.Closed += error =>
       {
-        _logger.Info($"{_param.Participant.UserId}: Connection closed");
+        _logger.Error($"{_param.Participant.UserId}: Connection closed State: {connection.State}");
 
         Debug.Assert(connection.State == HubConnectionState.Disconnected);
 
@@ -38,7 +38,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnecting += error =>
       {
-        _logger.Info($"{_param.Participant.UserId}: Reconnecting");
+        _logger.Error($"{_param.Participant.UserId}: Reconnecting State: {connection.State} {connection.ConnectionId}");
 
         Debug.Assert(connection.State == HubConnectionState.Reconnecting);
 
@@ -49,9 +49,11 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnected += connectionId =>
       {
-        _logger.Info($"{_param.Participant.UserId}: Reconnected");
+        _logger.Error($"{_param.Participant.UserId}: Reconnected State: {connection.State} {connection.ConnectionId}");
 
         Debug.Assert(connection.State == HubConnectionState.Connected);
+
+        ReregisterAttendeeAsync( connection ).Wait();
 
         // Notify users the connection was reestablished.
         // Start dequeuing messages queued while reconnecting if any.

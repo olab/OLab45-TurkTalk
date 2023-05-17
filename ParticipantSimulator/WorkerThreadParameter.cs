@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Identity;
@@ -10,9 +10,9 @@ using OLab.TurkTalk.ParticipantSimulator;
 public class WorkerThreadParameter
 {
 #pragma warning disable CS8618
-    public WorkerThreadParameter()
+  public WorkerThreadParameter()
 #pragma warning restore CS8618
-    {
+  {
     Statuses = new ConcurrentBag<KeyValuePair<string, string>>();
     Participant = new Participant();
     Settings = new Settings();

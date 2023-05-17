@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography.Xml;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;

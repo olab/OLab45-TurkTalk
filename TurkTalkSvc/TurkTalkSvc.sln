@@ -4,12 +4,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TurkTalkSvc", "TurkTalkSvc.csproj", "{7F1D2DD4-DB22-4A2C-AC5B-71706702777C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F} = {B117401C-D7D0-427B-8FA0-8F3A98587D2F}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "..\..\Common\Common\Common.csproj", "{C6DE7058-57E0-4CF2-A7CC-A4E3A5AC6F8D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "..\..\Common\Data\Data.csproj", "{4D628F2F-7C04-4D47-AB08-C5C8DA9FCA34}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WikiTags", "..\..\Common\WikiTags\WikiTags.csproj", "{49105A09-7DD4-4DB7-B4B4-91BFE5B07BC6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Endpoints", "..\..\Common\Endpoints\Endpoints.csproj", "{B117401C-D7D0-427B-8FA0-8F3A98587D2F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +74,18 @@ Global
 		{49105A09-7DD4-4DB7-B4B4-91BFE5B07BC6}.Release|x64.Build.0 = Release|Any CPU
 		{49105A09-7DD4-4DB7-B4B4-91BFE5B07BC6}.Release|x86.ActiveCfg = Release|Any CPU
 		{49105A09-7DD4-4DB7-B4B4-91BFE5B07BC6}.Release|x86.Build.0 = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|x64.Build.0 = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Debug|x86.Build.0 = Debug|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|x64.ActiveCfg = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|x64.Build.0 = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|x86.ActiveCfg = Release|Any CPU
+		{B117401C-D7D0-427B-8FA0-8F3A98587D2F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

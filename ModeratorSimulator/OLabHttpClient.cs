@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 //using Newtonsoft.Json;
 using NLog;
@@ -57,7 +57,7 @@ namespace OLab.TurkTalk.ModeratorSimulator
     {
       var url = $"maps/{mapId}";
 
-      _logger.Debug($"{_param.Moderator.UserId} thread: get map url: {url}");
+      _logger.Debug($"{_param.Moderator.UserId}: get map url: {url}");
 
       HttpResponseMessage response = await _client.GetAsync(url);
       response.EnsureSuccessStatusCode();

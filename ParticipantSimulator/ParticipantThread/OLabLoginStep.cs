@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -19,15 +19,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       int sleepMs = _param.Rnd.Next(0, _param.Participant.GetDelayMs(_param.Settings));
 
-      _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms");
+      _logger.Info($"{_param.Participant.UserId}: logging in");
 
       // pause for a random time up to a max time 
       Thread.Sleep(sleepMs);
 
-      _logger.Info($"{_param.Participant.UserId}: logging in");
-
-      var olabClient = new OLabHttpClient(_param, null);
-      var loginResult = await olabClient.LoginAsync(new LoginRequest
+      var loginResult = await _olabClient.LoginAsync(new LoginRequest
       {
         Username = _param.Participant.UserId,
         Password = _param.Participant.Password

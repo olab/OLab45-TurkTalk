@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,8 @@ using OLabWebAPI.TurkTalk.BusinessObjects;
 using OLabWebAPI.Utils;
 using IOLabSession = OLabWebAPI.Data.Interface.IOLabSession;
 using IUserService = OLabWebAPI.Services.IUserService;
+using System.Net;
+using System;
 
 namespace TurkTalkSvc
 {
@@ -30,7 +34,12 @@ namespace TurkTalkSvc
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddSignalR();
+      services.AddSignalR(hubOptions =>
+            {
+              hubOptions.EnableDetailedErrors = true;
+              hubOptions.ClientTimeoutInterval = TimeSpan.FromSeconds(90);
+              hubOptions.EnableDetailedErrors = true;
+            });
 
       services.AddCors(options =>
       {
@@ -57,11 +66,32 @@ namespace TurkTalkSvc
         builder.AddConfiguration(config);
       });
 
-      // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
-      services.AddSingleton(typeof(ILogger), typeof(Logger<Startup>));
+      // added for logging
+      services.AddHttpLogging(options =>
+      {
+        options.LoggingFields = HttpLoggingFields.Request;
+      });
 
       // configure strongly typed settings object
       services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
+      var ProxyServer = Configuration["AppSettings:ProxyServer"];
+      if (string.IsNullOrEmpty(ProxyServer))
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+          options.ForwardedHeaders =
+              ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        });
+      else
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+          options.ForwardedHeaders =
+              ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+          options.KnownProxies.Add(IPAddress.Parse(ProxyServer));
+        });
+
+      // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
+      services.AddSingleton(typeof(ILogger), typeof(Logger<Startup>));
 
       var serverVersion = ServerVersion.AutoDetect(Configuration.GetConnectionString(Constants.DefaultConnectionStringName));
       services.AddDbContext<OLabDBContext>(
@@ -108,6 +138,10 @@ namespace TurkTalkSvc
       app.UseCors("CorsPolicy");
       app.UseRouting();
       app.UseAuthorization();
+
+      // added for logging
+      app.UseForwardedHeaders();
+      app.UseHttpLogging();
 
       // custom jwt auth middleware
       app.UseMiddleware<OLabJWTService>();

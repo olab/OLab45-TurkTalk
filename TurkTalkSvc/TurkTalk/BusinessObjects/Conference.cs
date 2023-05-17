@@ -1,3 +1,4 @@
+using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OLabWebAPI.Services.TurkTalk;
 using OLabWebAPI.TurkTalk.Commands;
 using OLabWebAPI.TurkTalk.Methods;
+using OLabWebAPI.Utils;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,9 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
   {
     private readonly ILogger _logger;
     private readonly IDictionary<string, Topic> _topics;
-    public ILogger Logger { get { return _logger; } }
+    //public ILogger Logger { get { return _logger; } }
+    public OLabLogger logger;
+
     public readonly IHubContext<TurkTalkHub> HubContext;
 
     public readonly IServiceScopeFactory ScopeFactory;
@@ -30,6 +34,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       Guard.Argument(scopeFactory).NotNull(nameof(scopeFactory));
 
       ScopeFactory = scopeFactory;
+
+      this.logger = new OLabLogger(logger);
 
       _logger = logger;
       HubContext = hubContext;
@@ -50,14 +56,34 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     public async Task AddConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"Added connection '{connectionId}' to group '{groupName}'");
+      logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
       await HubContext.Groups.AddToGroupAsync(connectionId, groupName);
     }
 
     public async Task RemoveConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"Removing connection '{connectionId}' from group '{groupName}'");
+      logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
       await HubContext.Groups.RemoveFromGroupAsync(connectionId, groupName);
+    }
+
+    /// <summary>
+    /// Send message payload to single client
+    /// </summary>
+    /// <param name="connectionId">connection id to transmit payload to</param>
+    /// <param name="method">message payload</param>
+    public void SendMessage(string connectionId, Method method )
+    {
+      Guard.Argument(connectionId).NotEmpty(connectionId);
+
+      if (method is CommandMethod)
+      {
+        var commandMethod = method as CommandMethod;
+        logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+      }
+      else
+        logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
+
+      HubContext.Clients.Client(connectionId).SendAsync(method.MethodName, method);
     }
 
     /// <summary>
@@ -73,10 +99,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
+        logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Group(groupName).SendAsync(method.MethodName, method);
 
@@ -116,7 +142,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         // test if topic doesn't exist yet
         if (!_topics.TryGetValue(topicId, out Topic topic))
         {
-          Logger.LogDebug($"Topic '{topicId}' does not already exist");
+          logger.LogDebug($"Topic '{topicId}' does not already exist");
 
           if (create)
           {
@@ -127,7 +153,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
             topic = null;
         }
         else
-          Logger.LogDebug($"Topic {topicId} already exists");
+          logger.LogDebug($"Topic {topicId} already exists");
 
         return topic;
       }

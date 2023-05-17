@@ -25,7 +25,7 @@ namespace OLabWebAPI.Services.TurkTalk
     {
       try
       {
-        _logger.LogInformation($"Message: from '{payload.Envelope.From}', {payload.Session.ContextId}, '{payload.Data}' ({ConnectionId.Shorten(Context.ConnectionId)})");
+        _logger.LogInformation($"Message: from '{payload.Envelope.From}', {payload.Session.ContextId}, '{payload.Data}' ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
         // get or create a topic
         Topic topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);

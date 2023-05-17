@@ -1,4 +1,4 @@
-﻿using OLabWebAPI.TurkTalk.Commands;
+using OLabWebAPI.TurkTalk.Commands;
 
 namespace HubServiceInterfaces;
 

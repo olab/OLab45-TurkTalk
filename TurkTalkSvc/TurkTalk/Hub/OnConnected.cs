@@ -1,4 +1,4 @@
-﻿using Common.Utils;
+using Common.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
@@ -20,7 +20,7 @@ namespace OLabWebAPI.Services.TurkTalk
     {
       try
       {
-        _logger.LogDebug($"OnConnectedAsync: '{ConnectionId.Shorten(Context.ConnectionId)}'.");
+        _logger.LogDebug($"OnConnectedAsync: '{ConnectionIdUtils.Shorten(Context.ConnectionId)}'.");
 
         HttpRequest request = Context.GetHttpContext().Request;
 

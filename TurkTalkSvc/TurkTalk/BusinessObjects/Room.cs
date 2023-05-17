@@ -9,6 +9,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
+using Humanizer;
+using static Humanizer.On;
+using Microsoft.EntityFrameworkCore;
+using OLabWebAPI.Endpoints.Player;
+using OLabWebAPI.Dto;
+using OLabWebAPI.Services;
+using OLabWebAPI.Data;
+using Microsoft.AspNetCore.Http;
+using OLabWebAPI.Data.Interface;
 
 namespace OLabWebAPI.TurkTalk.BusinessObjects
 {
@@ -33,7 +43,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     public Moderator Moderator { get { return _moderator; } }
     public string Name { get { return $"{_topic.Name}/{Index}"; } }
     public bool IsModerated { get { return _moderator != null; } }
-    protected ILogger Logger { get { return _topic.Logger; } }
+    protected OLabLogger Logger { get { return _topic.Logger; } }
     public Topic Topic { get { return _topic; } }
 
 
@@ -52,7 +62,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="learnerName">Learner user name</param>
     /// <param name="connectionId">Connection id</param>
-    internal async Task AddLearnerAsync(Learner learner)
+    internal async Task<bool> AddLearnerAsync(Learner learner, IList<MapNodeListItem> jumpNodes)
     {
       try
       {
@@ -61,18 +71,31 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
         _learners.Lock();
 
+        // test if duplicate learner logging in. If so, then
+        // we need to reject the request.
+        if (IsDuplicateLearner(learner))
+        {
+          _topic.Conference.SendMessage(
+            learner.ConnectionId,
+            new LearnerMessageCommand(
+              new MessagePayload(
+                learner,
+                $"User is already logged in. Unable to connect.")));
+          return false;
+        }
+
         // associate Participant connection to participate group
         await _topic.Conference.AddConnectionToGroupAsync(learner);
 
         _learners.Add(learner);
 
-        Logger.LogDebug($"Added participant {learner} to room '{Name}'");
+        Logger.LogDebug($"{learner.GetUniqueKey()} added to room '{Name}'");
 
         // if have moderator, notify that the participant has been
         // assigned to their room
         if (Moderator != null)
           _topic.Conference.SendMessage(
-            new LearnerAssignmentCommand(Moderator, learner));
+            new LearnerAssignmentCommand(Moderator, learner, jumpNodes));
 
       }
       finally
@@ -80,6 +103,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         _learners.Unlock();
       }
 
+      return true;
     }
 
     /// <summary>
@@ -89,6 +113,11 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="mapId">Map id for topic</param>
     internal async Task AddModeratorAsync(Moderator moderator, uint mapId, uint nodeId)
     {
+      // test if duplicate moderator logging in. If so, then
+      // we need to reject the request.
+      if (IsDuplicateModerator(moderator))
+        throw new Exception($"'{moderator.NickName}' already logged in. Unable to create another session.");
+
       if (!IsModerated)
         _moderator = moderator;
 
@@ -101,7 +130,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       await _topic.Conference.AddConnectionToGroupAsync(moderator);
 
       // get nodes from the current map that exist the current node
-      IList<MapNodeListItem> mapNodes = GetExitMapNodes(mapId, nodeId);
+      IList<MapNodeListItem> mapNodes = new List<MapNodeListItem>();
 
       // notify moderator of room assignment
       _topic.Conference.SendMessage(
@@ -123,33 +152,34 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
       // notify all learners in room of
       // moderator (re)connection
-      foreach (Learner learner in learners )
+      foreach (Learner learner in learners)
         _topic.Conference.SendMessage(
             new RoomAssignmentCommand(learner));
     }
 
-    private IList<MapNodeListItem> GetExitMapNodes(uint mapId, uint nodeId)
+    public async Task<IList<MapNodeListItem>> GetExitMapNodes(
+      HttpContext httpContext,
+      UserContext userContext,
+      uint mapId,
+      uint nodeId)
     {
       var mapNodeList = new List<MapNodeListItem>();
 
       using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
       {
         OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
-        Logger.LogDebug($"Got dbContext");
+        var auth = new OLabWebApiAuthorization(Logger, dbContext, httpContext);
+        var endpoint = new MapsEndpoint(Logger, dbContext);
+        endpoint.SetUserContext(userContext);
 
-        // get all destination nodes from the non-hidden map links that
-        // start from the nodeId we are interested in
-        var mapNodeIds = dbContext.MapNodeLinks
-          .Where(x => x.NodeId1 == nodeId && x.MapId == mapId && !x.Hidden.Value)
-          .Select(x => x.NodeId2)
-          .ToList();
+        var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false);
 
-        var mapNodes = dbContext.MapNodes.Where(x => mapNodeIds.Contains(x.Id)).ToList();
-        foreach (MapNodes mapNode in mapNodes)
-          mapNodeList.Add(new MapNodeListItem { Id = mapNode.Id, Name = mapNode.Title });
+        foreach (var item in dto.MapNodeLinks)
+          mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });
       }
 
       return mapNodeList;
+
     }
 
     /// <summary>
@@ -158,15 +188,12 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     /// <param name="connectionId"></param>
     internal async Task RemoveParticipantAsync(Participant participant)
     {
-      Logger.LogDebug($"Removing {participant.UserId} from room '{Name}'");
+      //Logger.LogDebug($"{participant.GetUniqueKey()} removing from room '{Name}'");
 
       // not a moderated room, return since there's 
       // nothing more to do
       if (!IsModerated)
-      {
-        Logger.LogInformation($"Room {Name} is not already moderated");
         return;
-      }
 
       try
       {
@@ -187,7 +214,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
 
     private async Task RemoveModeratorAsync(Participant participant)
     {
-      Logger.LogDebug($"Participant '{participant.UserId}' is a moderator for room '{Name}'. removing all learners.");
+      if (participant.ConnectionId != _moderator.ConnectionId)
+      {
+        Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the connectionId does not match.");
+        return;
+      }
+
+      Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}'. removing all learners.");
 
       // notify all known learners in room of moderator disconnection
       // and add them back into the atrium
@@ -206,11 +239,10 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     private void RemoveLearner(Participant participant, bool instantRemove = true)
     {
 
-      Learner serverParticipant = _learners.Items.FirstOrDefault(x => x.UserId == participant.UserId);
+      Learner serverParticipant = _learners.Items.FirstOrDefault(x => ( x.UserId == participant.UserId ) && ( x.ConnectionId == participant.ConnectionId ) );
       if (serverParticipant != null)
       {
-
-        Logger.LogDebug($"Participant '{participant.UserId}' is a participant for room '{Name}'. removing.");
+        Logger.LogDebug($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
 
         // build/set assumed command channel for participant
         var commandChannel = $"{_topic.Name}/{Learner.Prefix}/{serverParticipant.UserId}";
@@ -225,13 +257,13 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         if (instantRemove)
           _learners.Remove(serverParticipant);
       }
-      else
-        Logger.LogError($"Participant '{participant.UserId}' is NOT participant for room '{Name}'.");
+      //else
+      //  Logger.LogError($"{participant.GetUniqueKey()} is NOT participant for room '{Name}'.");
 
     }
 
     /// <summary>
-    /// TESt if Participant exists in room
+    /// Test if Participant exists in room
     /// </summary>
     /// <param name="participant">Participant to look for</param>
     /// <returns>true/false</returns>
@@ -252,5 +284,46 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       return found;
     }
 
+    /// <summary>
+    /// Test for duplicate moderator login (from another machine)
+    /// </summary>
+    /// <param name="testModerator">Moderator to test</param>
+    /// <returns>true/false</returns>
+    internal bool IsDuplicateModerator(Moderator testModerator)
+    {
+      if (!IsModerated)
+        return false;
+
+      if (_moderator.UserId == testModerator.UserId)
+      {
+        Logger.LogDebug($"");
+        return true;
+      }
+
+      return false;
+    }
+
+    /// <summary>
+    /// Test for duplicate learner login (from another machine)
+    /// </summary>
+    /// <param name="learner">Learner to test</param>
+    /// <returns>true/false</returns>
+    internal bool IsDuplicateLearner(Learner learner)
+    {
+      try
+      {
+        _learners.Lock();
+        return _learners.Items.Any(
+          x => 
+            (x.UserId == learner.UserId) && 
+            (x.RemoteIpAddress != learner.RemoteIpAddress)
+        );
+      }
+      finally
+      {
+        _learners.Unlock();
+      }
+
+    }
   }
 }

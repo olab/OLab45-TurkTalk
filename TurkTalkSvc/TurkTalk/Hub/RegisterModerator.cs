@@ -4,16 +4,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLabWebAPI.Common.Contracts;
+using OLabWebAPI.Model;
 using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLabWebAPI.TurkTalk.Commands;
 using System;
 using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Register moderator to atrium
@@ -25,14 +27,19 @@ namespace OLabWebAPI.Services.TurkTalk
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task RegisterModerator(uint mapId, uint nodeId, string roomName, bool isBot)
     {
+      Room room = null;
+      Moderator moderator = null;
+
       try
       {
         Guard.Argument(roomName).NotNull(nameof(roomName));
 
-        _logger.LogInformation($"RegisterModerator: '{roomName}', {isBot} ({ConnectionId.Shorten(Context.ConnectionId)})");
+        moderator = new Moderator(roomName, Context);
 
-        var moderator = new Moderator(roomName, Context);
-        Room room = _conference.GetCreateTopicRoom(moderator);
+        _logger.LogInformation(
+          $"{moderator.GetUniqueKey()}: registerModerator: '{roomName}', {isBot} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress}");
+
+        room = _conference.GetCreateTopicRoom(moderator);
 
         // add room index to moderator info
         moderator.AssignToRoom(room.Index);
@@ -42,7 +49,16 @@ namespace OLabWebAPI.Services.TurkTalk
       }
       catch (Exception ex)
       {
-        _logger.LogError($"RegisterModerator exception: {ex.Message}");
+
+        if ((room != null) && (moderator != null))
+        {
+          _logger.LogError($"{moderator.GetUniqueKey()}: registerModerator exception: {ex.Message}");
+
+          room.Topic.Conference.SendMessage(
+            Context.ConnectionId,
+            new ServerErrorCommand(Context.ConnectionId, ex.Message));
+        }
+
       }
     }
   }

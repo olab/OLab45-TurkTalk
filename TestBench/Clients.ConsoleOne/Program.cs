@@ -1,4 +1,4 @@
-﻿using HubServiceInterfaces;
+using HubServiceInterfaces;
 using Microsoft.AspNetCore.SignalR.Client;
 
 #region Program

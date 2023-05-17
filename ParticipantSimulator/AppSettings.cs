@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -103,11 +103,16 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
   public partial class PauseMs
   {
-    private static Random rnd = new Random();
+    public static Random rnd = new Random();
 
-    public int GetDelayMs()
+    public int GetDelayMs( int min = 0, int max = 0 )
     {
-      int sleepMs = rnd.Next(this.MinTimeMs, this.MaxTimeMs);
+      int sleepMs = 0;
+      if ( min == 0 && max == 0 )
+        sleepMs = rnd.Next(this.MinTimeMs, this.MaxTimeMs);
+      else
+        sleepMs = rnd.Next(min, max);
+
       return sleepMs;
     }
 
@@ -139,6 +144,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
     }
 
     private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+
+    [JsonPropertyName("ApiRetryCount")]
+    public int ApiRetryCount{ get; set; } = 5;
 
     [JsonPropertyName("LogDirectory")]
     public string LogDirectory { get; set; } = string.Empty;
@@ -172,6 +180,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     [JsonPropertyName("NumUsers")]
     public int NumUsers { get; set; }
+
+    [JsonPropertyName("StartsAt")]
+    public int? StartsAt { get; set; }
 
     [JsonPropertyName("PauseMs")]
     public PauseMs PauseMs { get; set; }

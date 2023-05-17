@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -20,39 +20,77 @@ namespace OLab.TurkTalk.ParticipantSimulator
     private MapsNodesFullRelationsDto _node;
     private OLabWebAPI.Dto.Designer.ScopedObjectsDto _mapScoped;
     private OLabWebAPI.Dto.Designer.ScopedObjectsDto _nodeScoped;
+    private string _sessionId;
 
     public async Task<bool> MapPlayTaskAsync()
     {
       MapTrail mapTrail = _param.Participant.GetMapTrail(_param.Settings);
 
-      var olabClient = new OLabHttpClient(_param, _authInfo);
-
-      _map = await olabClient.LoadMapAsync(mapTrail.MapId);
-      _mapScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+      _map = await _olabClient.LoadMapAsync(mapTrail.MapId);
+      _mapScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
       // if no node trail, load root node
       if (mapTrail.NodeTrail == null)
       {
         int sleepMs = _param.Rnd.Next(0, mapTrail.GetDelayMs(_param.Settings));
-        _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
+        //_logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
         Thread.Sleep(sleepMs);
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await _olabClient.LoadMapNodeAsync(mapTrail);
+        _nodeScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
 
         return true;
       }
 
       foreach (var nodeTrail in mapTrail.NodeTrail)
       {
+        // test if redirecting to a jump node
+        if (JumpNodePayload != null)
+        {
+          // if not on the jump node yet, skip current node
+          if (nodeTrail.NodeId != JumpNodePayload.Data.NodeId)
+          {
+            _logger.Debug($"{_param.Participant.UserId}: skipping until jump node {JumpNodePayload.Data.NodeId}");
+            continue;
+          }
+          else
+            _logger.Debug($"{_param.Participant.UserId}: playing jump node {JumpNodePayload.Data.NodeId}");
+        }
+
         int sleepMs = nodeTrail.GetDelayMs(mapTrail);
-        _logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
+        //_logger.Debug($"{_param.Participant.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
         Thread.Sleep(sleepMs);
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await _olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
 
-        await SignalRTask(nodeTrail);
+        if (_node == null)
+        {
+          _logger.Error($"{_param.Participant.UserId}: could not get node {nodeTrail.NodeId}");
+          continue;
+        }
+
+        if (string.IsNullOrEmpty(_sessionId))
+        {
+          _sessionId = _node.ContextId;
+          _logger.Debug($"{_param.Participant.UserId}: sessionId: {_sessionId}");
+        }
+
+        _nodeScoped = await _olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+
+        // test if there's a turk talk question in the node
+        if (nodeTrail.TurkTalkTrail != null)
+          await SignalRTask(nodeTrail);
+
+        // test if jsut ran the jump node
+        if (JumpNodePayload != null)
+        {
+          // if not on the jump node yet, skip current node
+          if (nodeTrail.NodeId == JumpNodePayload.Data.NodeId)
+          {
+            _logger.Debug($"{_param.Participant.UserId}: resuming node trail after jump node {JumpNodePayload.Data.NodeId}");
+            JumpNodePayload = null;
+          }
+        }
       }
 
       _logger.Info($"{_param.Participant.UserId}: map play task completed");

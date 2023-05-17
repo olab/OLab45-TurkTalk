@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
@@ -59,7 +59,9 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
             };
 
             var proc = new ParticipantThread(workerThreadParam);
+#pragma warning disable CS4014 
             ThreadPool.QueueUserWorkItem(new WaitCallback(o => proc.RunProc()), workerThreadParam);
+#pragma warning restore CS4014
           }
 
           // Decrease the counter (as it was initialized with the value 1).
@@ -91,7 +93,13 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
       else
         pauseMs = _settings.PauseMs;
 
-      for (int i = 1; i <= _settings.ParticipantInfo.NumUsers; i++)
+      int startsAt = 1;
+      if (_settings.ParticipantInfo.StartsAt.HasValue)
+        startsAt = _settings.ParticipantInfo.StartsAt.Value;
+
+      int endsAt = startsAt + _settings.ParticipantInfo.NumUsers - 1;
+
+      for (int i = startsAt; i <= endsAt; i++)
       {
         var index = i.ToString($"D{indexWidth}");
         var userId = $"{userIdPrefix}{index}";
