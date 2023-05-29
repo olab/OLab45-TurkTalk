@@ -165,17 +165,35 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     {
       var mapNodeList = new List<MapNodeListItem>();
 
-      using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
+      try
       {
-        OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
-        var auth = new OLabWebApiAuthorization(Logger, dbContext, httpContext);
-        var endpoint = new MapsEndpoint(Logger, dbContext);
-        endpoint.SetUserContext(userContext);
+        Logger.LogDebug($"Querying exit nodes for map {mapId}, node {nodeId}, user {userContext.UserId}");
 
-        var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false);
+        using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
+        {
+          OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
+          var auth = new OLabWebApiAuthorization(Logger, dbContext, httpContext);
+          var endpoint = new MapsEndpoint(Logger, dbContext);
+          endpoint.SetUserContext(userContext);
 
-        foreach (var item in dto.MapNodeLinks)
-          mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });
+          var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false);
+
+          if (dto.MapNodeLinks.Count > 0)
+            Logger.LogDebug($"Exit nodes from map {mapId}, node {nodeId}, user {userContext.UserId}:");
+          else
+            Logger.LogWarning($"no exist nodes from map {mapId}, node {nodeId} user {userContext.UserId}");
+
+          foreach (var item in dto.MapNodeLinks)
+          {
+            Logger.LogDebug($"  {item.LinkText}({item.Id})");
+            mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });
+          }
+        }
+
+      }
+      catch (Exception ex)
+      {
+        Logger.LogError(ex, "exception in GetExitMapNodes");
       }
 
       return mapNodeList;
@@ -239,7 +257,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
     private void RemoveLearner(Participant participant, bool instantRemove = true)
     {
 
-      Learner serverParticipant = _learners.Items.FirstOrDefault(x => ( x.UserId == participant.UserId ) && ( x.ConnectionId == participant.ConnectionId ) );
+      Learner serverParticipant = _learners.Items.FirstOrDefault(x => (x.UserId == participant.UserId) && (x.ConnectionId == participant.ConnectionId));
       if (serverParticipant != null)
       {
         Logger.LogDebug($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
@@ -314,8 +332,8 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
       {
         _learners.Lock();
         return _learners.Items.Any(
-          x => 
-            (x.UserId == learner.UserId) && 
+          x =>
+            (x.UserId == learner.UserId) &&
             (x.RemoteIpAddress != learner.RemoteIpAddress)
         );
       }
