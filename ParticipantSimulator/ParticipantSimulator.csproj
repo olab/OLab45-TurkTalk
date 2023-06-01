@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Common\Common.csproj" />
     <ProjectReference Include="..\..\Common\Data\Data.csproj" />
+    <ProjectReference Include="..\..\Common\Endpoints\Endpoints.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,9 @@
 
   <ItemGroup>
     <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.Elizabeth.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.json">
