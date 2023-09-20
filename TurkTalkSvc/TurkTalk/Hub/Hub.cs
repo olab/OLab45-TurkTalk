@@ -1,13 +1,14 @@
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using OLabWebAPI.Data;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.Utils;
+using OLab.Api.Data.Interface;
+using OLab.Api.Model;
+using OLab.Api.Utils;
+using OLab.Common.Interfaces;
+using OLab.TurkTalkSvc.Services;
+using OLab.TurkTalkSvc.TurkTalk.BusinessObjects;
 using System;
 using System.Net;
 
@@ -17,7 +18,7 @@ namespace OLabWebAPI.Services.TurkTalk
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
   public partial class TurkTalkHub : Hub
   {
-    private readonly OLabLogger _logger;
+    private readonly IOLabLogger _logger;
     private readonly Conference _conference;
     protected readonly OLabDBContext DbContext;
 
@@ -30,14 +31,14 @@ namespace OLabWebAPI.Services.TurkTalk
     /// TurkTalkHub constructor
     /// </summary>
     /// <param name="logger">Dependancy-injected logger</param>
-    public TurkTalkHub(ILogger<TurkTalkHub> logger, OLabDBContext dbContext, Conference conference)
+    public TurkTalkHub(IOLabLogger logger, OLabDBContext dbContext, Conference conference)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(dbContext).NotNull(nameof(dbContext));
       Guard.Argument(conference).NotNull(nameof(conference));
 
       _conference = conference ?? throw new ArgumentNullException(nameof(conference));
-      _logger = new OLabLogger(logger);
+      _logger = logger;
 
       DbContext = dbContext;
 
@@ -61,9 +62,9 @@ namespace OLabWebAPI.Services.TurkTalk
       }
     }
 
-    private UserContext GetUserContext()
+    private IUserContext GetUserContext()
     {
-      HttpRequest request = Context.GetHttpContext().Request;
+      var request = Context.GetHttpContext().Request;
 
       //var accessToken = $"Bearer {Convert.ToString(Context.GetHttpContext().Request.Query["access_token"])}";
       //request.Headers.Add("Authorization", accessToken);
@@ -77,7 +78,7 @@ namespace OLabWebAPI.Services.TurkTalk
       // Return the Context IP address
       if (context != null)
       {
-        HttpContext httpContext = context.GetHttpContext();
+        var httpContext = context.GetHttpContext();
         if (httpContext != null)
         {
           IPAddress clientIp;

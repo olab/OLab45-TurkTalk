@@ -2,18 +2,16 @@ using Common.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Data;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
+using OLab.Api.Common.Contracts;
+using OLab.Api.TurkTalk.Commands;
 using System;
 
 namespace OLabWebAPI.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Message is received
@@ -28,7 +26,7 @@ namespace OLabWebAPI.Services.TurkTalk
         _logger.LogInformation($"Message: from '{payload.Envelope.From}', {payload.Session.ContextId}, '{payload.Data}' ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
         // get or create a topic
-        Topic topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
+        var topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
         if (topic == null)
           return;
 
@@ -36,7 +34,7 @@ namespace OLabWebAPI.Services.TurkTalk
         topic.Conference.SendMessage(
           new MessageMethod(payload));
 
-        UserContext userContext = GetUserContext();
+        var userContext = GetUserContext();
         userContext.Session.SetSessionId(payload.Session.ContextId);
 
         // add the sender name to the message so we 

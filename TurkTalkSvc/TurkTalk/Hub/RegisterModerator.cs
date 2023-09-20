@@ -1,12 +1,10 @@
-using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
+using OLab.Api.TurkTalk.BusinessObjects;
+using OLab.Api.TurkTalk.Commands;
+using OLab.TurkTalkSvc.TurkTalk.BusinessObjects;
 using System;
 using System.Threading.Tasks;
 

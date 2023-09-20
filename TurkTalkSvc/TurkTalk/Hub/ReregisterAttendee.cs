@@ -1,13 +1,12 @@
-using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
+using OLab.Api.Common.Contracts;
+using OLab.Api.TurkTalk.BusinessObjects;
+using OLab.Api.TurkTalk.Commands;
+using OLab.TurkTalkSvc.TurkTalk.BusinessObjects;
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OLabWebAPI.Services.TurkTalk
@@ -38,7 +37,7 @@ namespace OLabWebAPI.Services.TurkTalk
         _logger.LogDebug($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
 
         // get or create a conference topic
-        Topic topic = _conference.GetCreateTopic(learner.TopicName);
+        var topic = _conference.GetCreateTopic(learner.TopicName);
         room = topic.GetParticipantRoom(learner);
 
         // if no existing room contains learner, add learner to 
@@ -51,10 +50,10 @@ namespace OLabWebAPI.Services.TurkTalk
       {
         _logger.LogError($"{learner.GetUniqueKey()}: registerAttendee exception: {ex.Message}");
 
-        if ( ( room != null) && ( learner != null ) )
+        if ((room != null) && (learner != null))
         {
           room.Topic.Conference.SendMessage(
-            Context.ConnectionId, 
+            Context.ConnectionId,
             new ServerErrorCommand(Context.ConnectionId, ex.Message));
         }
       }

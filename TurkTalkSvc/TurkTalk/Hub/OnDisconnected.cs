@@ -1,7 +1,6 @@
 using Common.Utils;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLab.Api.TurkTalk.BusinessObjects;
 using System;
 using System.Threading.Tasks;
 
@@ -27,7 +26,7 @@ namespace OLabWebAPI.Services.TurkTalk
 
         // we don't know which user disconnected, so we have to search
         // the known topics by SignalR DbContext
-        foreach (Topic topic in _conference.Topics)
+        foreach (var topic in _conference.Topics)
           await topic.RemoveParticipantAsync(participant);
       }
       catch (Exception ex)

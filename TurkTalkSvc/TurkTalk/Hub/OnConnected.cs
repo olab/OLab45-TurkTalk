@@ -1,5 +1,4 @@
 using Common.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -22,7 +21,7 @@ namespace OLabWebAPI.Services.TurkTalk
       {
         _logger.LogDebug($"OnConnectedAsync: '{ConnectionIdUtils.Shorten(Context.ConnectionId)}'.");
 
-        HttpRequest request = Context.GetHttpContext().Request;
+        var request = Context.GetHttpContext().Request;
 
         var accessToken = $"Bearer {Convert.ToString(request.Query["access_token"])}";
         request.Headers.Add("Authorization", accessToken);
