@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Service.Azure.BusinessObjects;
-internal class Conference
+public class Participant
 {
+  public string UserName { get; set; }
+  public string IamsSource { get; set; }
 }

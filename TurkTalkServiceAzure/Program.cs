@@ -32,6 +32,18 @@ var host = new HostBuilder()
         ContractResolver = new CamelCasePropertyNamesContractResolver()
       };
 
+      services.AddCors(options =>
+      {
+        options.AddPolicy("CorsPolicy",
+           builder => builder
+            // .AllowAnyOrigin()
+            .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://cloud.olab.ca")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+          );
+      });
+
       var connectionString = Environment.GetEnvironmentVariable("DefaultDatabase");
       var serverVersion = ServerVersion.AutoDetect(connectionString);
 

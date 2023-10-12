@@ -24,26 +24,21 @@ public partial class Functions
   protected readonly IOLabLogger _logger;
   private readonly IHubContextStore _hubContextStore;
   private readonly OLabDBContext _dbContext;
-  private readonly Conference _conference;
 
   private ServiceHubContext MessageHubContext => _hubContextStore.MessageHubContext;
 
   public Functions(
     IOLabLogger logger,
     IHubContextStore hubContextStore,
-    OLabDBContext dbContext,
-    Conference conference)
+    OLabDBContext dbContext)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(hubContextStore).NotNull(nameof(hubContextStore));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));
-    Guard.Argument(conference).NotNull(nameof(conference));
 
     _logger = logger;
     _hubContextStore = hubContextStore;
     _dbContext = dbContext;
-    _conference = conference;
-
   }
 
   [Function("index")]
