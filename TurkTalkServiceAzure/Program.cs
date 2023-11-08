@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,12 +12,16 @@ using OLab.Common.Interfaces;
 using OLab.Common.Utils;
 using OLab.TurkTalk.Service.Azure;
 using OLab.TurkTalk.Service.Azure.BusinessObjects;
+using OLab.TurkTalk.Service.Azure.Interfaces;
+using OLab.TurkTalk.Service.Azure.Middleware;
 using OLab.TurkTalk.Service.Azure.Services;
 using System;
+using System.Configuration;
+using System.Threading.Tasks;
 
 var host = new HostBuilder()
-.ConfigureAppConfiguration(builder =>
 
+    .ConfigureAppConfiguration(builder =>
     {
       builder.AddJsonFile(
       "local.settings.json",
@@ -28,7 +33,9 @@ var host = new HostBuilder()
     {
       JsonConvert.DefaultSettings = () => new JsonSerializerSettings
       {
+#if DEBUG
         Formatting = Formatting.Indented,
+#endif
         ContractResolver = new CamelCasePropertyNamesContractResolver()
       };
 
@@ -58,16 +65,30 @@ var host = new HostBuilder()
           c.GetSection("AppSettings").Bind(options);
         });
 
-      services.AddTransient<IUserContext, UserContext>();
+      services.AddScoped<IUserContext, UserContext>();
       services.AddSingleton<IOLabLogger, OLabLogger>();
       services.AddSingleton<IOLabConfiguration, OLabConfiguration>();
-      services.AddSingleton<Conference>();
+      services.AddSingleton<IUserService, UserService>();
+
+      services.AddSingleton<IConference>((s) =>
+      {
+        return new Conference(
+          s.GetRequiredService<IOLabLogger>(),
+          s.GetRequiredService<IOLabConfiguration>(),
+          s.GetRequiredService<OLabDBContext>(),
+          "default");
+      });
+
     })
 
-    .ConfigureFunctionsWorkerDefaults(b => b.Services
-                .AddSingleton<SignalRService>()
-                .AddHostedService(sp => sp.GetRequiredService<SignalRService>())
-                .AddSingleton<IHubContextStore>(sp => sp.GetRequiredService<SignalRService>()))
+    .ConfigureFunctionsWorkerDefaults(builder =>
+    {
+      builder.UseMiddleware<OLabAuthMiddleware>();
+      builder.Services
+        .AddSingleton<SignalRService>()
+        .AddHostedService(sp => sp.GetRequiredService<SignalRService>())
+        .AddSingleton<IHubContextStore>(sp => sp.GetRequiredService<SignalRService>());
+    })
     .Build();
 
 host.Run();

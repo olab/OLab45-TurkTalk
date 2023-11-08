@@ -8,5 +8,5 @@ namespace OLab.TurkTalk.Service.Azure.BusinessObjects;
 public class Participant
 {
   public string UserName { get; set; }
-  public string IamsSource { get; set; }
+  public string UserSource { get; set; }
 }

@@ -1,15 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using OLab.Api.Data.Interface;
+﻿using Dawn;
+using Microsoft.Azure.Functions.Worker;
 using OLab.Api.Data;
+using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Api.Utils;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
 using OLab.Common.Interfaces;
-using Microsoft.Azure.Functions.Worker.Http;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using System.Security.Claims;
 
 #nullable disable
 
@@ -23,22 +22,21 @@ public class UserContext : IUserContext
   public ClaimsPrincipal User;
   public Users OLabUser;
 
-  private readonly HttpRequestData _httpRequest;
-  private IEnumerable<Claim> _claims;
-  private readonly OLabDBContext _dbContext;
-  private readonly IOLabLogger _logger;
+  protected IDictionary<string, string> _claims;
+  protected readonly OLabDBContext _dbContext;
+  protected readonly IOLabLogger Logger;
   protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
   protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
 
-  private IOLabSession _session;
-  private string _role;
-  private IList<string> _roles;
-  private uint _userId;
-  private string _userName;
-  private string _ipAddress;
-  private string _issuer;
-  private readonly string _courseName;
-  private string _accessToken;
+  protected IOLabSession _session;
+  protected string _role;
+  protected IList<string> _roles;
+  protected uint _userId;
+  protected string _userName;
+  protected string _ipAddress;
+  protected string _issuer;
+  protected string _referringCourse;
+  protected string _accessToken;
 
   public IOLabSession Session
   {
@@ -48,8 +46,8 @@ public class UserContext : IUserContext
 
   public string ReferringCourse
   {
-    get => _role;
-    set => _role = value;
+    get => _referringCourse;
+    set => _referringCourse = value;
   }
 
   public string Role
@@ -84,7 +82,8 @@ public class UserContext : IUserContext
 
   public string SessionId { get { return Session.GetSessionId(); } }
 
-  public string CourseName { get { return _courseName; } }
+  //public string CourseName { get { return _courseName; } }
+  public string CourseName { get { return null; } }
 
   // default ctor, needed for services Dependancy Injection
   public UserContext()
@@ -92,55 +91,64 @@ public class UserContext : IUserContext
 
   }
 
-  public UserContext(IOLabLogger logger, OLabDBContext dbContext)
+  public UserContext(
+    IOLabLogger logger,
+    OLabDBContext dbContext,
+    FunctionContext hostContext)
   {
+    Guard.Argument(logger).NotNull(nameof(logger));
+    Guard.Argument(dbContext).NotNull(nameof(dbContext));
+    Guard.Argument(hostContext).NotNull(nameof(hostContext));
+
     _dbContext = dbContext;
-    _logger = logger;
-    Session = new OLabSession(_logger.GetLogger(), dbContext, this);
+
+    Logger = logger;
+
+    Session = new OLabSession(Logger.GetLogger(), dbContext, this);
+
+    Logger.LogInformation($"UserContext ctor");
+
+    LoadHostContext(hostContext);
   }
 
-  public UserContext(IOLabLogger logger, OLabDBContext context, HttpRequestData request)
+  protected void LoadHostContext(FunctionContext hostContext)
   {
-    _dbContext = context;
-    _logger = logger;
-    _httpRequest = request;
+    var headers = new Dictionary<string, string>();
+    if (!hostContext.Items.TryGetValue("headers", out var headersObjects))
+      throw new Exception("unable to retrieve headers from host context");
 
-    Session = new OLabSession(_logger.GetLogger(), context, this);
+    headers = (Dictionary<string, string>)headersObjects;
 
-    LoadHttpRequest();
-  }
+    if (headers.TryGetValue("OLabSessionId", out var sessionId))
+      if (!string.IsNullOrEmpty(sessionId) && sessionId != "null")
+      {
+        Session.SetSessionId(sessionId);
+        if (!string.IsNullOrWhiteSpace(Session.GetSessionId()))
+          Logger.LogInformation($"Found sessionId {Session.GetSessionId()}.");
+      }
 
-  /// <summary>
-  /// Extract claims from token
-  /// </summary>
-  /// <param name="token">Bearer token</param>
-  private static IEnumerable<Claim> ExtractTokenClaims(string token)
-  {
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var securityToken = (JwtSecurityToken)tokenHandler.ReadToken(token);
-    return securityToken.Claims;
-  }
+    if (!hostContext.Items.TryGetValue("claims", out var claimsObject))
+      throw new Exception("unable to retrieve claims from host context");
 
-  protected virtual void LoadHttpRequest()
-  {
-    var sessionId = _httpRequest.Headers.GetValues("OLabSessionId").FirstOrDefault();
-    if (!string.IsNullOrEmpty(sessionId) && sessionId != "null")
-    {
-      Session.SetSessionId(sessionId);
-      if (!string.IsNullOrWhiteSpace(Session.GetSessionId()))
-        _logger.LogInformation($"Found ContextId {Session.GetSessionId()}.");
-    }
+    _claims = (IDictionary<string, string>)claimsObject;
 
-    IPAddress = _httpRequest.Headers.GetValues("X-Forwarded-Client-Ip").FirstOrDefault();
-    if (string.IsNullOrEmpty(IPAddress))
-      IPAddress = "<unknown>";
+    if (!_claims.TryGetValue(ClaimTypes.Name, out var nameValue))
+      throw new Exception("unable to retrieve user name from token claims");
+    UserName = nameValue;
 
-    _accessToken = _httpRequest.Headers.GetValues("Authorization").FirstOrDefault();
-    _claims = ExtractTokenClaims(_accessToken);
+    ReferringCourse = _claims[ClaimTypes.UserData];
 
-    UserName = _claims.FirstOrDefault(c => c.Type == "name")?.Value;
-    Role = _claims.FirstOrDefault(c => c.Type == "role")?.Value;
-    ReferringCourse = _claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData)?.Value;
+    if (!_claims.TryGetValue("iss", out var issValue))
+      throw new Exception("unable to retrieve iss from token claims");
+    Issuer = issValue;
+
+    if (!_claims.TryGetValue("id", out var idValue))
+      throw new Exception("unable to retrieve user id from token claims");
+    UserId = (uint)Convert.ToInt32(idValue);
+
+    if (!_claims.TryGetValue(ClaimTypes.Role, out var roleValue))
+      throw new Exception("unable to retrieve role from token claims");
+    Role = roleValue;
 
     // separate out multiple roles, make lower case, remove spaces, and sort
     _roles = Role.Split(',')
@@ -149,11 +157,37 @@ public class UserContext : IUserContext
       .OrderBy(x => x)
       .ToList();
 
-    UserId = (uint)Convert.ToInt32(_claims.FirstOrDefault(c => c.Type == "id")?.Value);
-    Issuer = _claims.FirstOrDefault(c => c.Type == "iss")?.Value;
-
     _roleAcls = _dbContext.SecurityRoles.Where(x => _roles.Contains(x.Name.ToLower())).ToList();
 
+    if (headers.TryGetValue("x-forwarded-for", out _ipAddress))
+      Logger.LogInformation($"ipaddress: {_ipAddress}");
+    else
+      Logger.LogWarning($"no ipaddress detected");
+
+    // test for a local user
+    var user = _dbContext.Users.FirstOrDefault(x => x.Username == UserName && x.Id == UserId);
+    if (user != null)
+    {
+      Logger.LogInformation($"Local user '{UserName}' found");
+
+      OLabUser = user;
+      UserId = user.Id;
+      _userAcls = _dbContext.SecurityUsers.Where(x => x.UserId == UserId).ToList();
+
+      // if user is anonymous user, add user access to anon-flagged maps
+      if (OLabUser.Group == "anonymous")
+      {
+        var anonymousMaps = _dbContext.Maps.Where(x => x.SecurityId == 1).ToList();
+        foreach (var item in anonymousMaps)
+          _userAcls.Add(new SecurityUsers
+          {
+            Id = item.Id,
+            ImageableId = item.Id,
+            ImageableType = Constants.ScopeLevelMap,
+            Acl = "RX"
+          });
+      }
+    }
   }
 
   /// <summary>
@@ -166,8 +200,6 @@ public class UserContext : IUserContext
   public bool HasAccess(string requestedPerm, string objectType, uint? objectId)
   {
     var grantedCount = 0;
-
-    //_logger.LogDebug($"ACL request: '{requestedPerm}' on '{objectType}({objectId})'");
 
     if (!objectId.HasValue)
       objectId = WildCardObjectId;
@@ -211,10 +243,7 @@ public class UserContext : IUserContext
      x.Acl == NonAccessAcl).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for specific object type and id
     acl = _roleAcls.Where(x =>
@@ -223,10 +252,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for specific object type and all ids
     acl = _roleAcls.Where(x =>
@@ -235,10 +261,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for default any object, any id
     acl = _roleAcls.Where(x =>
@@ -247,10 +270,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     return false;
   }
@@ -272,10 +292,7 @@ public class UserContext : IUserContext
      x.Acl == NonAccessAcl).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? false");
       return false;
-    }
 
     // test for most specific object acl
     acl = _userAcls.Where(x =>
@@ -284,10 +301,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for specific object type acl
     acl = _userAcls.Where(x =>
@@ -296,10 +310,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for all for object type acl
     acl = _userAcls.Where(x =>
@@ -308,10 +319,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     // test for generic acl
     acl = _userAcls.Where(x =>
@@ -320,10 +328,7 @@ public class UserContext : IUserContext
      x.Acl.Contains(requestedPerm)).FirstOrDefault();
 
     if (acl != null)
-    {
-      _logger.LogDebug($"{acl} ? true");
       return true;
-    }
 
     return false;
   }

@@ -8,6 +8,7 @@ using Microsoft.Azure.SignalR.Management;
 using OLab.Api.Model;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Service.Azure.BusinessObjects;
+using OLab.TurkTalk.Service.Azure.Interfaces;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,27 +25,34 @@ public partial class Functions
   protected readonly IOLabLogger _logger;
   private readonly IHubContextStore _hubContextStore;
   private readonly OLabDBContext _dbContext;
+  private IConference _conference;
 
   private ServiceHubContext MessageHubContext => _hubContextStore.MessageHubContext;
+
 
   public Functions(
     IOLabLogger logger,
     IHubContextStore hubContextStore,
-    OLabDBContext dbContext)
+    OLabDBContext dbContext,
+    IConference conference)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(hubContextStore).NotNull(nameof(hubContextStore));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));
+    Guard.Argument(conference).NotNull(nameof(conference));
 
     _logger = logger;
     _hubContextStore = hubContextStore;
     _dbContext = dbContext;
+    _conference = conference;
   }
 
   [Function("index")]
   public HttpResponseData GetWebPage(
     [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequestData req)
   {
+    _logger.LogInformation("C# GetWebPage function");
+
     var response = req.CreateResponse(HttpStatusCode.OK);
     response.WriteString(File.ReadAllText("content/index.html"));
     response.Headers.Add("Content-Type", "text/html");
@@ -55,10 +63,11 @@ public partial class Functions
   public async Task<HttpResponseData> Negotiate(
     [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
   {
-    _logger.LogInformation("C# HTTP trigger function processed a request.");
+    _logger.LogInformation("C# Negotiate function");
 
     var negotiateResponse = await MessageHubContext.NegotiateAsync(new() { UserId = req.Headers.GetValues("userId").FirstOrDefault() });
     var response = req.CreateResponse();
+
     // We need to make sure the response JSON naming is camelCase, otherwise SignalR client can't recognize it.
     await response.WriteAsJsonAsync(negotiateResponse, JsonObjectSerializer);
     return response;
@@ -71,6 +80,10 @@ public partial class Functions
         SignalRInvocationContext invocationContext)
   {
     invocationContext.Headers.TryGetValue("Authorization", out var auth);
+
+    var accessToken = invocationContext.Query["access_token"];
+    invocationContext.Headers.Add("Authorization", $"Bearer {accessToken.Last()}");
+
     _logger.LogInformation($"{invocationContext.ConnectionId} has connected");
     return MessageHubContext.Clients.All.SendAsync("newConnection", new NewConnection(invocationContext.ConnectionId, auth));
   }

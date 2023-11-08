@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.21.7" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Api\OLab.Authentication\OLab.Authentication.csproj" />
     <ProjectReference Include="..\..\Common\Common\OLab.Common.csproj" />
     <ProjectReference Include="..\..\Common\Data\OLab.Data.csproj" />
     <ProjectReference Include="..\..\Common\Endpoints\OLab.Endpoints.csproj" />
@@ -31,8 +32,5 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\" />
   </ItemGroup>
 </Project>

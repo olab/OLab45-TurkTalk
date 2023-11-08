@@ -35,6 +35,14 @@ public class Startup
   // This method gets called by the runtime. Use this method to add services to the container.
   public void ConfigureServices(IServiceCollection services)
   {
+    JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+    {
+#if DEBUG
+        Formatting = Formatting.Indented,
+#endif
+      ContractResolver = new CamelCasePropertyNamesContractResolver()
+    };
+
     services.AddSignalR(hubOptions =>
           {
             hubOptions.EnableDetailedErrors = true;
