@@ -35,7 +35,7 @@ public partial class TTalkDBContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=olab45db.mysql.database.azure.com;uid=olab4admin;pwd=1j6Q&#4l24.CE7:QtE&?!;database=olab45;convertzerodatetime=True", Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.43-mysql"));
+        => optionsBuilder.UseMySql("server=olab45db.mysql.database.azure.com;uid=olab4admin;pwd=<password>;database=olab45;convertzerodatetime=True", Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.43-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
