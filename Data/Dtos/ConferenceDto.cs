@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
-using OLab.Data.BusinessObjects;
-using OLab.TurkTalk.Data.BusinessObjects;
+using OLab.Data.Models;
+using OLab.TurkTalk.Data.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -72,7 +72,7 @@ public class ConferenceDto
   /// <param name="name">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns></returns>
-  protected async Task<TtalkConferenceTopic> GetTopicAsync(string name, bool createInDb = true)
+  protected async Task<ConferenceTopic> GetTopicAsync(string name, bool createInDb = true)
   {
     try
     {
@@ -96,7 +96,7 @@ public class ConferenceDto
 
       if (createInDb)
       {
-        topic = new TtalkConferenceTopic
+        topic = new ConferenceTopic
         {
           Name = name,
           ConferenceId = Id
