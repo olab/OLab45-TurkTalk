@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OLab.TurkTalk.Endpoints", "Endpoints\OLab.TurkTalk.Endpoints.csproj", "{5891AC2E-1138-4B1D-AAD8-F9FCA5EE9141}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OLab.TurkTalk.Data", "Data\OLab.TurkTalk.Data.csproj", "{FBFBF41C-D4C5-49F5-B043-02BE3D05F4EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5891AC2E-1138-4B1D-AAD8-F9FCA5EE9141}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5891AC2E-1138-4B1D-AAD8-F9FCA5EE9141}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5891AC2E-1138-4B1D-AAD8-F9FCA5EE9141}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5891AC2E-1138-4B1D-AAD8-F9FCA5EE9141}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBFBF41C-D4C5-49F5-B043-02BE3D05F4EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBFBF41C-D4C5-49F5-B043-02BE3D05F4EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBFBF41C-D4C5-49F5-B043-02BE3D05F4EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBFBF41C-D4C5-49F5-B043-02BE3D05F4EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {36336550-64DC-429E-A134-B6BE991ABCA3}
+	EndGlobalSection
+EndGlobal

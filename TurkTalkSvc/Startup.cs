@@ -122,7 +122,7 @@ namespace TurkTalkSvc
       // define instances of application services
       services.AddScoped<IUserService, OLabUserService>();
       services.AddScoped<IOLabSession, OLabSession>();
-      services.AddSingleton<Conference>();
+      //services.AddSingleton<Conference>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
