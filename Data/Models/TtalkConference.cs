@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OLab.TurkTalk.Data.BusinessObjects;
+namespace OLab.TurkTalk.Data.Models;
 
 public partial class TtalkConference
 {

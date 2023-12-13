@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace OLab.TurkTalk.Data.BusinessObjects;
+namespace OLab.TurkTalk.Data.Models;
 
 public partial class TTalkDBContext : DbContext
 {
