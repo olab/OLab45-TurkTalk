@@ -84,29 +84,29 @@ public class ConferenceDto
         return topic;
       }
 
-      topic = await _ttalkDbContext
-        .TtalkConferenceTopics
-        .FirstOrDefaultAsync(x => x.Name == name);
+      //topic = await _ttalkDbContext
+      //  .TtalkConferenceTopics
+      //  .FirstOrDefaultAsync(x => x.Name == name);
 
-      if (topic != null)
-      {
-        _logger.LogInformation($"topic '{name}' found in database");
-        return topic;
-      }
+      //if (topic != null)
+      //{
+      //  _logger.LogInformation($"topic '{name}' found in database");
+      //  return topic;
+      //}
 
-      if (createInDb)
-      {
-        topic = new ConferenceTopic
-        {
-          Name = name,
-          ConferenceId = Id
-        };
+      //if (createInDb)
+      //{
+      //  topic = new ConferenceTopic
+      //  {
+      //    Name = name,
+      //    ConferenceId = Id
+      //  };
 
-        var newTopic = await _ttalkDbContext.TtalkConferenceTopics.AddAsync(topic);
-        topic = newTopic.Entity;
+      //  var newTopic = await _ttalkDbContext.TtalkConferenceTopics.AddAsync(topic);
+      //  topic = newTopic.Entity;
 
-        _logger.LogInformation($"topic '{name}' ({topic.Id}) created in database");
-      }
+      //  _logger.LogInformation($"topic '{name}' ({topic.Id}) created in database");
+      //}
 
       return topic;
     }

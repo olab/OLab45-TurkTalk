@@ -2,8 +2,6 @@
 using DocumentFormat.OpenXml.Presentation;
 using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
-using OLab.Data.BusinessObjects;
-using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.Utils;
 
 namespace OLab.TurkTalk.Endpoints;
