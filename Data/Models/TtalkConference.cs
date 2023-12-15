@@ -1,13 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
+[Table("ttalk_conference")]
 public partial class TtalkConference
 {
-  public uint Id { get; set; }
+    [Key]
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-  public string Name { get; set; } = null!;
+    [Required]
+    [Column("name")]
+    [StringLength(45)]
+    public string Name { get; set; }
 
-  public virtual ICollection<TtalkConferenceTopic> TtalkConferenceTopics { get; } = new List<TtalkConferenceTopic>();
+    [InverseProperty("Conference")]
+    public virtual ICollection<TtalkConferenceTopic> TtalkConferenceTopics { get; } = new List<TtalkConferenceTopic>();
 }

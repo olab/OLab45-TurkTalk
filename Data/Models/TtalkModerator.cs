@@ -1,17 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
+[Table("ttalk_moderator")]
 public partial class TtalkModerator
 {
-  public uint Id { get; set; }
+    [Key]
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
-  public string UserId { get; set; } = null!;
+    [Required]
+    [Column("user_id")]
+    [StringLength(45)]
+    public string UserId { get; set; }
 
-  public string UserIdIssuer { get; set; } = null!;
+    [Required]
+    [Column("user_id_issuer")]
+    [StringLength(45)]
+    public string UserIdIssuer { get; set; }
 
-  public virtual ICollection<TtalkTopicModerator> TtalkTopicModerators { get; } = new List<TtalkTopicModerator>();
-
-  public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();
+    [InverseProperty("Moderator")]
+    public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();
 }

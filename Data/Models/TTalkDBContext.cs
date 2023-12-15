@@ -6,242 +6,118 @@ namespace OLab.TurkTalk.Data.Models;
 
 public partial class TTalkDBContext : DbContext
 {
-  public TTalkDBContext()
-  {
-  }
-
-  public TTalkDBContext(DbContextOptions<TTalkDBContext> options)
-      : base(options)
-  {
-  }
-
-  public virtual DbSet<TtalkAtriumAttendee> TtalkAtriumAttendees { get; set; }
-
-  public virtual DbSet<TtalkAttendee> TtalkAttendees { get; set; }
-
-  public virtual DbSet<TtalkConference> TtalkConferences { get; set; }
-
-  public virtual DbSet<TtalkConferenceTopic> TtalkConferenceTopics { get; set; }
-
-  public virtual DbSet<TtalkModerator> TtalkModerators { get; set; }
-
-  public virtual DbSet<TtalkRoomSession> TtalkRoomSessions { get; set; }
-
-  public virtual DbSet<TtalkTopicAtrium> TtalkTopicAtria { get; set; }
-
-  public virtual DbSet<TtalkTopicModerator> TtalkTopicModerators { get; set; }
-
-  public virtual DbSet<TtalkTopicRoom> TtalkTopicRooms { get; set; }
-
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
-  {
-    modelBuilder
-        .UseCollation("latin1_swedish_ci")
-        .HasCharSet("latin1");
-
-    modelBuilder.Entity<TtalkAtriumAttendee>(entity =>
+    public TTalkDBContext()
     {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+    }
 
-      entity.ToTable("ttalk_atrium_attendee");
-
-      entity.HasIndex(e => e.AtriumId, "fk_au_a_idx");
-
-      entity.HasIndex(e => e.AttendeeId, "fk_au_a_idx1");
-
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.AtriumId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("atrium_id");
-      entity.Property(e => e.AttendeeId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("attendee_id");
-
-      entity.HasOne(d => d.Atrium).WithMany(p => p.TtalkAtriumAttendees)
-              .HasForeignKey(d => d.AtriumId)
-              .HasConstraintName("fk_au_a");
-    });
-
-    modelBuilder.Entity<TtalkAttendee>(entity =>
+    public TTalkDBContext(DbContextOptions<TTalkDBContext> options)
+        : base(options)
     {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+    }
 
-      entity.ToTable("ttalk_attendee");
+    public virtual DbSet<TtalkAtriumAttendee> TtalkAtriumAttendees { get; set; }
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.UserId)
-              .HasMaxLength(45)
-              .HasColumnName("user_id");
-      entity.Property(e => e.UserIdIssuer)
-              .HasMaxLength(45)
-              .HasColumnName("user_id_issuer");
-    });
+    public virtual DbSet<TtalkAttendee> TtalkAttendees { get; set; }
 
-    modelBuilder.Entity<TtalkConference>(entity =>
+    public virtual DbSet<TtalkConference> TtalkConferences { get; set; }
+
+    public virtual DbSet<TtalkConferenceTopic> TtalkConferenceTopics { get; set; }
+
+    public virtual DbSet<TtalkModerator> TtalkModerators { get; set; }
+
+    public virtual DbSet<TtalkRoomSession> TtalkRoomSessions { get; set; }
+
+    public virtual DbSet<TtalkSessionConversation> TtalkSessionConversations { get; set; }
+
+    public virtual DbSet<TtalkTopicAtrium> TtalkTopicAtria { get; set; }
+
+    public virtual DbSet<TtalkTopicRoom> TtalkTopicRooms { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+        modelBuilder
+            .UseCollation("latin1_swedish_ci")
+            .HasCharSet("latin1");
 
-      entity.ToTable("ttalk_conference");
+        modelBuilder.Entity<TtalkAtriumAttendee>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.Name)
-              .HasMaxLength(45)
-              .HasColumnName("name");
-    });
+            entity.HasOne(d => d.Atrium).WithMany(p => p.TtalkAtriumAttendees).HasConstraintName("fk_au_a");
 
-    modelBuilder.Entity<TtalkConferenceTopic>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkAtriumAttendees)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_attendee");
+        });
 
-      entity.ToTable("ttalk_conference_topic");
+        modelBuilder.Entity<TtalkAttendee>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
 
-      entity.HasIndex(e => e.ConferenceId, "fk_ct_c_idx");
+        modelBuilder.Entity<TtalkConference>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.ConferenceId)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("conference_id");
-      entity.Property(e => e.Name)
-              .HasMaxLength(50)
-              .HasColumnName("name");
+        modelBuilder.Entity<TtalkConferenceTopic>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.HasOne(d => d.Conference).WithMany(p => p.TtalkConferenceTopics)
-              .HasForeignKey(d => d.ConferenceId)
-              .HasConstraintName("fk_ct_c");
-    });
+            entity.HasOne(d => d.Conference).WithMany(p => p.TtalkConferenceTopics).HasConstraintName("fk_ct_c");
+        });
 
-    modelBuilder.Entity<TtalkModerator>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+        modelBuilder.Entity<TtalkModerator>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
 
-      entity.ToTable("ttalk_moderator");
+        modelBuilder.Entity<TtalkRoomSession>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.UserId)
-              .HasMaxLength(45)
-              .HasColumnName("user_id");
-      entity.Property(e => e.UserIdIssuer)
-              .HasMaxLength(45)
-              .HasColumnName("user_id_issuer");
-    });
+            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkRoomSessions).HasConstraintName("fk_trs_a");
 
-    modelBuilder.Entity<TtalkRoomSession>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.HasOne(d => d.Room).WithMany(p => p.TtalkRoomSessions)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_rs_r");
+        });
 
-      entity.ToTable("ttalk_room_session");
+        modelBuilder.Entity<TtalkSessionConversation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.HasIndex(e => e.RoomId, "fk_rs_r_idx");
+            entity.Property(e => e.Id).ValueGeneratedNever();
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.RoomId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("room_id");
+            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkSessionConversations)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_tsc_ta");
 
-      entity.HasOne(d => d.Room).WithMany(p => p.TtalkRoomSessions)
-              .HasForeignKey(d => d.RoomId)
-              .OnDelete(DeleteBehavior.ClientSetNull)
-              .HasConstraintName("fk_rs_r");
-    });
+            entity.HasOne(d => d.RoomSession).WithMany(p => p.TtalkSessionConversations)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_tsc_trs");
+        });
 
-    modelBuilder.Entity<TtalkTopicAtrium>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+        modelBuilder.Entity<TtalkTopicAtrium>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.ToTable("ttalk_topic_atrium");
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicAtria).HasConstraintName("fk_ta_t");
+        });
 
-      entity.HasIndex(e => e.TopicId, "fk_ta_t_idx");
+        modelBuilder.Entity<TtalkTopicRoom>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.TopicId)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("topic_id");
+            entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_tr_m");
 
-      entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicAtria)
-              .HasForeignKey(d => d.TopicId)
-              .HasConstraintName("fk_ta_t");
-    });
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicRooms).HasConstraintName("fk_tr_t");
+        });
 
-    modelBuilder.Entity<TtalkTopicModerator>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
+        OnModelCreatingPartial(modelBuilder);
+    }
 
-      entity.ToTable("ttalk_topic_moderator");
-
-      entity.HasIndex(e => e.ModeratorId, "fk_tm_m_idx");
-
-      entity.HasIndex(e => e.TopicId, "fk_tm_t_idx");
-
-      entity.Property(e => e.Id)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.ModeratorId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("moderator_id");
-      entity.Property(e => e.TopicId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("topic_id");
-
-      entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicModerators)
-              .HasForeignKey(d => d.ModeratorId)
-              .OnDelete(DeleteBehavior.ClientSetNull)
-              .HasConstraintName("fk_tm_m");
-
-      entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicModerators)
-              .HasForeignKey(d => d.TopicId)
-              .OnDelete(DeleteBehavior.ClientSetNull)
-              .HasConstraintName("fk_tm_t");
-    });
-
-    modelBuilder.Entity<TtalkTopicRoom>(entity =>
-    {
-      entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-      entity.ToTable("ttalk_topic_room");
-
-      entity.HasIndex(e => e.ModeratorId, "fk_tr_m_idx");
-
-      entity.HasIndex(e => e.TopicId, "fk_tr_t_idx");
-
-      entity.Property(e => e.Id)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("id");
-      entity.Property(e => e.ModeratorId)
-              .HasColumnType("int(10) unsigned")
-              .HasColumnName("moderator_id");
-      entity.Property(e => e.Name)
-              .HasMaxLength(50)
-              .HasColumnName("name");
-      entity.Property(e => e.TopicId)
-              .HasColumnType("int(11) unsigned")
-              .HasColumnName("topic_id");
-
-      entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms)
-              .HasForeignKey(d => d.ModeratorId)
-              .OnDelete(DeleteBehavior.ClientSetNull)
-              .HasConstraintName("fk_tr_m");
-
-      entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicRooms)
-              .HasForeignKey(d => d.TopicId)
-              .HasConstraintName("fk_tr_t");
-    });
-
-    OnModelCreatingPartial(modelBuilder);
-  }
-
-  partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

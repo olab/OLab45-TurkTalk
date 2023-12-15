@@ -4,6 +4,7 @@ using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Endpoints.Interface;
 
 namespace OLab.TurkTalk.Endpoints;
 
@@ -11,7 +12,8 @@ public partial class TurkTalkEndpoint
 {
   protected readonly OLabDBContext dbContext;
   protected readonly TTalkDBContext ttalkDbContext;
-  protected IOLabLogger Logger;
+  private readonly IConference _conference;
+  private IOLabLogger _logger;
   protected readonly IOLabConfiguration _configuration;
 
   public TurkTalkEndpoint(
@@ -19,7 +21,7 @@ public partial class TurkTalkEndpoint
     IOLabConfiguration configuration,
     OLabDBContext dbContext,
     TTalkDBContext ttalkDbContext,
-    TtalkConference conference)
+    IConference conference)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(configuration).NotNull(nameof(configuration));
@@ -28,8 +30,9 @@ public partial class TurkTalkEndpoint
 
     this.dbContext = dbContext;
     this.ttalkDbContext = ttalkDbContext;
+    _conference = conference;
     _configuration = configuration;
 
-    Logger = logger;
+    _logger = logger;
   }
 }

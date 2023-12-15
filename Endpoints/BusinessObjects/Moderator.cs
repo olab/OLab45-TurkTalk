@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OLab.TurkTalk.Data.Dtos;
-public class ConferenceTopic
+namespace OLab.TurkTalk.Endpoints.BusinessObjects;
+internal class Moderator
 {
 }

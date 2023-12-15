@@ -20,10 +20,18 @@ public partial class TurkTalkEndpoint
         payload.UserKey);
 
       learner.ConnectionId = payload.ConnectionId;
-    }
-    catch (Exception)
-    {
+      learner.RoomName = payload.RoomName;
 
+      // get topic from conference
+      var topic = await _conference.GetTopicAsync(learner.RoomName);
+
+      // add learner to topic
+      await topic.AddAttendeeAsync(payload.ContextId, learner);
+
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "RegisterAttendeeAsync");
       throw;
     }
   }

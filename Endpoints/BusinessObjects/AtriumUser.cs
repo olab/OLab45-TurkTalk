@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OLab.TurkTalk.Data.Dtos;
-internal class TopicAtrium
+namespace OLab.TurkTalk.Endpoints.BusinessObjects;
+internal class AtriumUser
 {
 }

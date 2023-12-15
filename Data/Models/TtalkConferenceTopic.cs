@@ -1,21 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
+[Table("ttalk_conference_topic")]
+[Index("ConferenceId", Name = "fk_ct_c_idx")]
 public partial class TtalkConferenceTopic
 {
-  public uint Id { get; set; }
+    [Key]
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-  public string Name { get; set; } = null!;
+    [Required]
+    [Column("name")]
+    [StringLength(50)]
+    public string Name { get; set; }
 
-  public uint ConferenceId { get; set; }
+    [Column("conference_id", TypeName = "int(11) unsigned")]
+    public uint ConferenceId { get; set; }
 
-  public virtual TtalkConference Conference { get; set; } = null!;
+    [Column("created_at", TypeName = "datetime")]
+    public DateTime CreatedAt { get; set; }
 
-  public virtual ICollection<TtalkTopicAtrium> TtalkTopicAtria { get; } = new List<TtalkTopicAtrium>();
+    [Column("lastused_at", TypeName = "datetime")]
+    public DateTime LastUsedAt { get; set; }
 
-  public virtual ICollection<TtalkTopicModerator> TtalkTopicModerators { get; } = new List<TtalkTopicModerator>();
+    [ForeignKey("ConferenceId")]
+    [InverseProperty("TtalkConferenceTopics")]
+    public virtual TtalkConference Conference { get; set; }
 
-  public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();
+    [InverseProperty("Topic")]
+    public virtual ICollection<TtalkTopicAtrium> TtalkTopicAtria { get; } = new List<TtalkTopicAtrium>();
+
+    [InverseProperty("Topic")]
+    public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();
 }

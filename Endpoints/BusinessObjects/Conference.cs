@@ -1,53 +1,46 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
-using System;
+using OLab.TurkTalk.Endpoints.Interface;
+using OLab.TurkTalk.Endpoints.Mappers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace OLab.TurkTalk.Data.Dtos;
-public class ConferenceDto
+namespace OLab.TurkTalk.Endpoints.BusinessObjects;
+
+public class Conference : IConference
 {
   private IOLabConfiguration _configuration { get; }
   private OLabDBContext _dbContext { get; }
   private TTalkDBContext _ttalkDbContext { get; }
   private IOLabLogger _logger { get; }
   private readonly IDictionary<string, ConferenceTopic> _topics;
-  private static readonly Mutex _topicMutex = new Mutex();
+  private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1,1);
 
   public uint Id { get; set; }
   public string Name { get; set; } = null!;
 
-  public ConferenceDto()
-  {
-    throw new NotImplementedException();
-  }
+  public Conference() {}
 
-  public ConferenceDto(
-    ILoggerFactory loggerFactory,
-    IOLabConfiguration configuration,
-    OLabDBContext dbContext,
-    TTalkDBContext ttalkDbContext)
+  public Conference(
+  ILoggerFactory loggerFactory,
+  IOLabConfiguration configuration,
+  OLabDBContext dbContext,
+  TTalkDBContext ttalkDbContext)
   {
     Guard.Argument(loggerFactory).NotNull(nameof(loggerFactory));
     Guard.Argument(configuration).NotNull(nameof(configuration));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));
     Guard.Argument(ttalkDbContext).NotNull(nameof(ttalkDbContext));
 
+    _logger = OLabLogger.CreateNew<Conference>(loggerFactory);
     _configuration = configuration;
     _dbContext = dbContext;
     _ttalkDbContext = ttalkDbContext;
 
-    _logger = OLabLogger.CreateNew<ConferenceDto>(loggerFactory);
     _topics = new ConcurrentDictionary<string, ConferenceTopic>();
 
     var dbConference = ttalkDbContext.TtalkConferences.FirstOrDefault();
@@ -72,11 +65,13 @@ public class ConferenceDto
   /// <param name="name">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns></returns>
-  protected async Task<ConferenceTopic> GetTopicAsync(string name, bool createInDb = true)
+  public async Task<ConferenceTopic> GetTopicAsync(string name, bool createInDb = true)
   {
     try
     {
-      _topicMutex.WaitOne();
+      await _topicSemaphore.WaitAsync();
+
+      var mapper = new ConferenceTopicMapper(_logger);
 
       if (_topics.TryGetValue(name, out var topic))
       {
@@ -84,29 +79,42 @@ public class ConferenceDto
         return topic;
       }
 
-      //topic = await _ttalkDbContext
-      //  .TtalkConferenceTopics
-      //  .FirstOrDefaultAsync(x => x.Name == name);
+      var physTopic = await _ttalkDbContext
+        .TtalkConferenceTopics
+        .Include(x => x.TtalkTopicAtria)
+        .Include(x => x.TtalkTopicRooms)        
+        .FirstOrDefaultAsync(x => x.Name == name);
 
-      //if (topic != null)
-      //{
-      //  _logger.LogInformation($"topic '{name}' found in database");
-      //  return topic;
-      //}
+      if (physTopic != null)
+      {
+        _logger.LogInformation($"topic '{name}' found in database");
 
-      //if (createInDb)
-      //{
-      //  topic = new ConferenceTopic
-      //  {
-      //    Name = name,
-      //    ConferenceId = Id
-      //  };
+        // update last used
+        physTopic.LastUsedAt = DateTime.UtcNow;
+        _ttalkDbContext
+          .TtalkConferenceTopics
+          .Update( physTopic );
+        await _ttalkDbContext.SaveChangesAsync();
 
-      //  var newTopic = await _ttalkDbContext.TtalkConferenceTopics.AddAsync(topic);
-      //  topic = newTopic.Entity;
+        topic = mapper.PhysicalToDto(physTopic);
+      }
 
-      //  _logger.LogInformation($"topic '{name}' ({topic.Id}) created in database");
-      //}
+      else if (createInDb)
+      {
+        topic = new ConferenceTopic
+        {
+          Name = name,
+          ConferenceId = Id
+        };
+
+        physTopic = mapper.DtoToPhysical(topic);
+        await _ttalkDbContext.TtalkConferenceTopics.AddAsync(physTopic);
+        await _ttalkDbContext.SaveChangesAsync();
+
+        topic = mapper.PhysicalToDto(physTopic);
+
+        _logger.LogInformation($"topic '{name}' ({topic.Id}) created in database");
+      }
 
       return topic;
     }
@@ -117,7 +125,7 @@ public class ConferenceDto
     }
     finally
     {
-      _topicMutex.ReleaseMutex();
+      _topicSemaphore.Release(1);
     }
 
   }

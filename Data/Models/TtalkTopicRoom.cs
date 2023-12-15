@@ -1,21 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
+[Table("ttalk_topic_room")]
+[Index("ModeratorId", Name = "fk_tr_m_idx")]
+[Index("TopicId", Name = "fk_tr_t_idx")]
 public partial class TtalkTopicRoom
 {
-  public uint Id { get; set; }
+    [Key]
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-  public string Name { get; set; } = null!;
+    [Required]
+    [Column("name")]
+    [StringLength(50)]
+    public string Name { get; set; }
 
-  public uint TopicId { get; set; }
+    [Column("topic_id", TypeName = "int(11) unsigned")]
+    public uint TopicId { get; set; }
 
-  public uint ModeratorId { get; set; }
+    [Column("moderator_id", TypeName = "int(10) unsigned")]
+    public uint ModeratorId { get; set; }
 
-  public virtual TtalkModerator Moderator { get; set; } = null!;
+    [ForeignKey("ModeratorId")]
+    [InverseProperty("TtalkTopicRooms")]
+    public virtual TtalkModerator Moderator { get; set; }
 
-  public virtual TtalkConferenceTopic Topic { get; set; } = null!;
+    [ForeignKey("TopicId")]
+    [InverseProperty("TtalkTopicRooms")]
+    public virtual TtalkConferenceTopic Topic { get; set; }
 
-  public virtual ICollection<TtalkRoomSession> TtalkRoomSessions { get; } = new List<TtalkRoomSession>();
+    [InverseProperty("Room")]
+    public virtual ICollection<TtalkRoomSession> TtalkRoomSessions { get; } = new List<TtalkRoomSession>();
 }
