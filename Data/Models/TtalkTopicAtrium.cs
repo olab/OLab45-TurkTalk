@@ -20,7 +20,4 @@ public partial class TtalkTopicAtrium
     [ForeignKey("TopicId")]
     [InverseProperty("TtalkTopicAtria")]
     public virtual TtalkConferenceTopic Topic { get; set; }
-
-    [InverseProperty("Atrium")]
-    public virtual ICollection<TtalkAtriumAttendee> TtalkAtriumAttendees { get; } = new List<TtalkAtriumAttendee>();
 }

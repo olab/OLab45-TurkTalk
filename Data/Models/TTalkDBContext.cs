@@ -17,8 +17,6 @@ public partial class TTalkDBContext : DbContext
 
     public virtual DbSet<TtalkAtriumAttendee> TtalkAtriumAttendees { get; set; }
 
-    public virtual DbSet<TtalkAttendee> TtalkAttendees { get; set; }
-
     public virtual DbSet<TtalkConference> TtalkConferences { get; set; }
 
     public virtual DbSet<TtalkConferenceTopic> TtalkConferenceTopics { get; set; }
@@ -43,16 +41,9 @@ public partial class TTalkDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Atrium).WithMany(p => p.TtalkAtriumAttendees).HasConstraintName("fk_au_a");
-
-            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkAtriumAttendees)
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkAtriumAttendees)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_attendee");
-        });
-
-        modelBuilder.Entity<TtalkAttendee>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
+                .HasConstraintName("fk_ttalk_atrium_attendee_ttalk_conference_topic1");
         });
 
         modelBuilder.Entity<TtalkConference>(entity =>
@@ -76,8 +67,6 @@ public partial class TTalkDBContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkRoomSessions).HasConstraintName("fk_trs_a");
-
             entity.HasOne(d => d.Room).WithMany(p => p.TtalkRoomSessions)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_rs_r");
@@ -88,10 +77,6 @@ public partial class TTalkDBContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-
-            entity.HasOne(d => d.Attendee).WithMany(p => p.TtalkSessionConversations)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_tsc_ta");
 
             entity.HasOne(d => d.RoomSession).WithMany(p => p.TtalkSessionConversations)
                 .OnDelete(DeleteBehavior.ClientSetNull)

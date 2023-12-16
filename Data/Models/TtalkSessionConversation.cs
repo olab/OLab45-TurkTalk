@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace OLab.TurkTalk.Data.Models;
 
 [Table("ttalk_session_conversation")]
-[Index("AttendeeId", Name = "fk_tsc_ta_idx")]
 [Index("RoomSessionId", Name = "fk_tsc_trs_idx")]
 public partial class TtalkSessionConversation
 {
@@ -34,10 +33,6 @@ public partial class TtalkSessionConversation
 
     [Column("is_attendee_speaker", TypeName = "tinyint(4)")]
     public sbyte IsAttendeeSpeaker { get; set; }
-
-    [ForeignKey("AttendeeId")]
-    [InverseProperty("TtalkSessionConversations")]
-    public virtual TtalkAttendee Attendee { get; set; }
 
     [ForeignKey("RoomSessionId")]
     [InverseProperty("TtalkSessionConversations")]

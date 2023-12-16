@@ -7,6 +7,8 @@ using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.Mappers;
+using OLab.TurkTalk.Endpoints.MessagePayloads;
+using OLab.TurkTalk.Endpoints.Utils;
 using System.Collections.Concurrent;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
@@ -18,12 +20,18 @@ public class Conference : IConference
   private TTalkDBContext _ttalkDbContext { get; }
   private IOLabLogger _logger { get; }
   private readonly IDictionary<string, ConferenceTopic> _topics;
-  private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1,1);
+  private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
 
   public uint Id { get; set; }
   public string Name { get; set; } = null!;
 
-  public Conference() {}
+  public IOLabConfiguration Configuration { get { return _configuration; } }
+  public IOLabLogger Logger { get { return _logger; } }
+  public TTalkDBContext TTDbContext { get { return _ttalkDbContext; } }
+
+  public Conference() {
+    _topics = new ConcurrentDictionary<string, ConferenceTopic>();
+  }
 
   public Conference(
   ILoggerFactory loggerFactory,
@@ -43,7 +51,7 @@ public class Conference : IConference
 
     _topics = new ConcurrentDictionary<string, ConferenceTopic>();
 
-    var dbConference = ttalkDbContext.TtalkConferences.FirstOrDefault();
+    var dbConference = TTDbContext.TtalkConferences.FirstOrDefault();
     if (dbConference == null)
       throw new Exception("System conference not defined");
 
@@ -59,13 +67,20 @@ public class Conference : IConference
     get { return _topics.Values.ToList(); }
   }
 
+  public void AddTopic( ConferenceTopic topic ) 
+  {
+    _topics.Add( topic.Name, topic );
+  }
+
   /// <summary>
   /// Get/create new conference topic
   /// </summary>
-  /// <param name="name">Topic to retrieve/create</param>
+  /// <param name="topicName">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns></returns>
-  public async Task<ConferenceTopic> GetTopicAsync(string name, bool createInDb = true)
+  public async Task<ConferenceTopic> GetTopicAsync(
+    AttendeePayload payload, 
+    bool createInDb = true)
   {
     try
     {
@@ -73,47 +88,50 @@ public class Conference : IConference
 
       var mapper = new ConferenceTopicMapper(_logger);
 
-      if (_topics.TryGetValue(name, out var topic))
+      if (_topics.TryGetValue(payload.RoomName, out var topic))
       {
-        _logger.LogInformation($"topic '{name}' found in conference");
+        _logger.LogInformation($"topic '{payload.RoomName}' found in conference");
         return topic;
       }
 
-      var physTopic = await _ttalkDbContext
+      var physTopic = await TTDbContext
         .TtalkConferenceTopics
-        .Include(x => x.TtalkTopicAtria)
-        .Include(x => x.TtalkTopicRooms)        
-        .FirstOrDefaultAsync(x => x.Name == name);
+        .Include(x => x.TtalkAtriumAttendees)
+        .Include(x => x.TtalkTopicRooms)
+        .FirstOrDefaultAsync(x => x.Name == payload.RoomName);
 
       if (physTopic != null)
       {
-        _logger.LogInformation($"topic '{name}' found in database");
+        _logger.LogInformation($"topic '{payload.RoomName}' found in database");
 
         // update last used
         physTopic.LastUsedAt = DateTime.UtcNow;
-        _ttalkDbContext
+        TTDbContext
           .TtalkConferenceTopics
-          .Update( physTopic );
+          .Update(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic = mapper.PhysicalToDto(physTopic);
+        topic = mapper.PhysicalToDto(physTopic, this);
       }
 
       else if (createInDb)
       {
         topic = new ConferenceTopic
         {
-          Name = name,
-          ConferenceId = Id
+          Name = payload.RoomName,
+          ConferenceId = Id,
+          Conference = this
         };
 
         physTopic = mapper.DtoToPhysical(topic);
         await _ttalkDbContext.TtalkConferenceTopics.AddAsync(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic = mapper.PhysicalToDto(physTopic);
+        topic = mapper.PhysicalToDto(physTopic, this);
 
-        _logger.LogInformation($"topic '{name}' ({topic.Id}) created in database");
+        AddTopic(topic);
+        
+        _logger.LogInformation($"topic '{payload.RoomName}' ({topic.Id}) created in database");
       }
 
       return topic;

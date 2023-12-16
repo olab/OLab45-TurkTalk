@@ -1,29 +1,27 @@
 ﻿using Dawn;
 using OLab.Common.Interfaces;
-using System.Text;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
-public class AtriumAcceptedMethod: TTalkMethod
+public class RoomAcceptedMethod: TTalkMethod
 {
   public string RoomName { get; set; }
-  public bool WasAdded { get; set; }
+  public string ModeratorName { get; set; }
 
-  public AtriumAcceptedMethod(
+  public RoomAcceptedMethod(
     IOLabConfiguration configuration,
     string connectionId,
     string roomName,
-    bool wasAdded ) : base(
+    string moderatorName) : base(
       configuration,
       connectionId,
-      "atriumaccepted")
+      "roomaccepted")
   {
     Guard.Argument(roomName, nameof(roomName)).NotEmpty();
-    Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
-    Guard.Argument(roomName, nameof(roomName)).NotEmpty();
+    Guard.Argument(moderatorName, nameof(moderatorName)).NotEmpty();
 
     RoomName = roomName;
-    WasAdded = wasAdded;
+    ModeratorName = moderatorName;
   }
 
   public override object Arguments()
@@ -33,6 +31,6 @@ public class AtriumAcceptedMethod: TTalkMethod
 
   public override string ToString()
   {
-    return $"{RoomName} {WasAdded}";
+    return $"{RoomName} {ModeratorName}";
   }
 }

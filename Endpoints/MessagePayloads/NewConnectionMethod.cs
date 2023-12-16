@@ -24,7 +24,7 @@ public class NewConnectionMethod : TTalkMethod
 
     _auth = auth;
 
-    UserKey = new UserInfoEncoder().EncryptUser(
+    UserKey = new UserToken().EncryptToken(
       Configuration.GetAppSettings().Secret,
       _auth.Claims["id"],
       _auth.Claims[ClaimTypes.Name],
@@ -35,5 +35,10 @@ public class NewConnectionMethod : TTalkMethod
   public override object Arguments()
   {
     return this;
+  }
+
+  public override string ToString()
+  {
+    return UserKey;
   }
 }

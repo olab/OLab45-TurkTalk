@@ -7,25 +7,32 @@ using Microsoft.EntityFrameworkCore;
 namespace OLab.TurkTalk.Data.Models;
 
 [Table("ttalk_atrium_attendee")]
-[Index("AtriumId", Name = "fk_au_a_idx")]
-[Index("AttendeeId", Name = "fk_au_a_idx1")]
+[Index("TopicId", Name = "fk_ttalk_atrium_attendee_ttalk_conference_topic1_idx")]
 public partial class TtalkAtriumAttendee
 {
     [Key]
     [Column("id", TypeName = "int(10) unsigned")]
     public uint Id { get; set; }
 
-    [Column("atrium_id", TypeName = "int(10) unsigned")]
-    public uint AtriumId { get; set; }
+    [Required]
+    [Column("user_id")]
+    [StringLength(45)]
+    public string UserId { get; set; }
 
-    [Column("attendee_id", TypeName = "int(10) unsigned")]
-    public uint AttendeeId { get; set; }
+    [Required]
+    [Column("user_name")]
+    [StringLength(45)]
+    public string UserName { get; set; }
 
-    [ForeignKey("AtriumId")]
+    [Required]
+    [Column("token_issuer")]
+    [StringLength(45)]
+    public string TokenIssuer { get; set; }
+
+    [Column("topic_id", TypeName = "int(11) unsigned")]
+    public uint TopicId { get; set; }
+
+    [ForeignKey("TopicId")]
     [InverseProperty("TtalkAtriumAttendees")]
-    public virtual TtalkTopicAtrium Atrium { get; set; }
-
-    [ForeignKey("AttendeeId")]
-    [InverseProperty("TtalkAtriumAttendees")]
-    public virtual TtalkAttendee Attendee { get; set; }
+    public virtual TtalkConferenceTopic Topic { get; set; }
 }

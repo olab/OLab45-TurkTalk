@@ -1,7 +1,10 @@
-﻿using OLab.Common.Interfaces;
+﻿using AutoMapper;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using OLab.Common.Interfaces;
 using OLab.Data.Mappers;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
+using OLab.TurkTalk.Endpoints.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,4 +22,14 @@ public class ConferenceMapper : OLabMapper<TtalkConference, Conference>
 
   }
 
+  public override Conference PhysicalToDto(TtalkConference phys)
+  {
+    var topicMapper = new ConferenceTopicMapper(Logger);
+
+    var dto = base.PhysicalToDto(phys);
+    foreach (var topic in phys.TtalkConferenceTopics)
+      dto.AddTopic(topicMapper.PhysicalToDto(topic, dto));
+
+    return dto;
+  }
 }

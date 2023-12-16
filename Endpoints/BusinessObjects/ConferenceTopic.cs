@@ -1,4 +1,5 @@
-﻿using OLab.Api.TurkTalk.BusinessObjects;
+﻿using OLab.TurkTalk.Endpoints.MessagePayloads;
+using OLab.TurkTalk.Endpoints.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -14,13 +15,20 @@ public class ConferenceTopic
   public uint ConferenceId { get; internal set; }
   public DateTime CreatedAt { get; set; }
   public DateTime LastUsedAt { get; set; }
-  public TopicAtrium Atrium { get; set; }
+
+  public TopicAtrium Atrium;
+  public Conference Conference;
 
   public ConferenceTopic()
   {
     CreatedAt = DateTime.UtcNow;
     LastUsedAt = DateTime.UtcNow;
-    Atrium = new TopicAtrium();
+    Atrium = new TopicAtrium(this);
+  }
+
+  public ConferenceTopic(Conference conference) : this()
+  {
+    Conference = conference;
   }
 
   /// <summary>
@@ -29,20 +37,12 @@ public class ConferenceTopic
   /// <param name="contextId"></param>
   /// <param name="learner"></param>
   /// <returns></returns>
-  public async Task AddAttendeeAsync(
-    string contextId, 
-    Learner learner)
+  public async Task<bool> AddAttendeeAsync(
+    AttendeePayload payload,
+    TTalkMessageQueue messageQueue)
   {
-    // test if user is connecting fresh
-    // meaning we add to atrium
-    if (string.IsNullOrEmpty(contextId))
-    {
-      Atrium.AddAttendee(learner);
-      return;
-    }
-
-
-
+    var addedToAtrium = Atrium.AddAttendee(payload, messageQueue);
+    return true;
 
   }
 }

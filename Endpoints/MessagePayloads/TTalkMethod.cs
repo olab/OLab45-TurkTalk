@@ -32,7 +32,7 @@ public abstract class TTalkMethod
     MethodName = methodName;
   }
 
-  public SignalRMessageAction Message()
+  public SignalRMessageAction MessageAction()
   {
     var actionArguments = new object[] { Arguments() };
     return new SignalRMessageAction(MethodName)

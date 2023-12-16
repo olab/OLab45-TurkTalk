@@ -8,7 +8,6 @@ namespace OLab.TurkTalk.Data.Models;
 
 [Table("ttalk_room_session")]
 [Index("RoomId", Name = "fk_rs_r_idx")]
-[Index("AttendeeId", Name = "fk_trs_a_idx")]
 public partial class TtalkRoomSession
 {
     [Key]
@@ -23,10 +22,6 @@ public partial class TtalkRoomSession
 
     [Column("attendee_id", TypeName = "int(10) unsigned")]
     public uint? AttendeeId { get; set; }
-
-    [ForeignKey("AttendeeId")]
-    [InverseProperty("TtalkRoomSessions")]
-    public virtual TtalkAttendee Attendee { get; set; }
 
     [ForeignKey("RoomId")]
     [InverseProperty("TtalkRoomSessions")]

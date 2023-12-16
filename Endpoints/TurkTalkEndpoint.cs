@@ -1,10 +1,13 @@
 ﻿using Dawn;
 using DocumentFormat.OpenXml.Presentation;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.Interface;
+using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;
 
@@ -14,6 +17,8 @@ public partial class TurkTalkEndpoint
   protected readonly TTalkDBContext ttalkDbContext;
   private readonly IConference _conference;
   private IOLabLogger _logger;
+  public TTalkMessageQueue MessageQueue { get; }
+
   protected readonly IOLabConfiguration _configuration;
 
   public TurkTalkEndpoint(
@@ -34,5 +39,20 @@ public partial class TurkTalkEndpoint
     _configuration = configuration;
 
     _logger = logger;
+
+    MessageQueue = new TTalkMessageQueue(_logger);
+  }
+
+  public void GetAtriumContents()
+  {
+    foreach (var topic in _conference.Topics)
+    {
+      _logger.LogInformation($"  Building atrium list for '{topic.Name}'");
+
+      MessageQueue.EnqueueMethod(new AtriumUpdateMethod(
+          _configuration,
+          topic.Name,
+          topic.Atrium.GetContents()));
+    }
   }
 }
