@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using OLab.Api.Models;
 using OLab.Common.Interfaces;
+using OLab.Data.Dtos;
 using OLab.Data.Mappers;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
@@ -24,12 +27,21 @@ public class ConferenceMapper : OLabMapper<TtalkConference, Conference>
 
   public override Conference PhysicalToDto(TtalkConference phys)
   {
-    var topicMapper = new ConferenceTopicMapper(Logger);
-
     var dto = base.PhysicalToDto(phys);
-    foreach (var topic in phys.TtalkConferenceTopics)
-      dto.AddTopic(topicMapper.PhysicalToDto(topic, dto));
-
+    var topicMapper = new ConferenceTopicMapper(Logger);
+    foreach (var item in phys.TtalkConferenceTopics)
+      dto.ConferenceTopics.Add(topicMapper.PhysicalToDto(item));
     return dto;
+  }
+  /// <summary>
+  /// Default (overridable) AutoMapper cfg
+  /// </summary>
+  /// <returns>MapperConfiguration</returns>
+  protected override MapperConfiguration GetConfiguration()
+  {
+    return new MapperConfiguration(cfg =>
+    {
+      cfg.CreateMap<TtalkConference, Conference>().ReverseMap();
+    });
   }
 }

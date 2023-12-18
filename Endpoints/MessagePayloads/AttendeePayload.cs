@@ -18,7 +18,7 @@ public class AttendeePayload
 
   public UserToken UserToken { get; set; }
   public DateTime ReferenceDate { get; internal set; }
-  public object CommandChannel { get; internal set; }
+  public object CommandChannel { get { return $"{RoomName}//{UserKey}"; } }
 
   public void RefreshUserToken(string secret)
   {

@@ -27,7 +27,4 @@
     <ProjectReference Include="..\..\Common\Common\OLab.Common.csproj" />
     <ProjectReference Include="..\..\Common\Data\OLab.Data.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ModelsEx\" />
-  </ItemGroup>
 </Project>

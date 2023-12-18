@@ -29,7 +29,8 @@ public class Conference : IConference
   public IOLabLogger Logger { get { return _logger; } }
   public TTalkDBContext TTDbContext { get { return _ttalkDbContext; } }
 
-  public Conference() {
+  public Conference()
+  {
     _topics = new ConcurrentDictionary<string, ConferenceTopic>();
   }
 
@@ -62,14 +63,19 @@ public class Conference : IConference
 
   }
 
-  public IList<ConferenceTopic> Topics
+  public IList<ConferenceTopic> ConferenceTopics
   {
     get { return _topics.Values.ToList(); }
+    set
+    {
+      foreach (var topic in value)
+        AddTopic(topic);
+    }
   }
 
-  public void AddTopic( ConferenceTopic topic ) 
+  public void AddTopic(ConferenceTopic topic)
   {
-    _topics.Add( topic.Name, topic );
+    _topics.Add(topic.Name, topic);
   }
 
   /// <summary>
@@ -79,7 +85,7 @@ public class Conference : IConference
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns></returns>
   public async Task<ConferenceTopic> GetTopicAsync(
-    AttendeePayload payload, 
+    AttendeePayload payload,
     bool createInDb = true)
   {
     try
@@ -111,26 +117,25 @@ public class Conference : IConference
           .Update(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic = mapper.PhysicalToDto(physTopic, this);
+        topic = mapper.PhysicalToDto(physTopic);
       }
 
       else if (createInDb)
       {
-        topic = new ConferenceTopic
+        physTopic = new TtalkConferenceTopic
         {
           Name = payload.RoomName,
           ConferenceId = Id,
-          Conference = this
+          CreatedAt = DateTime.UtcNow,
         };
 
-        physTopic = mapper.DtoToPhysical(topic);
         await _ttalkDbContext.TtalkConferenceTopics.AddAsync(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic = mapper.PhysicalToDto(physTopic, this);
+        topic.Id = physTopic.Id;
 
         AddTopic(topic);
-        
+
         _logger.LogInformation($"topic '{payload.RoomName}' ({topic.Id}) created in database");
       }
 

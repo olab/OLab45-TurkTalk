@@ -45,7 +45,7 @@ public partial class TurkTalkEndpoint
 
   public void GetAtriumContents()
   {
-    foreach (var topic in _conference.Topics)
+    foreach (var topic in _conference.ConferenceTopics)
     {
       _logger.LogInformation($"  Building atrium list for '{topic.Name}'");
 

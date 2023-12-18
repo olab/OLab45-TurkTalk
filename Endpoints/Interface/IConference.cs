@@ -6,7 +6,7 @@ using OLab.TurkTalk.Endpoints.Utils;
 namespace OLab.TurkTalk.Endpoints.Interface;
 public interface IConference
 {
-    IList<ConferenceTopic> Topics { get; }
+    IList<ConferenceTopic> ConferenceTopics { get; }
 
     Task<ConferenceTopic> GetTopicAsync(
       AttendeePayload payload, 
