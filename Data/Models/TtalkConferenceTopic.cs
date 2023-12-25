@@ -14,10 +14,8 @@ public partial class TtalkConferenceTopic
     [Column("id", TypeName = "int(11) unsigned")]
     public uint Id { get; set; }
 
-    [Required]
-    [Column("name")]
-    [StringLength(50)]
-    public string Name { get; set; }
+    [Column("question_id", TypeName = "int(11) unsigned")]
+    public uint QuestionId { get; set; }
 
     [Column("conference_id", TypeName = "int(11) unsigned")]
     public uint ConferenceId { get; set; }
@@ -26,17 +24,14 @@ public partial class TtalkConferenceTopic
     public DateTime CreatedAt { get; set; }
 
     [Column("lastused_at", TypeName = "datetime")]
-    public DateTime LastUsedAt { get; set; }
+    public DateTime LastusedAt { get; set; }
 
     [ForeignKey("ConferenceId")]
     [InverseProperty("TtalkConferenceTopics")]
     public virtual TtalkConference Conference { get; set; }
 
     [InverseProperty("Topic")]
-    public virtual ICollection<TtalkAtriumAttendee> TtalkAtriumAttendees { get; } = new List<TtalkAtriumAttendee>();
-
-    [InverseProperty("Topic")]
-    public virtual ICollection<TtalkTopicAtrium> TtalkTopicAtria { get; } = new List<TtalkTopicAtrium>();
+    public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
 
     [InverseProperty("Topic")]
     public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();

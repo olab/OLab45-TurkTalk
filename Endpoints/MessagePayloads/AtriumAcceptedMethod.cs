@@ -1,28 +1,28 @@
 ﻿using Dawn;
 using OLab.Common.Interfaces;
+using OLab.TurkTalk.Endpoints.BusinessObjects;
 using System.Text;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public class AtriumAcceptedMethod: TTalkMethod
 {
-  public string RoomName { get; set; }
+  public string TopicName { get; set; }
   public bool WasAdded { get; set; }
 
   public AtriumAcceptedMethod(
     IOLabConfiguration configuration,
     string connectionId,
-    string roomName,
+    ConferenceTopic topic,
     bool wasAdded ) : base(
       configuration,
       connectionId,
       "atriumaccepted")
   {
-    Guard.Argument(roomName, nameof(roomName)).NotEmpty();
+    Guard.Argument(topic).NotNull(nameof(topic));
     Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
-    Guard.Argument(roomName, nameof(roomName)).NotEmpty();
 
-    RoomName = roomName;
+    TopicName = topic.Name;
     WasAdded = wasAdded;
   }
 
@@ -33,6 +33,6 @@ public class AtriumAcceptedMethod: TTalkMethod
 
   public override string ToString()
   {
-    return $"{RoomName} {WasAdded}";
+    return $"{TopicName} {WasAdded}";
   }
 }

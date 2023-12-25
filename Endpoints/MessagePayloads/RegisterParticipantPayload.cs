@@ -4,21 +4,17 @@ using OLab.TurkTalk.Endpoints.Utils;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
-public class AttendeePayload
+public class RegisterParticipantPayload
 {
   public string ContextId { get; set; }
   public uint MapId { get; set; }
   public uint NodeId { get; set; }
   public uint QuestionId { get; set; }
 
-  public string RoomName { get; set; }
-  public string ReferringNode { get; set; }
   public string ConnectionId { get; set; }
   public string UserKey { get; set; }
 
   public UserToken UserToken { get; set; }
-  public DateTime ReferenceDate { get; internal set; }
-  public object CommandChannel { get { return $"{RoomName}//{UserKey}"; } }
 
   public void RefreshUserToken(string secret)
   {

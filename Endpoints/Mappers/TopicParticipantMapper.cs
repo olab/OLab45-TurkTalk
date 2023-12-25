@@ -16,9 +16,9 @@ using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Endpoints.Mappers;
 
-public class ConferenceMapper : OLabMapper<TtalkConference, Conference>
+public class TopicParticipantMapper : OLabMapper<TtalkTopicParticipant, TopicParticipant>
 {
-  public ConferenceMapper(
+  public TopicParticipantMapper(
     IOLabLogger logger,
     bool enableWikiTranslation = true) : base(logger)
   {
@@ -33,8 +33,6 @@ public class ConferenceMapper : OLabMapper<TtalkConference, Conference>
   {
     return new MapperConfiguration(cfg =>
     {
-      cfg.CreateMap<TtalkConference, Conference>().ReverseMap();
-      cfg.CreateMap<TtalkConferenceTopic, ConferenceTopic>().ReverseMap();
       cfg.CreateMap<TtalkTopicParticipant, TopicParticipant>().ReverseMap();
     });
   }

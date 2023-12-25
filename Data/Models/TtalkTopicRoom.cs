@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace OLab.TurkTalk.Data.Models;
 
 [Table("ttalk_topic_room")]
-[Index("ModeratorId", Name = "fk_tr_m_idx")]
 [Index("TopicId", Name = "fk_tr_t_idx")]
+[Index("ModeratorId", Name = "fk_ttalk_topic_room_ttalk_room_attendee1_idx")]
 public partial class TtalkTopicRoom
 {
     [Key]
@@ -24,11 +24,11 @@ public partial class TtalkTopicRoom
     public uint TopicId { get; set; }
 
     [Column("moderator_id", TypeName = "int(10) unsigned")]
-    public uint ModeratorId { get; set; }
+    public uint? ModeratorId { get; set; }
 
     [ForeignKey("ModeratorId")]
     [InverseProperty("TtalkTopicRooms")]
-    public virtual TtalkModerator Moderator { get; set; }
+    public virtual TtalkTopicParticipant Moderator { get; set; }
 
     [ForeignKey("TopicId")]
     [InverseProperty("TtalkTopicRooms")]
@@ -36,4 +36,7 @@ public partial class TtalkTopicRoom
 
     [InverseProperty("Room")]
     public virtual ICollection<TtalkRoomSession> TtalkRoomSessions { get; } = new List<TtalkRoomSession>();
+
+    [InverseProperty("Room")]
+    public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
 }

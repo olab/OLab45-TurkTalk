@@ -6,28 +6,20 @@ namespace OLab.TurkTalk.Data.Models;
 
 public partial class TTalkDBContext : DbContext
 {
-    public TTalkDBContext()
-    {
-    }
-
     public TTalkDBContext(DbContextOptions<TTalkDBContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<TtalkAtriumAttendee> TtalkAtriumAttendees { get; set; }
-
     public virtual DbSet<TtalkConference> TtalkConferences { get; set; }
 
     public virtual DbSet<TtalkConferenceTopic> TtalkConferenceTopics { get; set; }
-
-    public virtual DbSet<TtalkModerator> TtalkModerators { get; set; }
 
     public virtual DbSet<TtalkRoomSession> TtalkRoomSessions { get; set; }
 
     public virtual DbSet<TtalkSessionConversation> TtalkSessionConversations { get; set; }
 
-    public virtual DbSet<TtalkTopicAtrium> TtalkTopicAtria { get; set; }
+    public virtual DbSet<TtalkTopicParticipant> TtalkTopicParticipants { get; set; }
 
     public virtual DbSet<TtalkTopicRoom> TtalkTopicRooms { get; set; }
 
@@ -36,15 +28,6 @@ public partial class TTalkDBContext : DbContext
         modelBuilder
             .UseCollation("latin1_swedish_ci")
             .HasCharSet("latin1");
-
-        modelBuilder.Entity<TtalkAtriumAttendee>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkAtriumAttendees)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_ttalk_atrium_attendee_ttalk_conference_topic1");
-        });
 
         modelBuilder.Entity<TtalkConference>(entity =>
         {
@@ -56,11 +39,6 @@ public partial class TTalkDBContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.HasOne(d => d.Conference).WithMany(p => p.TtalkConferenceTopics).HasConstraintName("fk_ct_c");
-        });
-
-        modelBuilder.Entity<TtalkModerator>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
         modelBuilder.Entity<TtalkRoomSession>(entity =>
@@ -83,20 +61,22 @@ public partial class TTalkDBContext : DbContext
                 .HasConstraintName("fk_tsc_trs");
         });
 
-        modelBuilder.Entity<TtalkTopicAtrium>(entity =>
+        modelBuilder.Entity<TtalkTopicParticipant>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicAtria).HasConstraintName("fk_ta_t");
+            entity.HasOne(d => d.Room).WithMany(p => p.TtalkTopicParticipants).HasConstraintName("fk_ttalk_tra_ttr");
+
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicParticipants)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_ttalk_atrium_attendee_ttalk_conference_topic10");
         });
 
         modelBuilder.Entity<TtalkTopicRoom>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_tr_m");
+            entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms).HasConstraintName("fk_ttalk_topic_room_ttalk_room_attendee1");
 
             entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicRooms).HasConstraintName("fk_tr_t");
         });

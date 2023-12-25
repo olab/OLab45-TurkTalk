@@ -43,16 +43,4 @@ public partial class TurkTalkEndpoint
     MessageQueue = new TTalkMessageQueue(_logger);
   }
 
-  public void GetAtriumContents()
-  {
-    foreach (var topic in _conference.ConferenceTopics)
-    {
-      _logger.LogInformation($"  Building atrium list for '{topic.Name}'");
-
-      MessageQueue.EnqueueMethod(new AtriumUpdateMethod(
-          _configuration,
-          topic.Name,
-          topic.Atrium.GetContents()));
-    }
-  }
 }

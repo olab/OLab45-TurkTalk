@@ -1,17 +1,20 @@
 ﻿using Dawn;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.Mappers;
-using OLab.TurkTalk.Endpoints.MessagePayloads;
-using OLab.TurkTalk.Endpoints.Utils;
-using System.Collections.Concurrent;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
+
+public class QuestionSetting
+{
+  public string RoomName { get; set; }
+}
 
 public class Conference : IConference
 {
@@ -19,7 +22,6 @@ public class Conference : IConference
   private OLabDBContext _dbContext { get; }
   private TTalkDBContext _ttalkDbContext { get; }
   private IOLabLogger _logger { get; }
-  private readonly IDictionary<string, ConferenceTopic> _topics;
   private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
 
   public uint Id { get; set; }
@@ -31,14 +33,13 @@ public class Conference : IConference
 
   public Conference()
   {
-    _topics = new ConcurrentDictionary<string, ConferenceTopic>();
-  }
 
+  }
   public Conference(
-  ILoggerFactory loggerFactory,
-  IOLabConfiguration configuration,
-  OLabDBContext dbContext,
-  TTalkDBContext ttalkDbContext)
+    ILoggerFactory loggerFactory,
+    IOLabConfiguration configuration,
+    OLabDBContext dbContext,
+    TTalkDBContext ttalkDbContext)
   {
     Guard.Argument(loggerFactory).NotNull(nameof(loggerFactory));
     Guard.Argument(configuration).NotNull(nameof(configuration));
@@ -50,32 +51,16 @@ public class Conference : IConference
     _dbContext = dbContext;
     _ttalkDbContext = ttalkDbContext;
 
-    _topics = new ConcurrentDictionary<string, ConferenceTopic>();
-
-    var dbConference = TTDbContext.TtalkConferences.FirstOrDefault();
-    if (dbConference == null)
-      throw new Exception("System conference not defined");
+    // load the initial conference (for now, it's assumed to
+    // only be one of, for now)
+    var dbConference = TTDbContext.TtalkConferences
+      .FirstOrDefault() ?? throw new Exception("System conference not defined");
 
     Id = dbConference.Id;
     Name = dbConference.Name;
 
-    _logger.LogInformation($"conference'{Name}' ({Id}) loaded from conference");
+    Logger.LogInformation($"conference'{Name}' ({Id}) loaded from conference");
 
-  }
-
-  public IList<ConferenceTopic> ConferenceTopics
-  {
-    get { return _topics.Values.ToList(); }
-    set
-    {
-      foreach (var topic in value)
-        AddTopic(topic);
-    }
-  }
-
-  public void AddTopic(ConferenceTopic topic)
-  {
-    _topics.Add(topic.Name, topic);
   }
 
   /// <summary>
@@ -83,48 +68,51 @@ public class Conference : IConference
   /// </summary>
   /// <param name="topicName">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
-  /// <returns></returns>
+  /// <returns>ConferenceTopic</returns>
   public async Task<ConferenceTopic> GetTopicAsync(
-    AttendeePayload payload,
+    uint questionId,
     bool createInDb = true)
   {
     try
     {
+      // ensure question is valid and is of correct type (ttalk)
+      var question = _dbContext.SystemQuestions.FirstOrDefault(x =>
+        x.Id == questionId &&
+        (x.EntryTypeId == 11 || x.EntryTypeId == 15)) ?? throw new Exception($"question id {questionId} not found/invalid");
+
+      var questionSetting = JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
+      ConferenceTopic topic = new ConferenceTopic(this);
+
       await _topicSemaphore.WaitAsync();
-
-      var mapper = new ConferenceTopicMapper(_logger);
-
-      if (_topics.TryGetValue(payload.RoomName, out var topic))
-      {
-        _logger.LogInformation($"topic '{payload.RoomName}' found in conference");
-        return topic;
-      }
 
       var physTopic = await TTDbContext
         .TtalkConferenceTopics
-        .Include(x => x.TtalkAtriumAttendees)
+        .Include(x => x.TtalkTopicParticipants)
         .Include(x => x.TtalkTopicRooms)
-        .FirstOrDefaultAsync(x => x.Name == payload.RoomName);
+        .FirstOrDefaultAsync(x => x.QuestionId == questionId);
 
+      // test if found topic in database
       if (physTopic != null)
       {
-        _logger.LogInformation($"topic '{payload.RoomName}' found in database");
+        Logger.LogInformation($"topic '{questionSetting.RoomName}' found in database");
 
         // update last used
-        physTopic.LastUsedAt = DateTime.UtcNow;
+        physTopic.LastusedAt = DateTime.UtcNow;
         TTDbContext
           .TtalkConferenceTopics
           .Update(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic = mapper.PhysicalToDto(physTopic);
+        var mapper = new ConferenceTopicMapper(Logger);
+        topic = mapper.PhysicalToDto(physTopic, questionSetting.RoomName, this);
       }
 
+      // not found in database
       else if (createInDb)
       {
         physTopic = new TtalkConferenceTopic
         {
-          Name = payload.RoomName,
+          QuestionId = questionId,
           ConferenceId = Id,
           CreatedAt = DateTime.UtcNow,
         };
@@ -132,18 +120,17 @@ public class Conference : IConference
         await _ttalkDbContext.TtalkConferenceTopics.AddAsync(physTopic);
         await _ttalkDbContext.SaveChangesAsync();
 
-        topic.Id = physTopic.Id;
+        var mapper = new ConferenceTopicMapper(Logger);
+        topic = mapper.PhysicalToDto(physTopic, questionSetting.RoomName, this);
 
-        AddTopic(topic);
-
-        _logger.LogInformation($"topic '{payload.RoomName}' ({topic.Id}) created in database");
+        Logger.LogInformation($"topic '{questionSetting.RoomName}' ({topic.Id}) created in database");
       }
 
       return topic;
     }
     catch (Exception ex)
     {
-      _logger.LogError($"GetTopicAsync error: {ex.Message}");
+      Logger.LogError($"GetTopicAsync error: {ex.Message}");
       throw;
     }
     finally

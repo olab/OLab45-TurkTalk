@@ -33,4 +33,10 @@ public class UserToken
 
     return this;
   }
+
+  public override string ToString()
+  {
+    var authString = $"{UserId}//{UserName}//{TokenIssuer}";
+    return authString;
+  }
 }

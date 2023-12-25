@@ -1,4 +1,5 @@
 ﻿using Common.Utils;
+using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
@@ -15,33 +16,34 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicAtrium
 {
   public ConferenceTopic Topic { get; }
-  public IDictionary<string, AttendeePayload> AtriumLearners;
+  public IDictionary<string, TopicParticipant> AtriumLearners;
   public IOLabLogger Logger { get { return Topic.Conference.Logger; } }
 
   public TopicAtrium(ConferenceTopic topic)
   {
     Topic = topic;
-    AtriumLearners = new ConcurrentDictionary<string, AttendeePayload>();
+    AtriumLearners = new ConcurrentDictionary<string, TopicParticipant>();
   }
 
   /// <summary>
   /// Get list of Participant
   /// </summary>
   /// <returns>List of Participant group strings</returns>
-  public IList<AttendeePayload> GetContents()
+  public IList<TopicParticipant> GetContents()
   {
     return AtriumLearners.Values.ToList();
   }
 
   /// <summary>
-  /// Test if Participant already exists in atrium
+  /// Test if attendee already exists in atrium
   /// </summary>
-  /// <param name="attendee">Participant</param>
+  /// <param name="attendee">Attendee to test</param>
   /// <returns>true, if exists</returns>
-  public bool Contains(AttendeePayload attendee)
+  public bool Contains(TopicParticipant attendee)
   {
-    var found = AtriumLearners.ContainsKey(GetUniqueKey(attendee));
-    Logger.LogInformation($"{attendee.UserKey}: in '{Topic.Name}' atrium? {found}");
+    var attendeeKey = attendee.ToString();
+    var found = AtriumLearners.ContainsKey(attendeeKey);
+    Logger.LogInformation($"{attendeeKey}: in '{Topic.Name}' atrium? {found}");
     return found;
   }
 
@@ -50,9 +52,9 @@ public class TopicAtrium
   /// </summary>
   /// <param name="name">Participant name</param>
   /// <returns>true, if exists</returns>
-  public AttendeePayload Get(AttendeePayload attendee)
+  public TopicParticipant Get(TopicParticipant attendee)
   {
-    var atriumUserKey = GetUniqueKey(attendee);
+    var atriumUserKey = attendee.ToString();
     if (AtriumLearners.ContainsKey(atriumUserKey))
       return AtriumLearners[atriumUserKey];
 
@@ -60,12 +62,12 @@ public class TopicAtrium
   }
 
   /// <summary>
-  /// Remove Participant from atrium
+  /// Remove attendee from atrium
   /// </summary>
-  /// <param name="participantName">Participant name</param>
-  internal bool Remove(AttendeePayload attendee)
+  /// <param name="attendee">Attendee name</param>
+  internal bool Remove(TopicParticipant attendee)
   {
-    var atriumUserKey = GetUniqueKey(attendee);
+    var atriumUserKey = attendee.ToString();
 
     // search atrium by user id
     var foundInAtrium = AtriumLearners.ContainsKey(atriumUserKey);
@@ -86,6 +88,7 @@ public class TopicAtrium
   /// Remove attendee from atrium by connection id
   /// </summary>
   /// <param name="connectionId">Connection id to search for</param>
+  /// <returns>true is removed from atrium</returns>
   internal bool Remove(string connectionId)
   {
     foreach (var item in AtriumLearners.Values)
@@ -101,51 +104,33 @@ public class TopicAtrium
   /// Add Participant to atrium
   /// </summary>
   /// <param name="learner">Participant to add</param>
-  /// <param name="messageQueue">TurkTalk message queue</param>
-  internal bool AddAttendee(
-    AttendeePayload attendee,
-    TTalkMessageQueue messageQueue)
+  /// <returns>true if added to atrium, else was already in atrium</returns>
+  internal async Task<bool?> AddAttendeeAsync(
+    TopicParticipant attendee)
   {
-    var atriumUserKey = GetUniqueKey(attendee);
-    Logger.LogDebug($"{atriumUserKey}: add to '{Topic.Name}' atrium");
-
     if (!Contains(attendee))
     {
-      // used for chronological order querying/sorting
-      attendee.ReferenceDate = DateTime.UtcNow;
+      var atriumUserKey = attendee.ToString();
       AtriumLearners.Add(atriumUserKey, attendee);
 
-      var newAtriumAttendee = new TtalkAtriumAttendee
+      var newAttendee = new TtalkTopicParticipant
       {
-        TokenIssuer = attendee.UserToken.TokenIssuer,
+        UserId = attendee.UserId.ToString(),
+        UserName = attendee.UserName,
+        TokenIssuer = attendee.TokenIssuer,
+        SessionId = attendee.SessionId,
         TopicId = Topic.Id,
-        UserId = attendee.UserToken.UserId.ToString(),
-        UserName = attendee.UserToken.UserName
       };
 
-      Topic.Conference.TTDbContext.TtalkAtriumAttendees.Add(newAtriumAttendee);
+      await Topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(newAttendee);
+      await Topic.Conference.TTDbContext.SaveChangesAsync();
 
-      // signal 'new' add to atrium
-      messageQueue.EnqueueMethod(new AtriumAcceptedMethod(
-          Topic.Conference.Configuration,
-          attendee.ConnectionId,
-          Topic.Name,
-          true));
+      return true;
+
     }
     else
-      // signal 'resumption' of user in atrium
-      messageQueue.EnqueueMethod(new AtriumAcceptedMethod(
-          Topic.Conference.Configuration,
-          attendee.ConnectionId,
-          Topic.Name,
-          false));
+      return false;
 
-    return true;
-  }
-
-  private string GetUniqueKey(AttendeePayload payload)
-  {
-    return $"{payload.UserKey}/{payload.ContextId}";
   }
 
   private void Dump()
@@ -155,9 +140,20 @@ public class TopicAtrium
       Logger.LogDebug($"  none");
     else
     {
-      foreach (var item in AtriumLearners.Values.OrderBy(x => x.UserKey))
-        Logger.LogDebug($"  {item.CommandChannel} ({item.UserKey})");
+      foreach (var item in AtriumLearners.Values.OrderBy(x => x.UserId))
+        Logger.LogDebug($"  {item}");
     }
   }
 
+  internal void Load(IList<TopicParticipant> value)
+  {
+    foreach (var item in value)
+    {
+      var atriumUserKey = item.ToString();
+      Logger.LogDebug($"{atriumUserKey}: loaded into '{Topic.Name}' atrium");
+      AtriumLearners.Add(atriumUserKey, item);
+    }
+
+    Dump();
+  }
 }

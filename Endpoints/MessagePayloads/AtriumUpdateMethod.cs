@@ -8,12 +8,12 @@ public class AtriumUpdateMethod : TTalkMethod
 {
   private IOLabConfiguration _configuration;
   public string TopicName { get; set; }
-  public IList<AttendeePayload> Attendees { get; set; }
+  public IList<RegisterParticipantPayload> Attendees { get; set; }
 
   public AtriumUpdateMethod(
     IOLabConfiguration configuration,
     string name,
-    IList<AttendeePayload> attendees) : base(configuration, null, "atriumupdate")
+    IList<RegisterParticipantPayload> attendees) : base(configuration, null, "atriumupdate")
   {
     _configuration = configuration;
     TopicName = name;

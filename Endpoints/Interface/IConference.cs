@@ -1,4 +1,5 @@
-﻿using OLab.TurkTalk.Data.Models;
+﻿using OLab.Common.Interfaces;
+using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using OLab.TurkTalk.Endpoints.Utils;
@@ -6,9 +7,8 @@ using OLab.TurkTalk.Endpoints.Utils;
 namespace OLab.TurkTalk.Endpoints.Interface;
 public interface IConference
 {
-    IList<ConferenceTopic> ConferenceTopics { get; }
-
+    IOLabConfiguration Configuration { get; }
     Task<ConferenceTopic> GetTopicAsync(
-      AttendeePayload payload, 
+      uint questionId, 
       bool createInDb = true);
 }

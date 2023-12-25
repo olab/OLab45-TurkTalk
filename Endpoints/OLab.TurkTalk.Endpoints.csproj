@@ -16,8 +16,5 @@
     <ProjectReference Include="..\..\Common\Endpoints\OLab.Endpoints.csproj" />
     <ProjectReference Include="..\Data\OLab.TurkTalk.Data.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Mappers\" />
-  </ItemGroup>
 
 </Project>

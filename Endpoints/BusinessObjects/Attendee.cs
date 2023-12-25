@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
-internal class Attendee
+public class Attendee
 {
 }
