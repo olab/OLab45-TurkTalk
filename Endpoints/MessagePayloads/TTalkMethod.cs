@@ -12,6 +12,7 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public abstract class TTalkMethod
 {
+  public string GroupName { get; }
   public string ConnectionId { get; }
 
   protected readonly IOLabConfiguration Configuration;
@@ -20,24 +21,40 @@ public abstract class TTalkMethod
 
   public TTalkMethod(
     IOLabConfiguration configuration,
-    string connectionId,
-  string methodName)
+    string id,
+    string methodName)
   {
     Guard.Argument(configuration).NotNull(nameof(configuration));
-    Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
+    Guard.Argument(id, nameof(id)).NotEmpty();
     Guard.Argument(methodName, nameof(methodName)).NotEmpty();
 
     Configuration = configuration;
-    ConnectionId = connectionId;
+    if (id.Contains("//"))
+      GroupName = id;
+    else
+      ConnectionId = id;
+
     MethodName = methodName;
   }
 
   public SignalRMessageAction MessageAction()
   {
     var actionArguments = new object[] { Arguments() };
-    return new SignalRMessageAction(MethodName)
-    {
-      Arguments = actionArguments
-    };
+
+    if (!string.IsNullOrEmpty(GroupName))
+      return new SignalRMessageAction(MethodName)
+      {
+        Arguments = actionArguments,
+        GroupName = GroupName
+      };
+
+    if (!string.IsNullOrEmpty(ConnectionId))
+      return new SignalRMessageAction(MethodName)
+      {
+        Arguments = actionArguments,
+        ConnectionId = ConnectionId
+      };
+
+    throw new ArgumentNullException("Missing target id type for method");
   }
 }

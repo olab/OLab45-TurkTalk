@@ -7,20 +7,20 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public class AtriumAcceptedMethod: TTalkMethod
 {
+  //  payload properties
   public string TopicName { get; set; }
   public bool WasAdded { get; set; }
 
   public AtriumAcceptedMethod(
     IOLabConfiguration configuration,
-    string connectionId,
+    string groupName,
     ConferenceTopic topic,
     bool wasAdded ) : base(
       configuration,
-      connectionId,
+      groupName,
       "atriumaccepted")
   {
     Guard.Argument(topic).NotNull(nameof(topic));
-    Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
 
     TopicName = topic.Name;
     WasAdded = wasAdded;

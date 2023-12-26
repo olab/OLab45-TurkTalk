@@ -41,39 +41,39 @@ public class ConferenceTopic
   /// <summary>
   /// Add a learner to a topic
   /// </summary>
-  /// <param name="learner">Attendee to add</param>
+  /// <param name="dtoLearner">Learner to add</param>
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
   public async Task AddLearnerAsync(
-    TopicParticipant learner,
-    TTalkMessageQueue messageQueue)
+    TopicLearner dtoLearner,
+    DispatchedMessages messageQueue)
   {
     // look if already a known attendee based on sessionId
-    var dtoParticipant = GetParticipant(learner.SessionId);
+    var dtoParticipant = GetParticipant(dtoLearner.SessionId);
 
     // test if not known previously - create new learner and add to atrium
     if (dtoParticipant == null)
     {
       var physAttendee = new TtalkTopicParticipant
       {
-        SessionId = learner.SessionId,
+        SessionId = dtoLearner.SessionId,
         TopicId = Id,
-        UserId = learner.UserId,
-        UserName = learner.UserName,
-        TokenIssuer = learner.TokenIssuer,
-        ConnectionId = learner.ConnectionId
+        UserId = dtoLearner.UserId,
+        UserName = dtoLearner.UserName,
+        TokenIssuer = dtoLearner.TokenIssuer,
+        ConnectionId = dtoLearner.ConnectionId
         // not setting a roomId implies learner is in atrium
       };
 
       await Conference.TTDbContext.TtalkTopicParticipants.AddAsync(physAttendee);
       await Conference.TTDbContext.SaveChangesAsync();
 
-      Logger.LogInformation($"assigned learner '{learner}' to {Name} atrium");
+      Logger.LogInformation($"assigned learner '{dtoLearner}' to {Name} atrium");
 
       // signal 'new' add to atrium
-      messageQueue.EnqueueMethod(new AtriumAcceptedMethod(
+      messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
           Conference.Configuration,
-          learner.ConnectionId,
+          dtoLearner.ChatChannel,
           this,
           true));
 
@@ -82,19 +82,19 @@ public class ConferenceTopic
 
     // update participant with new connection id
     var physParticipant = 
-      Conference.TTDbContext.TtalkTopicParticipants.FirstOrDefault(( x => x.SessionId ==  learner.SessionId ));
-    physParticipant.ConnectionId = learner.ConnectionId;
+      Conference.TTDbContext.TtalkTopicParticipants.FirstOrDefault(( x => x.SessionId ==  dtoLearner.SessionId ));
+    physParticipant.ConnectionId = dtoLearner.ConnectionId;
     Conference.TTDbContext.TtalkTopicParticipants.Update( physParticipant );
 
     // known participant. test if was in atrium (no room assigned)
     if (dtoParticipant.RoomId == 0)
     {
-      Logger.LogInformation($"re-assigning learner '{learner}' to topic '{Name}' atrium");
+      Logger.LogInformation($"re-assigning learner '{dtoLearner}' to topic '{Name}' atrium");
 
       // signal 'resumption' of user in atrium
-      messageQueue.EnqueueMethod(new AtriumAcceptedMethod(
+      messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
           Conference.Configuration,
-          learner.ConnectionId,
+          dtoLearner.ChatChannel,
           this,
           false));
 
@@ -109,12 +109,12 @@ public class ConferenceTopic
       // ensure room exists and has a moderator to receive them
       if (dtoRoom != null && dtoRoom.ModeratorId > 0 )
       {
-        Logger.LogInformation($"re-assigning learner '{learner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
+        Logger.LogInformation($"re-assigning learner '{dtoLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
 
         // signal attendee found in existing, moderated room
-        messageQueue.EnqueueMethod(new RoomAcceptedMethod(
+        messageQueue.EnqueueMessage(new RoomAcceptedMethod(
             Conference.Configuration,
-            learner.ConnectionId,
+            dtoLearner.ChatChannel,
             dtoRoom,
             dtoParticipant.SeatNumber,
             false));
@@ -126,9 +126,9 @@ public class ConferenceTopic
       else
       {
         // no moderator, add to atrium
-        messageQueue.EnqueueMethod(new AtriumAcceptedMethod(
+        messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
             Conference.Configuration,
-            learner.ConnectionId,
+            dtoLearner.ChatChannel,
             this,
             true));
 
@@ -144,11 +144,11 @@ public class ConferenceTopic
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
   internal async Task AddModeratorAsync(
-    TopicParticipant moderator,
-    TTalkMessageQueue messageQueue)
+    TopicModerator moderator,
+    DispatchedMessages messageQueue)
   {
     // look if already a known attendee based on sessionId
-    var dtoModerator = GetParticipant(moderator.SessionId);
+    var dtoModerator = GetParticipant(moderator.SessionId) as TopicModerator;
 
     // moderator not attendee previously. create moderator and add to a new room
     if (dtoModerator == null)
@@ -156,9 +156,9 @@ public class ConferenceTopic
       var newRoomDto = await TopicRoom.CreateRoomAsync(this, moderator);
 
       // signal moderator added to new, moderated room
-      messageQueue.EnqueueMethod(new RoomAcceptedMethod(
+      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
           Conference.Configuration,
-          moderator.ConnectionId,
+          dtoModerator.RoomChannel,
           newRoomDto,
           0,
           true));
@@ -178,9 +178,9 @@ public class ConferenceTopic
       Logger.LogInformation($"re-assigned moderator {moderator.Id} to topic '{Name}' room. id {existingRoomDto.Id}");
 
       // signal moderator re-attaching to existing moderated room
-      messageQueue.EnqueueMethod(new RoomAcceptedMethod(
+      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
           Conference.Configuration,
-          moderator.ConnectionId,
+          moderator.RoomChannel,
           existingRoomDto,
           0,
           false));
@@ -211,9 +211,9 @@ public class ConferenceTopic
       Logger.LogInformation($"assigned moderator {moderator.Id} to topic '{Name}' room. id {existingRoomDto.Id}");
 
       // signal moderator re-attaching to existing moderated room
-      messageQueue.EnqueueMethod(new RoomAcceptedMethod(
+      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
           Conference.Configuration,
-          moderator.ConnectionId,
+          moderator.RoomChannel,
           existingRoomDto,
           0,
           true));

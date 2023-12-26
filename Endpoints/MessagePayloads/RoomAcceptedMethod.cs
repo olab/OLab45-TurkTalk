@@ -7,6 +7,7 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public class RoomAcceptedMethod: TTalkMethod
 {
+  //  payload properties
   public string RoomName { get; set; }
   public uint SeatNumber { get; }
   public string ModeratorName { get; set; }
@@ -14,16 +15,15 @@ public class RoomAcceptedMethod: TTalkMethod
 
   public RoomAcceptedMethod(
     IOLabConfiguration configuration,
-    string connectionId,
+    string groupName,
     TopicRoom room,
     uint seatNumber,
     bool wasAdded) : base(
       configuration,
-      connectionId,
+      groupName,
       "roomaccepted")
   {
     Guard.Argument(room).NotNull(nameof(room));
-    Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
 
     RoomName = room.Name;
     SeatNumber = seatNumber;

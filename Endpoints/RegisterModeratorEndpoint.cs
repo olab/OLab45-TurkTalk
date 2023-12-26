@@ -23,6 +23,15 @@ public partial class TurkTalkEndpoint
       // get topic from conference, create topic if not exist yet
       var topic = await _conference.GetTopicAsync(payload.QuestionId);
 
+      // create and assign message channels for learner
+      MessageQueue.EnqueueAddToGroupAction(
+        dtoModerator.ConnectionId,
+        dtoModerator.TopicChannel);
+
+      MessageQueue.EnqueueAddToGroupAction(
+        dtoModerator.ConnectionId,
+        dtoModerator.RoomChannel);
+
       // add attendee to topic
       await topic.AddModeratorAsync(
         dtoModerator,

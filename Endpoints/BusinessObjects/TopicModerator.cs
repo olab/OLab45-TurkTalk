@@ -10,8 +10,8 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
 public class TopicModerator: TopicParticipant
 {
-  public string ModeratorChannel { get { return $"{TopicId}//{RoomId}//moderator"; } }
-  public string ModeratorsChannel { get { return $"{TopicId}//moderators"; } }
+  public string RoomChannel { get { return $"{TopicId}//{RoomId}//moderator"; } }
+  public string TopicChannel { get { return $"{TopicId}//moderators"; } }
 
   public TopicModerator(RegisterParticipantPayload payload) : base(payload)
   {

@@ -17,7 +17,7 @@ public partial class TurkTalkEndpoint
   protected readonly TTalkDBContext ttalkDbContext;
   private readonly IConference _conference;
   private IOLabLogger _logger;
-  public TTalkMessageQueue MessageQueue { get; }
+  public DispatchedMessages MessageQueue { get; }
 
   protected readonly IOLabConfiguration _configuration;
 
@@ -40,7 +40,7 @@ public partial class TurkTalkEndpoint
 
     _logger = logger;
 
-    MessageQueue = new TTalkMessageQueue(_logger);
+    MessageQueue = new DispatchedMessages(_logger);
   }
 
 }

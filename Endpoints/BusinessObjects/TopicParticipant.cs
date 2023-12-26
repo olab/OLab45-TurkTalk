@@ -22,6 +22,7 @@ public class TopicParticipant
     UserId = payload.UserToken.UserId;
     UserName = payload.UserToken.UserName;
     NickName = payload.UserToken.NickName;
+    ConnectionId = payload.ConnectionId;
   }
 
   public string SessionId { get; set; }

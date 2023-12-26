@@ -12,7 +12,7 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public async Task<SignalRGroupAction> RegisterLearnerAsync(
+  public async Task<DispatchedMessages> RegisterLearnerAsync(
     RegisterParticipantPayload payload)
   {
     try
@@ -24,16 +24,22 @@ public partial class TurkTalkEndpoint
       // get topic from conference, create topic if not exist yet
       var topic = await _conference.GetTopicAsync(payload.QuestionId);
 
+      // create and assign message channels for learner
+      MessageQueue.EnqueueAddToGroupAction(
+        dtoLearner.ConnectionId,
+        dtoLearner.ChatChannel);
+
+      MessageQueue.EnqueueAddToGroupAction(
+        dtoLearner.ConnectionId,
+        dtoLearner.RoomChannel);
+
       // add learner to topic
       await topic.AddLearnerAsync(
         dtoLearner,
         MessageQueue);
 
-      return new SignalRGroupAction(SignalRGroupActionType.Add)
-      {
-        GroupName = $"{dtoLearner.SessionId}",
-        ConnectionId = dtoLearner.ConnectionId
-      };
+      return MessageQueue;
+
     }
     catch (Exception ex)
     {
