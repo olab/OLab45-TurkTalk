@@ -24,22 +24,24 @@ public partial class TurkTalkEndpoint
       // get topic from conference, create topic if not exist yet
       var topic = await _conference.GetTopicAsync(payload.QuestionId);
 
-      // create and assign message channels for learner
-      MessageQueue.EnqueueAddToGroupAction(
-        dtoLearner.ConnectionId,
-        dtoLearner.ChatChannel);
+      dtoLearner.TopicId = topic.Id;
 
+      // assign learner session channel
       MessageQueue.EnqueueAddToGroupAction(
         dtoLearner.ConnectionId,
-        dtoLearner.RoomChannel);
+        dtoLearner.RoomLearnerSessionChannel);
 
       // add learner to topic
       await topic.AddLearnerAsync(
         dtoLearner,
         MessageQueue);
 
-      return MessageQueue;
+      // assign channel for room learners
+      MessageQueue.EnqueueAddToGroupAction(
+        dtoLearner.ConnectionId,
+        dtoLearner.RoomLearnersChannel);
 
+      return MessageQueue;
     }
     catch (Exception ex)
     {

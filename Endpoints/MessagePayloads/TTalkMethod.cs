@@ -14,6 +14,17 @@ public abstract class TTalkMethod
 {
   public string GroupName { get; }
   public string ConnectionId { get; }
+  public string Destination 
+  { 
+    get 
+    { 
+        if ( !string.IsNullOrEmpty( GroupName ) )
+          return GroupName;
+        if ( !string.IsNullOrEmpty( ConnectionId ) )
+          return ConnectionId;
+        return "????";
+    }
+  }
 
   protected readonly IOLabConfiguration Configuration;
   protected readonly string MethodName;

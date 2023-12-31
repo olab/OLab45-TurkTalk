@@ -38,6 +38,6 @@ public class RoomAcceptedMethod: TTalkMethod
 
   public override string ToString()
   {
-    return $"{RoomName} {ModeratorName}";
+    return $"room {RoomName} moderator {ModeratorName} -> {Destination}";
   }
 }

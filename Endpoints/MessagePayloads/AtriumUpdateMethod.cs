@@ -6,18 +6,14 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public class AtriumUpdateMethod : TTalkMethod
 {
-  private IOLabConfiguration _configuration;
-  public string TopicName { get; set; }
-  public IList<RegisterParticipantPayload> Attendees { get; set; }
+  public IList<TopicLearner> Attendees { get; set; }
 
   public AtriumUpdateMethod(
     IOLabConfiguration configuration,
-    string name,
-    IList<RegisterParticipantPayload> attendees) : base(configuration, null, "atriumupdate")
+    string groupName,
+    IList<TopicLearner> learners) : base(configuration, groupName, "atriumupdate")
   {
-    _configuration = configuration;
-    TopicName = name;
-    Attendees = attendees;
+    Attendees = learners;
   }
 
   public override object Arguments()
@@ -28,7 +24,7 @@ public class AtriumUpdateMethod : TTalkMethod
   public override string ToString()
   {
     var sb = new StringBuilder();
-    sb.AppendLine(TopicName);
+    sb.AppendLine(GroupName);
     foreach (var attendee in Attendees)
       sb.AppendLine($" {attendee.ToString()}");
     return sb.ToString();

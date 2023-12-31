@@ -21,18 +21,10 @@ public partial class TurkTalkEndpoint
       var dtoModerator = new TopicModerator(payload);
 
       // get topic from conference, create topic if not exist yet
-      var topic = await _conference.GetTopicAsync(payload.QuestionId);
+      var topic = await _conference.GetTopicAsync(payload.QuestionId);      
+      dtoModerator.TopicId = topic.Id;
 
-      // create and assign message channels for learner
-      MessageQueue.EnqueueAddToGroupAction(
-        dtoModerator.ConnectionId,
-        dtoModerator.TopicChannel);
-
-      MessageQueue.EnqueueAddToGroupAction(
-        dtoModerator.ConnectionId,
-        dtoModerator.RoomChannel);
-
-      // add attendee to topic
+      // add moderator to topic
       await topic.AddModeratorAsync(
         dtoModerator,
         MessageQueue);

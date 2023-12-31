@@ -1,35 +1,28 @@
-﻿using Common.Utils;
-using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
-using OLab.TurkTalk.Endpoints.Utils;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
 public class TopicAtrium
 {
   public ConferenceTopic Topic { get; }
-  public IDictionary<string, TopicParticipant> AtriumLearners;
+  public IDictionary<string, TopicLearner> AtriumLearners;
   public IOLabLogger Logger { get { return Topic.Conference.Logger; } }
 
   public TopicAtrium(ConferenceTopic topic)
   {
     Topic = topic;
-    AtriumLearners = new ConcurrentDictionary<string, TopicParticipant>();
+    AtriumLearners = new ConcurrentDictionary<string, TopicLearner>();
   }
 
   /// <summary>
   /// Get list of Participant
   /// </summary>
   /// <returns>List of Participant group strings</returns>
-  public IList<TopicParticipant> GetContents()
+  public IList<TopicLearner> GetContents()
   {
     return AtriumLearners.Values.ToList();
   }
@@ -101,35 +94,59 @@ public class TopicAtrium
   }
 
   /// <summary>
-  /// Add Participant to atrium
+  /// Add learner to atrium
   /// </summary>
-  /// <param name="learner">Participant to add</param>
+  /// <param name="dtoLearner">Participant to add</param>
   /// <returns>true if added to atrium, else was already in atrium</returns>
-  internal async Task<bool?> AddAttendeeAsync(
-    TopicParticipant attendee)
+  internal async Task<bool?> AddLearnerAsync(
+    TopicLearner dtoLearner,
+    DispatchedMessages messageQueue)
   {
-    if (!Contains(attendee))
+    if (!Contains(dtoLearner))
     {
-      var atriumUserKey = attendee.ToString();
-      AtriumLearners.Add(atriumUserKey, attendee);
+      var atriumUserKey = dtoLearner.ToString();
+      AtriumLearners.Add(atriumUserKey, dtoLearner);
 
       var newAttendee = new TtalkTopicParticipant
       {
-        UserId = attendee.UserId.ToString(),
-        UserName = attendee.UserName,
-        TokenIssuer = attendee.TokenIssuer,
-        SessionId = attendee.SessionId,
+        UserId = dtoLearner.UserId.ToString(),
+        UserName = dtoLearner.UserName,
+        TokenIssuer = dtoLearner.TokenIssuer,
+        SessionId = dtoLearner.SessionId,
         TopicId = Topic.Id,
+        ConnectionId = dtoLearner.ConnectionId
       };
 
       await Topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(newAttendee);
       await Topic.Conference.TTDbContext.SaveChangesAsync();
 
+      // signal to learner 'new' add to atrium
+      messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
+          Topic.Conference.Configuration,
+          dtoLearner.RoomLearnerSessionChannel,
+          Topic,
+          true));
+
+      // signal to topic moderators atrium update
+      messageQueue.EnqueueMessage(new AtriumUpdateMethod(
+        Topic.Conference.Configuration,
+        Topic.TopicModeratorsChannel,
+        AtriumLearners.Values.OrderBy(x => x.NickName).ToList()));
+
       return true;
 
     }
     else
+    {
+      // signal to learner 'existing' add to atrium
+      messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
+          Topic.Conference.Configuration,
+          dtoLearner.RoomLearnerSessionChannel,
+          Topic,
+          false));
+
       return false;
+    }
 
   }
 
@@ -145,13 +162,15 @@ public class TopicAtrium
     }
   }
 
-  internal void Load(IList<TopicParticipant> value)
+  internal void Load()
   {
-    foreach (var item in value)
+    var atriumAttendees = Topic.Attendees.Where(x => x.RoomId == 0).ToList();
+
+    foreach (var item in atriumAttendees)
     {
       var atriumUserKey = item.ToString();
       Logger.LogDebug($"{atriumUserKey}: loaded into '{Topic.Name}' atrium");
-      AtriumLearners.Add(atriumUserKey, item);
+      AtriumLearners.Add(atriumUserKey, item as TopicLearner);
     }
 
     Dump();

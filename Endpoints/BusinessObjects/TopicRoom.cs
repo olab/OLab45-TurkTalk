@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.Common.Interfaces;
+using DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicRoom
@@ -20,27 +21,30 @@ public class TopicRoom
   public virtual TtalkConferenceTopic Topic { get; set; }
   public virtual TtalkTopicParticipant Moderator { get; set; }
 
+  public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderator"; } }
+
   /// <summary>
   /// Creates room with new moderator
   /// </summary>
   /// <param name="topic">Parent topic</param>
-  /// <param name="attendee">Attendee (moderator) to assign</param>
+  /// <param name="moderator">Attendee (moderator) to assign</param>
   /// <returns>TopicRoom</returns>
   public static async Task<TopicRoom> CreateRoomAsync(
     ConferenceTopic topic,
-    TopicParticipant attendee)
+    TopicParticipant moderator)
   {
     // create new room
     var physRoom = await CreateRoomAsync(topic);
 
     var physModerator = new TtalkTopicParticipant
     {
-      SessionId = attendee.SessionId,
+      SessionId = moderator.SessionId,
       TopicId = topic.Id,
-      UserId = attendee.UserId,
-      UserName = attendee.UserName,
-      TokenIssuer = attendee.TokenIssuer,
+      UserId = moderator.UserId,
+      UserName = moderator.UserName,
+      TokenIssuer = moderator.TokenIssuer,
       RoomId = physRoom.Id,
+      ConnectionId = moderator?.ConnectionId,
     };
 
     await topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(physModerator);
@@ -55,6 +59,7 @@ public class TopicRoom
 
     var mapper = new TopicRoomMapper(topic.Logger);
     var roomDto = mapper.PhysicalToDto(physRoom);
+
     return roomDto;
   }
 

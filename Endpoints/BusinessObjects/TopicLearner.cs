@@ -11,8 +11,8 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
 public class TopicLearner : TopicParticipant
 {
-  public string ChatChannel { get { return $"{TopicId}//{SessionId}//session"; } }
-  public string RoomChannel { get { return $"{TopicId}//{RoomId}//learners"; } }
+  public string RoomLearnerSessionChannel { get { return $"{TopicId}//{SessionId}//session"; } }
+  public string RoomLearnersChannel { get { return $"{TopicId}//{RoomId}//learners"; } }
 
   public TopicLearner(RegisterParticipantPayload payload) : base(payload)
   {    

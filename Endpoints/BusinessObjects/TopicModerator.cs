@@ -8,13 +8,24 @@ using System;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
-public class TopicModerator: TopicParticipant
+public class TopicModerator : TopicParticipant
 {
-  public string RoomChannel { get { return $"{TopicId}//{RoomId}//moderator"; } }
-  public string TopicChannel { get { return $"{TopicId}//moderators"; } }
-
   public TopicModerator(RegisterParticipantPayload payload) : base(payload)
   {
 
+  }
+
+  public TopicModerator(TopicParticipant source)
+  {
+    Id = source.Id;
+    TopicId = source.TopicId;
+    RoomId = source.RoomId;
+    SessionId = source.SessionId;
+    TokenIssuer = source.TokenIssuer;
+    UserId = source.UserId;
+    UserName = source.UserName;
+    NickName = source.NickName;
+    ConnectionId = source.ConnectionId;
+    SeatNumber = source.SeatNumber;
   }
 }
