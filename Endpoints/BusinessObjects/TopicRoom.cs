@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.Common.Interfaces;
 using DocumentFormat.OpenXml.Drawing.Spreadsheet;
+using DocumentFormat.OpenXml.Spreadsheet;
+using OLab.TurkTalk.Data.Repositories;
+using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicRoom
@@ -18,69 +21,58 @@ public class TopicRoom
   public uint TopicId { get; set; }
   public uint? ModeratorId { get; set; }
   public virtual ICollection<Attendee> Attendees { get; } = new List<Attendee>();
-  public virtual TtalkConferenceTopic Topic { get; set; }
-  public virtual TtalkTopicParticipant Moderator { get; set; }
+  public virtual ConferenceTopic Topic { get; set; }
+  public virtual TopicParticipant Moderator { get; set; }
 
   public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderator"; } }
 
-  /// <summary>
-  /// Creates room with new moderator
-  /// </summary>
-  /// <param name="topic">Parent topic</param>
-  /// <param name="moderator">Attendee (moderator) to assign</param>
-  /// <returns>TopicRoom</returns>
-  public static async Task<TopicRoom> CreateRoomAsync(
-    ConferenceTopic topic,
-    TopicParticipant moderator)
+  public async Task<TopicParticipant> AssignModerator(
+    DatabaseUnitOfWork dbUnitOfWork,
+    TopicParticipant dtoModerator,
+    DispatchedMessages messageQueue)
   {
-    // create new room
-    var physRoom = await CreateRoomAsync(topic);
-
     var physModerator = new TtalkTopicParticipant
     {
-      SessionId = moderator.SessionId,
-      TopicId = topic.Id,
-      UserId = moderator.UserId,
-      UserName = moderator.UserName,
-      TokenIssuer = moderator.TokenIssuer,
-      RoomId = physRoom.Id,
-      ConnectionId = moderator?.ConnectionId,
+      SessionId = dtoModerator.SessionId,
+      TopicId = Topic.Id,
+      UserId = dtoModerator.UserId,
+      UserName = dtoModerator.UserName,
+      TokenIssuer = dtoModerator.TokenIssuer,
+      RoomId = Id,
+      ConnectionId = dtoModerator?.ConnectionId,
     };
 
-    await topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(physModerator);
-    await topic.Conference.TTDbContext.SaveChangesAsync();
+    await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physModerator);
+    dbUnitOfWork.Save();
 
-    physRoom.ModeratorId = physModerator.Id;
-    topic.Conference.TTDbContext.TtalkTopicRooms.Update(physRoom);
+    var mapper = new TopicParticipantMapper(Topic.Conference.Logger);
+    dtoModerator = mapper.PhysicalToDto(physModerator);
 
-    await topic.Conference.TTDbContext.SaveChangesAsync();
+    Moderator = dtoModerator;
 
-    topic.Logger.LogInformation($"assigned moderator {physModerator.Id} to '{topic.Name}' room id {physRoom.Id}");
+    // update the moderator in the database
+    var physRoom = dbUnitOfWork
+      .TopicRoomRepository
+      .Get(x => x.Id == Id).FirstOrDefault();
 
-    var mapper = new TopicRoomMapper(topic.Logger);
-    var roomDto = mapper.PhysicalToDto(physRoom);
+    physRoom.ModeratorId = Moderator.Id;
+    dbUnitOfWork
+      .TopicRoomRepository
+      .Update(physRoom);
 
-    return roomDto;
-  }
+    // create and add connection to room moderator channel
+    messageQueue.EnqueueAddConnectionToGroupAction(
+      dtoModerator.ConnectionId,
+      RoomModeratorChannel);
 
-  /// <summary>
-  /// Creates a new room on the topic
-  /// </summary>
-  /// <param name="topic">Parent topic</param>
-  /// <returns>TopicRoom</returns>
-  internal static async Task<TtalkTopicRoom> CreateRoomAsync(ConferenceTopic topic)
-  {
-    var physRoom = new TtalkTopicRoom
-    {
-      Name = topic.Name,
-      TopicId = topic.Id
-    };
+    // signal moderator added to new moderated room
+    messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+        Topic.Conference.Configuration,
+        RoomModeratorChannel,
+        this,
+        0,
+        true));
 
-    await topic.Conference.TTDbContext.TtalkTopicRooms.AddAsync(physRoom);
-    await topic.Conference.TTDbContext.SaveChangesAsync();
-
-    topic.Logger.LogInformation($"created topic '{topic.Name}' room. id {physRoom.Id}");
-
-    return physRoom;
+    return dtoModerator;
   }
 }

@@ -6,6 +6,11 @@ namespace OLab.TurkTalk.Data.Repositories;
 public class TtalkTopicRoomRepository : GenericRepository<TtalkTopicRoom>
 {
   public TtalkTopicRoomRepository(
+    DatabaseUnitOfWork databaseUnitOfWork) : base( databaseUnitOfWork )
+  { 
+  }
+
+  public TtalkTopicRoomRepository(
     IOLabLogger logger,
     TTalkDBContext dbContext) : base(logger, dbContext)
   {
@@ -28,8 +33,4 @@ public class TtalkTopicRoomRepository : GenericRepository<TtalkTopicRoom>
     return phys;
   }
 
-  public Task Create(uint topicId, TopicModerator moderator)
-  {
-    throw new NotImplementedException();
-  }
 }

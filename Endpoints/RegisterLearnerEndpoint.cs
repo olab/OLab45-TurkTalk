@@ -19,7 +19,7 @@ public partial class TurkTalkEndpoint
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      var dtoLearner = new TopicLearner(payload);
+      var dtoLearner = new TopicParticipant(payload);
 
       // get topic from conference, create topic if not exist yet
       var topic = await _conference.GetTopicAsync(payload.QuestionId);
@@ -27,7 +27,7 @@ public partial class TurkTalkEndpoint
       dtoLearner.TopicId = topic.Id;
 
       // assign learner session channel
-      MessageQueue.EnqueueAddToGroupAction(
+      MessageQueue.EnqueueAddConnectionToGroupAction(
         dtoLearner.ConnectionId,
         dtoLearner.RoomLearnerSessionChannel);
 
@@ -37,7 +37,7 @@ public partial class TurkTalkEndpoint
         MessageQueue);
 
       // assign channel for room learners
-      MessageQueue.EnqueueAddToGroupAction(
+      MessageQueue.EnqueueAddConnectionToGroupAction(
         dtoLearner.ConnectionId,
         dtoLearner.RoomLearnersChannel);
 

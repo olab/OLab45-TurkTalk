@@ -6,6 +6,7 @@ using OLab.Common.Utils;
 using OLab.Data.Mappers.Designer;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
+using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
@@ -50,11 +51,11 @@ public class ConferenceTopic
     return null;
   }
 
-  public TopicModerator GetModerator(string sessionId)
+  public TopicParticipant GetModerator(string sessionId)
   {
     var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
     if (dto != null)
-      return new TopicModerator(dto);
+      return dto;
     return null;
   }
 
@@ -66,12 +67,14 @@ public class ConferenceTopic
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
   public async Task AddLearnerAsync(
-    TopicLearner dtoLearner,
+    TopicParticipant dtoLearner,
     DispatchedMessages messageQueue)
   {
+    DatabaseUnitOfWork dbUnitOfWork = null;
+
     try
     {
-      _dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
+      dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
       // see if already a known learner based on sessionId
       var dtoParticipant = GetParticipant(dtoLearner.SessionId);
@@ -90,8 +93,8 @@ public class ConferenceTopic
           // not setting a roomId implies learner is in atrium
         };
 
-        await _dbUnitOfWork.TopicParticipantRepository.InsertAsync(physAttendee);
-        _dbUnitOfWork.Save();
+        await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physAttendee);
+        dbUnitOfWork.Save();
 
         Logger.LogInformation($"assigned learner '{dtoLearner}' to {Name} atrium");
 
@@ -101,7 +104,7 @@ public class ConferenceTopic
       }
 
       // learner known, update participant with new connection id
-      var physParticipant = _dbUnitOfWork.TopicParticipantRepository.UpdateConnectionId(
+      var physParticipant = dbUnitOfWork.TopicParticipantRepository.UpdateConnectionId(
         dtoLearner.SessionId,
         dtoLearner.ConnectionId);
 
@@ -156,7 +159,7 @@ public class ConferenceTopic
           // change room to signify learner is in atrium
           physParticipant.RoomId = null;
           physParticipant.SeatNumber = null;
-          _dbUnitOfWork.TopicParticipantRepository.Update(physParticipant);
+          dbUnitOfWork.TopicParticipantRepository.Update(physParticipant);
 
           return;
         }
@@ -170,19 +173,39 @@ public class ConferenceTopic
     }
     finally
     {
-      _dbUnitOfWork.Save();
+      dbUnitOfWork.Save();
     }
+
+  }
+
+  private async Task<TopicRoom> CreateTopicRoomAsync(DatabaseUnitOfWork dbUnitOfWork)
+  {
+    var physRoom = new TtalkTopicRoom
+    {
+      Name = Name,
+      TopicId = Id
+    };
+
+    physRoom = await dbUnitOfWork
+      .TopicRoomRepository
+      .InsertAsync(physRoom);
+    dbUnitOfWork.Save();
+
+    var mapper = new TopicRoomMapper(Logger);
+    var roomDto = mapper.PhysicalToDto(physRoom, this);
+
+    return roomDto;
 
   }
 
   /// <summary>
   /// Add moderator to topic
   /// </summary>
-  /// <param name="moderator">Moderator attendee</param>
+  /// <param name="moderatorDto">Moderator attendee</param>
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
   internal async Task AddModeratorAsync(
-    TopicModerator moderator,
+    TopicParticipant moderatorDto,
     DispatchedMessages messageQueue)
   {
     DatabaseUnitOfWork dbUnitOfWork = null;
@@ -196,96 +219,49 @@ public class ConferenceTopic
 
       dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
-      // look if already a known moderator based on sessionId
-      var dtoModerator = GetModerator(moderator.SessionId);
+      // look if already a known moderator in loaded topic based on sessionId
+      var dtoModerator = GetModerator(moderatorDto.SessionId);
 
       // create and add connection to topic moderators channel
-      messageQueue.EnqueueAddToGroupAction(
-        moderator.ConnectionId,
+      messageQueue.EnqueueAddConnectionToGroupAction(
+        moderatorDto.ConnectionId,
         TopicModeratorsChannel);
 
-      // moderator not known previously. create new room and add moderator
+      // new moderator. create new room and add moderator
       if (dtoModerator == null)
       {
-        var physRoom = new TtalkTopicRoom
-        {
-          Name = Name,
-          TopicId = Id
-        };
-
-        physRoom = await dbUnitOfWork
-          .TopicRoomRepository
-          .InsertAsync(physRoom);
-
-        var newRoomDto = await TopicRoom.CreateRoomAsync(this, moderator);
-        moderator.RoomId = newRoomDto.Id;
-
-        // create and add connection to room moderator channel
-        messageQueue.EnqueueAddToGroupAction(
-          moderator.ConnectionId,
-          newRoomDto.RoomModeratorChannel);
-
-        // signal moderator added to new moderated room
-        messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-            Conference.Configuration,
-            newRoomDto.RoomModeratorChannel,
-            newRoomDto,
-            0,
-            true));
-
+        var newRoomDto = await CreateTopicRoomAsync(dbUnitOfWork);
+        moderatorDto = await newRoomDto.AssignModerator(
+          dbUnitOfWork,
+          moderatorDto,
+          messageQueue);
       }
+
+      // existing/known moderator
       else
       {
-        // test if room still exists, and is moderated by attendee
-        var existingRoomDto = Rooms.FirstOrDefault(x =>
-          (x.Id == dtoModerator.RoomId) &&
-          (x.ModeratorId == dtoModerator.Id));
+        var physRoom = dbUnitOfWork
+          .TopicRoomRepository
+          .Get(x => (x.Id == dtoModerator.RoomId) && (x.ModeratorId == dtoModerator.Id)).FirstOrDefault();
+
+        var mapper = new TopicRoomMapper(Logger);
+        var dtoRoom = mapper.PhysicalToDto(physRoom, this);
 
         // existing room exists for moderator, signal re-assign
-        if (existingRoomDto != null)
+        if (dtoRoom != null)
         {
-          Logger.LogInformation($"re-assigned moderator {moderator.Id} to topic '{Name}' room. id {existingRoomDto.Id}");
-
-          // signal moderator re-attaching to existing moderated room
-          messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-              Conference.Configuration,
-              existingRoomDto.RoomModeratorChannel,
-              existingRoomDto,
-              0,
-              false));
+          Logger.LogInformation($"re-assigned moderator {dtoModerator.Id} to topic '{Name}' room. id {dtoRoom.Id}");
 
           // TODO: signal attendees in room of moderator re-assigment
           return;
         }
-
-        // room did not exist, so create and assign moderator to it
         else
-        {
-          existingRoomDto = await TopicRoom.CreateRoomAsync(this, moderator);
-
-          // assign moderator to room
-          var physModerator =
-            dbUnitOfWork.TopicParticipantRepository.AssignToRoom(existingRoomDto.Id, moderator.SessionId);
-
-          // assign room to moderator
-          var physRoom =
-            dbUnitOfWork.TopicRoomRepository.AssignModeratorAsync(existingRoomDto.Id, moderator.Id);
-
-          Logger.LogInformation($"assigned moderator {moderator.Id} to topic '{Name}' room. id {existingRoomDto.Id}");
-
-          // signal moderator re-attaching to existing moderated room
-          messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-              Conference.Configuration,
-              existingRoomDto.RoomModeratorChannel,
-              existingRoomDto,
-              0,
-              true));
-        }
+          Logger.LogError($"moderator id {dtoModerator.Id} room id {dtoModerator.RoomId} does not exist");
       }
     }
     catch (Exception ex)
     {
-      Logger.LogError($"GetTopicAsync error: {ex.Message}");
+      Logger.LogError($"AddModeratorAsync error: {ex.Message}");
       throw;
     }
     finally

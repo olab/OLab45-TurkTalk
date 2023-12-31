@@ -4,7 +4,7 @@ namespace OLab.Api.Common.Contracts
 {
   public class RoomAssignmentPayload
   {
-    public TopicLearner Local { get; set; }
+    public TopicParticipant Local { get; set; }
     public Moderator Remote { get; set; }
     public int SlotIndex { get; set; }
   }

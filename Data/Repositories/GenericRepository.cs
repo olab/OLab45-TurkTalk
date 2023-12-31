@@ -1,14 +1,8 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Data.Repositories;
 public abstract class GenericRepository<TEntity> where TEntity : class
@@ -16,6 +10,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   public IOLabLogger Logger { get; }
   public TTalkDBContext DbContext { get; }
   public DbSet<TEntity> dbSet;
+  private readonly DatabaseUnitOfWork databaseUnitOfWork;
 
   public GenericRepository(
     IOLabLogger logger,
@@ -27,6 +22,11 @@ public abstract class GenericRepository<TEntity> where TEntity : class
     Logger = logger;
     DbContext = dbContext;
     dbSet = DbContext.Set<TEntity>();
+  }
+
+  protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContext)
+  {
+    this.databaseUnitOfWork = databaseUnitOfWork;
   }
 
   /// <summary>

@@ -6,12 +6,12 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public class AtriumUpdateMethod : TTalkMethod
 {
-  public IList<TopicLearner> Attendees { get; set; }
+  public IList<TopicParticipant> Attendees { get; set; }
 
   public AtriumUpdateMethod(
     IOLabConfiguration configuration,
     string groupName,
-    IList<TopicLearner> learners) : base(configuration, groupName, "atriumupdate")
+    IList<TopicParticipant> learners) : base(configuration, groupName, "atriumupdate")
   {
     Attendees = learners;
   }

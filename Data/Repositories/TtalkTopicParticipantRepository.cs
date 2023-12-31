@@ -1,10 +1,17 @@
-﻿using OLab.Common.Interfaces;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
+using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Repositories;
 
 namespace OLab.TurkTalk.Data.Models;
 
 public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTopicParticipant>
 {
+  public TtalkTopicParticipantRepository(
+    DatabaseUnitOfWork databaseUnitOfWork) : base(databaseUnitOfWork)
+  {
+  }
+
   public TtalkTopicParticipantRepository(
     IOLabLogger logger,
     TTalkDBContext dbContext) : base(logger, dbContext)
@@ -48,4 +55,5 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
 
     return phys;
   }
+
 }

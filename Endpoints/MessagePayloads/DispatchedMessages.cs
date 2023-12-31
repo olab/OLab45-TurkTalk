@@ -30,7 +30,7 @@ public class DispatchedMessages
   /// Adds a signalr add-to-group action to the queue
   /// </summary>
   /// <param name="message">Message to add</param>
-  public void EnqueueAddToGroupAction(string connectionId, string groupName)
+  public void EnqueueAddConnectionToGroupAction(string connectionId, string groupName)
   {
     var action = new SignalRGroupAction(SignalRGroupActionType.Add)
     {

@@ -11,6 +11,9 @@ using OLab.TurkTalk.Endpoints.MessagePayloads;
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicParticipant
 {
+  public string RoomLearnerSessionChannel { get { return $"{TopicId}//{SessionId}//session"; } }
+  public string RoomLearnersChannel { get { return $"{TopicId}//{RoomId}//learners"; } }
+
   public TopicParticipant()
   {
 

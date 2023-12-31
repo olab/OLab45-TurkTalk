@@ -9,20 +9,20 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicAtrium
 {
   public ConferenceTopic Topic { get; }
-  public IDictionary<string, TopicLearner> AtriumLearners;
+  public IDictionary<string, TopicParticipant> AtriumLearners;
   public IOLabLogger Logger { get { return Topic.Conference.Logger; } }
 
   public TopicAtrium(ConferenceTopic topic)
   {
     Topic = topic;
-    AtriumLearners = new ConcurrentDictionary<string, TopicLearner>();
+    AtriumLearners = new ConcurrentDictionary<string, TopicParticipant>();
   }
 
   /// <summary>
   /// Get list of Participant
   /// </summary>
   /// <returns>List of Participant group strings</returns>
-  public IList<TopicLearner> GetContents()
+  public IList<TopicParticipant> GetContents()
   {
     return AtriumLearners.Values.ToList();
   }
@@ -99,7 +99,7 @@ public class TopicAtrium
   /// <param name="dtoLearner">Participant to add</param>
   /// <returns>true if added to atrium, else was already in atrium</returns>
   internal async Task<bool?> AddLearnerAsync(
-    TopicLearner dtoLearner,
+    TopicParticipant dtoLearner,
     DispatchedMessages messageQueue)
   {
     if (!Contains(dtoLearner))
@@ -170,7 +170,7 @@ public class TopicAtrium
     {
       var atriumUserKey = item.ToString();
       Logger.LogDebug($"{atriumUserKey}: loaded into '{Topic.Name}' atrium");
-      AtriumLearners.Add(atriumUserKey, item as TopicLearner);
+      AtriumLearners.Add(atriumUserKey, item as TopicParticipant);
     }
 
     Dump();

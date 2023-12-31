@@ -11,6 +11,11 @@ namespace OLab.TurkTalk.Data.Repositories;
 
 public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkConferenceTopic>
 {
+  public TtalkConferenceTopicRepository(
+    DatabaseUnitOfWork databaseUnitOfWork) : base( databaseUnitOfWork)
+  {
+  }
+
   public TtalkConferenceTopicRepository(    
     IOLabLogger logger, 
     TTalkDBContext dbContext) : base(logger, dbContext)

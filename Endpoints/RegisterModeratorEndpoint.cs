@@ -18,7 +18,7 @@ public partial class TurkTalkEndpoint
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      var dtoModerator = new TopicModerator(payload);
+      var dtoModerator = new TopicParticipant(payload);
 
       // get topic from conference, create topic if not exist yet
       var topic = await _conference.GetTopicAsync(payload.QuestionId);      

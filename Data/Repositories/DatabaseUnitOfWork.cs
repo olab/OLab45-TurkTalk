@@ -38,7 +38,7 @@ public class DatabaseUnitOfWork : IDisposable
     get
     {
       _topicRoomRepository ??=
-        new TtalkTopicRoomRepository(Logger, DbContext);
+        new TtalkTopicRoomRepository(this);
       return _topicRoomRepository;
     }
   }
@@ -48,7 +48,7 @@ public class DatabaseUnitOfWork : IDisposable
     get
     {
       _conferenceTopicRepository ??=
-        new TtalkConferenceTopicRepository(Logger, DbContext);
+        new TtalkConferenceTopicRepository(this);
       return _conferenceTopicRepository;
     }
   }
@@ -58,7 +58,7 @@ public class DatabaseUnitOfWork : IDisposable
     get
     {
       _topicParticipantRepository ??=
-        new TtalkTopicParticipantRepository(Logger, DbContext);
+        new TtalkTopicParticipantRepository(this);
       return _topicParticipantRepository;
     }
   }
