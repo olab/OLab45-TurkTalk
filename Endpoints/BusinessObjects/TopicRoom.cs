@@ -1,15 +1,5 @@
 ﻿using OLab.TurkTalk.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OLab.TurkTalk.Endpoints.Mappers;
-using OLab.Common.Interfaces;
-using DocumentFormat.OpenXml.Drawing.Spreadsheet;
-using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -25,6 +15,8 @@ public class TopicRoom
   public virtual TopicParticipant Moderator { get; set; }
 
   public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderator"; } }
+
+  public string RoomLearnersChannel { get { return $"{Topic.Id}//{Id}//learners"; } }
 
   public async Task<TopicParticipant> AssignModerator(
     DatabaseUnitOfWork dbUnitOfWork,

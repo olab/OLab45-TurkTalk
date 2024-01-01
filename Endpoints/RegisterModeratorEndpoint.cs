@@ -12,7 +12,7 @@ namespace OLab.TurkTalk.Endpoints;
 public partial class TurkTalkEndpoint
 {
   public async Task RegisterModeratorAsync(
-    RegisterParticipantPayload payload)
+    RegisterParticipantRequest payload)
   {
     try
     {

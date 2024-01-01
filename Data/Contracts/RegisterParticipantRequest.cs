@@ -1,10 +1,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OLab.TurkTalk.Endpoints.Utils;
+using OLab.TurkTalk.Data.Utils;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
-public class RegisterParticipantPayload
+public class RegisterParticipantRequest
 {
   public string ContextId { get; set; }
   public uint MapId { get; set; }

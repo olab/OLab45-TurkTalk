@@ -13,7 +13,7 @@ namespace OLab.TurkTalk.Endpoints;
 public partial class TurkTalkEndpoint
 {
   public async Task<DispatchedMessages> RegisterLearnerAsync(
-    RegisterParticipantPayload payload)
+    RegisterParticipantRequest payload)
   {
     try
     {
@@ -26,20 +26,10 @@ public partial class TurkTalkEndpoint
 
       dtoLearner.TopicId = topic.Id;
 
-      // assign learner session channel
-      MessageQueue.EnqueueAddConnectionToGroupAction(
-        dtoLearner.ConnectionId,
-        dtoLearner.RoomLearnerSessionChannel);
-
       // add learner to topic
       await topic.AddLearnerAsync(
         dtoLearner,
         MessageQueue);
-
-      // assign channel for room learners
-      MessageQueue.EnqueueAddConnectionToGroupAction(
-        dtoLearner.ConnectionId,
-        dtoLearner.RoomLearnersChannel);
 
       return MessageQueue;
     }

@@ -1,7 +1,7 @@
 ﻿using OLab.Api.Utils;
 using System;
 
-namespace OLab.TurkTalk.Endpoints.Utils;
+namespace OLab.TurkTalk.Data.Utils;
 
 public class UserToken
 {

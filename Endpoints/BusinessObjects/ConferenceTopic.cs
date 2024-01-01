@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
@@ -74,6 +75,10 @@ public class ConferenceTopic
 
     try
     {
+      messageQueue.EnqueueAddConnectionToGroupAction(
+        dtoLearner.ConnectionId,
+        dtoLearner.RoomLearnerSessionChannel);
+
       dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
       // see if already a known learner based on sessionId
@@ -132,6 +137,11 @@ public class ConferenceTopic
         if (dtoRoom != null && dtoRoom.ModeratorId > 0)
         {
           Logger.LogInformation($"re-assigning learner '{dtoLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
+
+          // assign channel for room learners
+          messageQueue.EnqueueAddConnectionToGroupAction(
+            dtoLearner.ConnectionId,
+            dtoRoom.RoomLearnersChannel);
 
           // signal attendee found in existing, moderated room
           messageQueue.EnqueueMessage(new RoomAcceptedMethod(

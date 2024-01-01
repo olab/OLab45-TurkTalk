@@ -1,24 +1,15 @@
-﻿using OLab.TurkTalk.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OLab.TurkTalk.Endpoints.MessagePayloads;
+﻿using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicParticipant
 {
   public string RoomLearnerSessionChannel { get { return $"{TopicId}//{SessionId}//session"; } }
-  public string RoomLearnersChannel { get { return $"{TopicId}//{RoomId}//learners"; } }
 
   public TopicParticipant()
   {
 
   }
-  public TopicParticipant(RegisterParticipantPayload payload)
+  public TopicParticipant(RegisterParticipantRequest payload)
   {
     SessionId = payload.ContextId;
     TokenIssuer = payload.UserToken.TokenIssuer;
