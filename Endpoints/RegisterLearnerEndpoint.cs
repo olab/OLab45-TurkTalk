@@ -1,12 +1,7 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Presentation;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Azure.Functions.Worker;
-using OLab.Api.Common.Contracts;
-using OLab.Common.Interfaces;
+using OLab.TurkTalk.Data.Contracts;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
-using OLab.TurkTalk.Endpoints.Utils;
 
 namespace OLab.TurkTalk.Endpoints;
 

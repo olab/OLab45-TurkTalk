@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
@@ -119,6 +120,8 @@ public class TopicAtrium
 
       await Topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(newAttendee);
       await Topic.Conference.TTDbContext.SaveChangesAsync();
+
+      Logger.LogInformation($"assigned learner '{dtoLearner}' to topic '{Topic.Name}' atrium");
 
       // signal to learner 'new' add to atrium
       messageQueue.EnqueueMessage(new AtriumAcceptedMethod(

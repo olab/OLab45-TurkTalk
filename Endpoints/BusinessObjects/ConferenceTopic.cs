@@ -84,36 +84,21 @@ public class ConferenceTopic
       // see if already a known learner based on sessionId
       var dtoParticipant = GetParticipant(dtoLearner.SessionId);
 
-      // if not known previously - create new learner and add to topic atrium
+      // if not known to topic - create new learner and add to atrium
       if (dtoParticipant == null)
       {
-        var physAttendee = new TtalkTopicParticipant
-        {
-          SessionId = dtoLearner.SessionId,
-          TopicId = Id,
-          UserId = dtoLearner.UserId,
-          UserName = dtoLearner.UserName,
-          TokenIssuer = dtoLearner.TokenIssuer,
-          ConnectionId = dtoLearner.ConnectionId
-          // not setting a roomId implies learner is in atrium
-        };
-
-        await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physAttendee);
-        dbUnitOfWork.Save();
-
-        Logger.LogInformation($"assigned learner '{dtoLearner}' to {Name} atrium");
-
         await Atrium.AddLearnerAsync(dtoLearner, messageQueue);
-
         return;
       }
 
       // learner known, update participant with new connection id
-      var physParticipant = dbUnitOfWork.TopicParticipantRepository.UpdateConnectionId(
-        dtoLearner.SessionId,
-        dtoLearner.ConnectionId);
+      var physParticipant = dbUnitOfWork
+        .TopicParticipantRepository
+        .UpdateConnectionId(
+          dtoLearner.SessionId,
+          dtoLearner.ConnectionId);
 
-      // test if was in atrium (no room assigned)
+      // test if was in atrium already (no room assigned)
       if (dtoParticipant.RoomId == 0)
       {
         Logger.LogInformation($"re-assigning learner '{dtoLearner}' to topic '{Name}' atrium");
@@ -159,12 +144,7 @@ public class ConferenceTopic
         {
           Logger.LogInformation($"learner '{dtoLearner}' set for non-existant room.  asssigning to atrium");
 
-          // no moderator, add to atrium
-          messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
-              Conference.Configuration,
-              dtoLearner.RoomLearnerSessionChannel,
-              this,
-              true));
+          await Atrium.AddLearnerAsync(dtoLearner, messageQueue);
 
           // change room to signify learner is in atrium
           physParticipant.RoomId = null;
