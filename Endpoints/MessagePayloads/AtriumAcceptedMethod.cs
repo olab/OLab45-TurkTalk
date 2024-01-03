@@ -14,15 +14,15 @@ public class AtriumAcceptedMethod: TTalkMethod
   public AtriumAcceptedMethod(
     IOLabConfiguration configuration,
     string groupName,
-    ConferenceTopic topic,
+    string topicName,
     bool wasAdded ) : base(
       configuration,
       groupName,
       "atriumaccepted")
   {
-    Guard.Argument(topic).NotNull(nameof(topic));
+    Guard.Argument(topicName).NotEmpty(nameof(topicName));
 
-    TopicName = topic.Name;
+    TopicName = topicName;
     WasAdded = wasAdded;
   }
 

@@ -1,77 +1,89 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿using Dawn;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Extensions.Logging;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using System.Collections.Concurrent;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
-public class TopicAtrium
+public class TopicAtrium : ITopicAtrium
 {
   public ConferenceTopic Topic { get; }
-  public IDictionary<string, TopicParticipant> AtriumLearners;
-  public IOLabLogger Logger { get { return Topic.Conference.Logger; } }
+  private IDictionary<string, TopicParticipant> _atriumLearners;
 
-  public TopicAtrium(ConferenceTopic topic)
+  public string TopicName { get; }
+  public IOLabLogger Logger { get; }
+  public IOLabConfiguration Configuration { get; }
+
+  public TopicAtrium(
+    string topicName,
+    IOLabLogger logger,
+    IOLabConfiguration configuration)
   {
-    Topic = topic;
-    AtriumLearners = new ConcurrentDictionary<string, TopicParticipant>();
+    Guard.Argument(logger).NotNull(nameof(logger));
+    TopicName = topicName;
+    Logger = logger;
+    Configuration = configuration;
+    _atriumLearners = new ConcurrentDictionary<string, TopicParticipant>();
   }
 
   /// <summary>
   /// Get list of Participant
   /// </summary>
   /// <returns>List of Participant group strings</returns>
-  public IList<TopicParticipant> GetContents()
+  public IList<TopicParticipant> GetLearners()
   {
-    return AtriumLearners.Values.ToList();
+    return _atriumLearners.Values.ToList();
   }
 
   /// <summary>
   /// Test if attendee already exists in atrium
   /// </summary>
-  /// <param name="attendee">Attendee to test</param>
+  /// <param name="learner">Learner to look for</param>
   /// <returns>true, if exists</returns>
-  public bool Contains(TopicParticipant attendee)
+  public bool Contains(TopicParticipant learner)
   {
-    var attendeeKey = attendee.ToString();
-    var found = AtriumLearners.ContainsKey(attendeeKey);
-    Logger.LogInformation($"{attendeeKey}: in '{Topic.Name}' atrium? {found}");
+    var attendeeKey = learner.ToString();
+    var found = _atriumLearners.ContainsKey(attendeeKey);
+    Logger.LogInformation($"{attendeeKey}: in '{TopicName}' atrium? {found}");
     return found;
   }
 
   /// <summary>
-  /// Get Participant from atrium
+  /// Get learner from atrium
   /// </summary>
   /// <param name="name">Participant name</param>
   /// <returns>true, if exists</returns>
-  public TopicParticipant Get(TopicParticipant attendee)
+  public TopicParticipant Get(TopicParticipant learner)
   {
-    var atriumUserKey = attendee.ToString();
-    if (AtriumLearners.ContainsKey(atriumUserKey))
-      return AtriumLearners[atriumUserKey];
+    var atriumUserKey = learner.ToString();
+    if (_atriumLearners.ContainsKey(atriumUserKey))
+      return _atriumLearners[atriumUserKey];
 
     return null;
   }
 
   /// <summary>
-  /// Remove attendee from atrium
+  /// Remove learner from atrium
   /// </summary>
-  /// <param name="attendee">Attendee name</param>
-  internal bool Remove(TopicParticipant attendee)
+  /// <param name="learner">Learner to remove</param>
+  public bool Remove(TopicParticipant learner)
   {
-    var atriumUserKey = attendee.ToString();
+    var atriumUserKey = learner.ToString();
 
     // search atrium by user id
-    var foundInAtrium = AtriumLearners.ContainsKey(atriumUserKey);
+    var foundInAtrium = _atriumLearners.ContainsKey(atriumUserKey);
     if (foundInAtrium)
     {
-      AtriumLearners.Remove(atriumUserKey);
-      Logger.LogDebug($"{atriumUserKey}: remove from '{Topic.Name}' atrium");
+      _atriumLearners.Remove(atriumUserKey);
+      Logger.LogDebug($"{atriumUserKey}: remove from '{TopicName}' atrium");
     }
     else
-      Logger.LogDebug($"{atriumUserKey}: remove: not found in '{Topic.Name}' atrium");
+      Logger.LogDebug($"{atriumUserKey}: remove: not found in '{TopicName}' atrium");
 
     Dump();
 
@@ -79,17 +91,15 @@ public class TopicAtrium
   }
 
   /// <summary>
-  /// Remove attendee from atrium by connection id
+  /// Remove learner from atrium by connection id
   /// </summary>
   /// <param name="connectionId">Connection id to search for</param>
   /// <returns>true is removed from atrium</returns>
-  internal bool Remove(string connectionId)
+  public bool Remove(string connectionId)
   {
-    foreach (var item in AtriumLearners.Values)
-    {
-      if (item.ConnectionId == connectionId)
-        return Remove(item);
-    }
+    var learner = _atriumLearners.Values.FirstOrDefault(x => x.ConnectionId == connectionId);
+    if (learner != null)
+      return Remove(learner);
 
     return false;
   }
@@ -99,42 +109,29 @@ public class TopicAtrium
   /// </summary>
   /// <param name="dtoLearner">Participant to add</param>
   /// <returns>true if added to atrium, else was already in atrium</returns>
-  internal async Task<bool?> AddLearnerAsync(
+  public bool? AddLearner(
     TopicParticipant dtoLearner,
     DispatchedMessages messageQueue)
   {
     if (!Contains(dtoLearner))
     {
       var atriumUserKey = dtoLearner.ToString();
-      AtriumLearners.Add(atriumUserKey, dtoLearner);
+      _atriumLearners.Add(atriumUserKey, dtoLearner);
 
-      var newAttendee = new TtalkTopicParticipant
-      {
-        UserId = dtoLearner.UserId.ToString(),
-        UserName = dtoLearner.UserName,
-        TokenIssuer = dtoLearner.TokenIssuer,
-        SessionId = dtoLearner.SessionId,
-        TopicId = Topic.Id,
-        ConnectionId = dtoLearner.ConnectionId
-      };
-
-      await Topic.Conference.TTDbContext.TtalkTopicParticipants.AddAsync(newAttendee);
-      await Topic.Conference.TTDbContext.SaveChangesAsync();
-
-      Logger.LogInformation($"assigned learner '{dtoLearner}' to topic '{Topic.Name}' atrium");
+      Logger.LogInformation($"assigned learner '{dtoLearner}' to topic '{TopicName}' atrium");
 
       // signal to learner 'new' add to atrium
       messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
-          Topic.Conference.Configuration,
+          Configuration,
           dtoLearner.RoomLearnerSessionChannel,
-          Topic,
+          TopicName,
           true));
 
       // signal to topic moderators atrium update
       messageQueue.EnqueueMessage(new AtriumUpdateMethod(
-        Topic.Conference.Configuration,
+        Configuration,
         Topic.TopicModeratorsChannel,
-        AtriumLearners.Values.OrderBy(x => x.NickName).ToList()));
+        _atriumLearners.Values.OrderBy(x => x.NickName).ToList()));
 
       return true;
 
@@ -143,9 +140,9 @@ public class TopicAtrium
     {
       // signal to learner 'existing' add to atrium
       messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
-          Topic.Conference.Configuration,
+          Configuration,
           dtoLearner.RoomLearnerSessionChannel,
-          Topic,
+          TopicName,
           false));
 
       return false;
@@ -153,29 +150,32 @@ public class TopicAtrium
 
   }
 
-  private void Dump()
+  /// <summary>
+  /// Load atrium users from topic participants
+  /// </summary>
+  public void Load(IList<TopicParticipant> participants)
   {
-    Logger.LogDebug($"'{Topic.Name}': atrium contents. Count: {AtriumLearners.Values.Count} ");
-    if (AtriumLearners.Values.Count == 0)
-      Logger.LogDebug($"  none");
-    else
-    {
-      foreach (var item in AtriumLearners.Values.OrderBy(x => x.UserId))
-        Logger.LogDebug($"  {item}");
-    }
-  }
-
-  internal void Load()
-  {
-    var atriumAttendees = Topic.Attendees.Where(x => x.RoomId == 0).ToList();
+    var atriumAttendees = participants.Where(x => x.RoomId == 0).ToList();
 
     foreach (var item in atriumAttendees)
     {
       var atriumUserKey = item.ToString();
-      Logger.LogDebug($"{atriumUserKey}: loaded into '{Topic.Name}' atrium");
-      AtriumLearners.Add(atriumUserKey, item as TopicParticipant);
+      Logger.LogDebug($"{atriumUserKey}: loaded into '{TopicName}' atrium");
+      _atriumLearners.Add(atriumUserKey, item as TopicParticipant);
     }
 
     Dump();
+  }
+
+  private void Dump()
+  {
+    Logger.LogDebug($"'{TopicName}': atrium contents. Count: {_atriumLearners.Values.Count} ");
+    if (_atriumLearners.Values.Count == 0)
+      Logger.LogDebug($"  none");
+    else
+    {
+      foreach (var item in _atriumLearners.Values.OrderBy(x => x.UserId))
+        Logger.LogDebug($"  {item}");
+    }
   }
 }

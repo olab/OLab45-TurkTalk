@@ -3,6 +3,9 @@
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicParticipant
 {
+  /// <summary>
+  /// Channel for learner session specfic messages and commands (e.g. node jump)
+  /// </summary>
   public string RoomLearnerSessionChannel { get { return $"{TopicId}//{SessionId}//session"; } }
 
   public TopicParticipant()

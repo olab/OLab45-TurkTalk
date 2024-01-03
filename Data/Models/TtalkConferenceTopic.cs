@@ -14,8 +14,10 @@ public partial class TtalkConferenceTopic
     [Column("id", TypeName = "int(11) unsigned")]
     public uint Id { get; set; }
 
-    [Column("question_id", TypeName = "int(11) unsigned")]
-    public uint QuestionId { get; set; }
+    [Required]
+    [Column("name")]
+    [StringLength(100)]
+    public string Name { get; set; }
 
     [Column("conference_id", TypeName = "int(11) unsigned")]
     public uint ConferenceId { get; set; }

@@ -22,42 +22,17 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
   {
   }
 
-  public async Task<TtalkConferenceTopic> GetByQuestionIdAsync(
+  public async Task<TtalkConferenceTopic> GetByNameAsync(
   TTalkDBContext dbContext,
-  uint questionId)
+  string roomName)
   {
     var physTopic = await dbContext
       .TtalkConferenceTopics
       .Include(x => x.TtalkTopicParticipants)
       .Include(x => x.TtalkTopicRooms)
-      .FirstOrDefaultAsync(x => x.QuestionId == questionId);
+      .FirstOrDefaultAsync(x => x.Name == roomName);
 
     return physTopic;
   }
 
-  //public async Task AddAsync(
-  //  TTalkDBContext dbContext,
-  //  TtalkConferenceTopic phys,
-  //  bool commit = true)
-  //{
-  //  await dbContext
-  //    .TtalkConferenceTopics
-  //    .AddAsync(phys);
-
-  //  if (commit)
-  //    await dbContext.SaveChangesAsync();
-  //}
-
-  //public async Task UpdateAsync(
-  //  TTalkDBContext dbContext,
-  //  TtalkConferenceTopic phys,
-  //  bool commit = true)
-  //{
-  //  dbContext
-  //    .TtalkConferenceTopics
-  //    .Update(phys);
-
-  //  if (commit)
-  //    await dbContext.SaveChangesAsync();
-  //}
 }

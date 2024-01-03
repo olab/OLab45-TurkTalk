@@ -7,6 +7,7 @@ using OLab.Common.Utils;
 using OLab.Data.Mappers.Designer;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
+using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -19,7 +20,7 @@ public class ConferenceTopic
   public DateTime CreatedAt { get; set; }
   public DateTime LastUsedAt { get; set; }
 
-  public TopicAtrium Atrium;
+  public ITopicAtrium Atrium;
   public Conference Conference;
   public IList<TopicParticipant> Attendees { get; set; }
 
@@ -34,7 +35,10 @@ public class ConferenceTopic
   {
     CreatedAt = DateTime.UtcNow;
     LastUsedAt = DateTime.UtcNow;
-    Atrium = new TopicAtrium(this);
+    Atrium = new TopicAtrium(
+      Name, 
+      Logger, 
+      Conference.Configuration);
     Attendees = new List<TopicParticipant>();
     Rooms = new List<TopicRoom>();
   }
@@ -44,7 +48,7 @@ public class ConferenceTopic
     Conference = conference;
   }
 
-  public TopicParticipant GetParticipant(string sessionId)
+  public TopicParticipant GetTopicParticipant(string sessionId)
   {
     var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
     if (dto != null)
@@ -64,30 +68,41 @@ public class ConferenceTopic
   /// <summary>
   /// Add a learner to a topic
   /// </summary>
-  /// <param name="dtoLearner">Learner to add</param>
+  /// <param name="dtoRequestLearner">Learner to add</param>
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
   public async Task AddLearnerAsync(
-    TopicParticipant dtoLearner,
+    TopicParticipant dtoRequestLearner,
     DispatchedMessages messageQueue)
   {
     DatabaseUnitOfWork dbUnitOfWork = null;
 
     try
     {
-      messageQueue.EnqueueAddConnectionToGroupAction(
-        dtoLearner.ConnectionId,
-        dtoLearner.RoomLearnerSessionChannel);
+      var mapper = new TopicParticipantMapper(Logger);
 
       dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
       // see if already a known learner based on sessionId
-      var dtoParticipant = GetParticipant(dtoLearner.SessionId);
+      var dtoTopicParticipant = GetTopicParticipant(dtoRequestLearner.SessionId);
 
       // if not known to topic - create new learner and add to atrium
-      if (dtoParticipant == null)
+      if (dtoTopicParticipant == null)
       {
-        await Atrium.AddLearnerAsync(dtoLearner, messageQueue);
+        var physLearner = mapper.DtoToPhysical(dtoRequestLearner);
+        await dbUnitOfWork
+          .TopicParticipantRepository
+          .InsertAsync(physLearner);
+
+        dtoRequestLearner = mapper.PhysicalToDto(physLearner);
+
+        // add learner connection to learner-specific room channel
+        messageQueue.EnqueueAddConnectionToGroupAction(
+          dtoRequestLearner.ConnectionId,
+          dtoRequestLearner.RoomLearnerSessionChannel);
+
+        Atrium.AddLearner(dtoRequestLearner, messageQueue);
+
         return;
       }
 
@@ -95,45 +110,30 @@ public class ConferenceTopic
       var physParticipant = dbUnitOfWork
         .TopicParticipantRepository
         .UpdateConnectionId(
-          dtoLearner.SessionId,
-          dtoLearner.ConnectionId);
+          dtoRequestLearner.SessionId,
+          dtoRequestLearner.ConnectionId);
 
-      // test if was in atrium already (no room assigned)
-      if (dtoParticipant.RoomId == 0)
+      // test if was in room already 
+      if (dtoTopicParticipant.RoomId != 0)
       {
-        Logger.LogInformation($"re-assigning learner '{dtoLearner}' to topic '{Name}' atrium");
-
-        // signal 'resumption' of user in atrium
-        messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
-            Conference.Configuration,
-            dtoLearner.RoomLearnerSessionChannel,
-            this,
-            false));
-
-        return;
-      }
-
-      // found to be assigned to a room already
-      else
-      {
-        var dtoRoom = Rooms.FirstOrDefault(x => x.Id == dtoParticipant.RoomId);
+        var dtoRoom = Rooms.FirstOrDefault(x => x.Id == dtoTopicParticipant.RoomId);
 
         // ensure room exists and has a moderator to receive them
         if (dtoRoom != null && dtoRoom.ModeratorId > 0)
         {
-          Logger.LogInformation($"re-assigning learner '{dtoLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
+          Logger.LogInformation($"re-assigning learner '{dtoRequestLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
 
           // assign channel for room learners
           messageQueue.EnqueueAddConnectionToGroupAction(
-            dtoLearner.ConnectionId,
+            dtoRequestLearner.ConnectionId,
             dtoRoom.RoomLearnersChannel);
 
           // signal attendee found in existing, moderated room
           messageQueue.EnqueueMessage(new RoomAcceptedMethod(
               Conference.Configuration,
-              dtoLearner.RoomLearnerSessionChannel,
+              dtoRequestLearner.RoomLearnerSessionChannel,
               dtoRoom,
-              dtoParticipant.SeatNumber,
+              dtoTopicParticipant.SeatNumber,
               false));
 
           return;
@@ -142,9 +142,9 @@ public class ConferenceTopic
         // else, all other cases, add to atrium
         else
         {
-          Logger.LogInformation($"learner '{dtoLearner}' set for non-existant room.  asssigning to atrium");
+          Logger.LogInformation($"learner '{dtoRequestLearner}' set for non-existant room.  asssigning to atrium");
 
-          await Atrium.AddLearnerAsync(dtoLearner, messageQueue);
+          Atrium.AddLearner(dtoRequestLearner, messageQueue);
 
           // change room to signify learner is in atrium
           physParticipant.RoomId = null;

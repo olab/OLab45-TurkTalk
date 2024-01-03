@@ -2,10 +2,13 @@
 using DocumentFormat.OpenXml.Presentation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -41,6 +44,19 @@ public partial class TurkTalkEndpoint
     _logger = logger;
 
     MessageQueue = new DispatchedMessages(_logger);
+  }
+
+  public string GetRoomNameFromQuestion(uint questionId)
+  {
+    // ensure question is valid and is of correct type (ttalk)
+    var question = dbContext.SystemQuestions.FirstOrDefault(x =>
+      x.Id == questionId &&
+      (x.EntryTypeId == 11 || x.EntryTypeId == 15)) ??
+      throw new Exception($"question id {questionId} not found/invalid");
+
+    var questionSetting =
+      JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
+    return questionSetting.RoomName;
   }
 
 }

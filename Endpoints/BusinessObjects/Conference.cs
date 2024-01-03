@@ -57,11 +57,11 @@ public class Conference : IConference
 
     // load the initial conference (for now, it's assumed to
     // only be one of, for now)
-    var dbConference = TTDbContext.TtalkConferences
+    var physConference = TTDbContext.TtalkConferences
       .FirstOrDefault() ?? throw new Exception("System conference not defined");
 
-    Id = dbConference.Id;
-    Name = dbConference.Name;
+    Id = physConference.Id;
+    Name = physConference.Name;
 
     Logger.LogInformation($"conference'{Name}' ({Id}) loaded from conference");
 
@@ -73,55 +73,51 @@ public class Conference : IConference
   /// <param name="topicName">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns>ConferenceTopic</returns>
-  public async Task<ConferenceTopic> GetTopicAsync(
-    uint questionId,
+  public virtual async Task<ConferenceTopic> GetTopicAsync(
+    string roomName,
     bool createInDb = true)
   {
     DatabaseUnitOfWork dbUnitOfWork = null;
 
     try
     {
-      // ensure question is valid and is of correct type (ttalk)
-      var question = _dbContext.SystemQuestions.FirstOrDefault(x =>
-        x.Id == questionId &&
-        (x.EntryTypeId == 11 || x.EntryTypeId == 15)) ?? 
-        throw new Exception($"question id {questionId} not found/invalid");
+      var mapper = new ConferenceTopicMapper(Logger);
 
-      var questionSetting = 
-        JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
-      ConferenceTopic topic = new ConferenceTopic(this);
+      ConferenceTopic dtoTopic = new ConferenceTopic(this);
 
       await SemaphoreLogger.WaitAsync(
-        Logger, 
-        $"question {questionId}", 
+        Logger,
+        $"room {roomName}",
         _topicSemaphore);
 
       dbUnitOfWork = new DatabaseUnitOfWork(_logger, TTDbContext);
       var physTopic = await dbUnitOfWork
         .ConferenceTopicRepository
-        .GetByQuestionIdAsync(TTDbContext, questionId);
+        .GetByNameAsync(TTDbContext, roomName);
+
 
       // test if found topic in database
       if (physTopic != null)
       {
-        Logger.LogInformation($"topic '{questionSetting.RoomName}' found in database");
+        Logger.LogInformation($"topic '{roomName}' found in database");
 
         // update last used
         physTopic.LastusedAt = DateTime.UtcNow;
-        dbUnitOfWork.ConferenceTopicRepository.Update( physTopic );
+        dbUnitOfWork.ConferenceTopicRepository.Update(physTopic);
 
-        var mapper = new ConferenceTopicMapper(Logger);
-        topic = mapper.PhysicalToDto(physTopic, questionSetting.RoomName, this);
-        // update the topic atrium 
-        topic.Atrium.Load();
+        dtoTopic = mapper.PhysicalToDto(physTopic, roomName, this);
+
+        // update the atrium from the loaded topic attendees
+        dtoTopic.Atrium.Load(dtoTopic.Attendees);
       }
+
 
       // topic not found in database
       else if (createInDb)
       {
         physTopic = new TtalkConferenceTopic
         {
-          QuestionId = questionId,
+          Name = roomName,
           ConferenceId = Id,
           CreatedAt = DateTime.UtcNow,
         };
@@ -130,13 +126,12 @@ public class Conference : IConference
         // explicit save needed because we need new inserted Id
         dbUnitOfWork.Save();
 
-        var mapper = new ConferenceTopicMapper(Logger);
-        topic = mapper.PhysicalToDto(physTopic, questionSetting.RoomName, this);
+        dtoTopic = mapper.PhysicalToDto(physTopic, roomName, this);
 
-        Logger.LogInformation($"topic '{questionSetting.RoomName}' ({topic.Id}) created in database");
+        Logger.LogInformation($"topic '{roomName}' ({dtoTopic.Id}) created in database");
       }
 
-      return topic;
+      return dtoTopic;
     }
     catch (Exception ex)
     {
@@ -148,8 +143,8 @@ public class Conference : IConference
       dbUnitOfWork.Save();
 
       SemaphoreLogger.Release(
-        Logger, 
-        $"question {questionId}", 
+        Logger,
+        $"room {roomName}",
         _topicSemaphore);
     }
 

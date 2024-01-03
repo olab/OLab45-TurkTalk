@@ -14,8 +14,14 @@ public class TopicRoom
   public virtual ConferenceTopic Topic { get; set; }
   public virtual TopicParticipant Moderator { get; set; }
 
-  public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderator"; } }
+  /// <summary>
+  /// Group for room moderator commands (e.g. learner connect/disconnects)
+  /// </summary>
+  public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderators"; } }
 
+  /// <summary>
+  /// Group for room learner commands (e.g. moderator connect/disconnects)
+  /// </summary>
   public string RoomLearnersChannel { get { return $"{Topic.Id}//{Id}//learners"; } }
 
   public async Task<TopicParticipant> AssignModerator(
