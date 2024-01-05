@@ -10,7 +10,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   public IOLabLogger Logger { get; }
   public TTalkDBContext DbContext { get; }
   public DbSet<TEntity> dbSet;
-  private readonly DatabaseUnitOfWork databaseUnitOfWork;
+  protected readonly DatabaseUnitOfWork DbUnitOfWork;
 
   public GenericRepository(
     IOLabLogger logger,
@@ -26,7 +26,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
 
   protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContext)
   {
-    this.databaseUnitOfWork = databaseUnitOfWork;
+    this.DbUnitOfWork = databaseUnitOfWork;
   }
 
   /// <summary>

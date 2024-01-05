@@ -20,10 +20,10 @@ public partial class TurkTalkEndpoint
 
       var dtoModerator = new TopicParticipant(payload);
 
-      var roomName = GetRoomNameFromQuestion(payload.QuestionId);
+      var physRoom = GetRoomFromQuestion(payload.QuestionId);
 
       // get topic from conference, create topic if not exist yet
-      var topic = await _conference.GetTopicAsync(roomName);      
+      var topic = await _conference.GetTopicAsync(physRoom);      
       dtoModerator.TopicId = topic.Id;
 
       // add moderator to topic

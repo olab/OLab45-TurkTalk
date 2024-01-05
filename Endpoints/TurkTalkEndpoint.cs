@@ -46,7 +46,7 @@ public partial class TurkTalkEndpoint
     MessageQueue = new DispatchedMessages(_logger);
   }
 
-  public string GetRoomNameFromQuestion(uint questionId)
+  public TtalkTopicRoom GetRoomFromQuestion(uint questionId)
   {
     // ensure question is valid and is of correct type (ttalk)
     var question = dbContext.SystemQuestions.FirstOrDefault(x =>
@@ -56,7 +56,21 @@ public partial class TurkTalkEndpoint
 
     var questionSetting =
       JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
-    return questionSetting.RoomName;
+
+    var physRoom = ttalkDbContext
+      .TtalkTopicRooms
+      .Where(x => x.Name == questionSetting.RoomName)
+      .FirstOrDefault();
+
+    if ( physRoom == null)
+    {
+      physRoom = new TtalkTopicRoom
+      {
+        Name = questionSetting.RoomName
+      };
+    }
+
+    return physRoom;
   }
 
 }

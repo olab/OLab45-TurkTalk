@@ -58,11 +58,11 @@ public class TopicAtriumTest
   }
 
   [Fact]
-  public void AddLearnerShouldGetSaved()
+  public async Task AddLearnerShouldGetSaved()
   {
     DispatchedMessages messageQueue = new DispatchedMessages(_logger);
 
-    _atrium.AddLearner(
+    await _atrium.AddLearnerAsync(
       GenerateParticipant(1),
       messageQueue);
 

@@ -24,7 +24,7 @@ public class DatabaseUnitOfWork : IDisposable
 
   public DatabaseUnitOfWork(
     IOLabLogger logger,
-  TTalkDBContext dbContext)
+    TTalkDBContext dbContext)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));

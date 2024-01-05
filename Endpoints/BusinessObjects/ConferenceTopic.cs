@@ -1,10 +1,8 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
+﻿using Dawn;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Humanizer;
-using Microsoft.EntityFrameworkCore;
+using OLab.Api.Models;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
-using OLab.Data.Mappers.Designer;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
@@ -36,8 +34,8 @@ public class ConferenceTopic
     CreatedAt = DateTime.UtcNow;
     LastUsedAt = DateTime.UtcNow;
     Atrium = new TopicAtrium(
-      Name, 
-      Logger, 
+      Name,
+      Logger,
       Conference.Configuration);
     Attendees = new List<TopicParticipant>();
     Rooms = new List<TopicRoom>();
@@ -45,11 +43,15 @@ public class ConferenceTopic
 
   public ConferenceTopic(Conference conference) : this()
   {
+    Guard.Argument(conference).NotNull(nameof(conference));
+
     Conference = conference;
   }
 
   public TopicParticipant GetTopicParticipant(string sessionId)
   {
+    Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
+
     var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
     if (dto != null)
       return dto;
@@ -75,6 +77,9 @@ public class ConferenceTopic
     TopicParticipant dtoRequestLearner,
     DispatchedMessages messageQueue)
   {
+    Guard.Argument(dtoRequestLearner).NotNull(nameof(dtoRequestLearner));
+    Guard.Argument(messageQueue).NotNull(nameof(messageQueue));
+
     DatabaseUnitOfWork dbUnitOfWork = null;
 
     try
@@ -101,7 +106,7 @@ public class ConferenceTopic
           dtoRequestLearner.ConnectionId,
           dtoRequestLearner.RoomLearnerSessionChannel);
 
-        Atrium.AddLearner(dtoRequestLearner, messageQueue);
+        await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
 
         return;
       }
@@ -132,8 +137,10 @@ public class ConferenceTopic
           messageQueue.EnqueueMessage(new RoomAcceptedMethod(
               Conference.Configuration,
               dtoRequestLearner.RoomLearnerSessionChannel,
-              dtoRoom,
+              dtoRoom.Name,
+              dtoRoom.Id,
               dtoTopicParticipant.SeatNumber,
+              dtoRoom.Moderator.NickName,
               false));
 
           return;
@@ -144,7 +151,7 @@ public class ConferenceTopic
         {
           Logger.LogInformation($"learner '{dtoRequestLearner}' set for non-existant room.  asssigning to atrium");
 
-          Atrium.AddLearner(dtoRequestLearner, messageQueue);
+          await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
 
           // change room to signify learner is in atrium
           physParticipant.RoomId = null;
@@ -168,8 +175,11 @@ public class ConferenceTopic
 
   }
 
-  private async Task<TopicRoom> CreateTopicRoomAsync(DatabaseUnitOfWork dbUnitOfWork)
+  private async Task<TopicRoom> CreateTopicRoomAsync(
+    DatabaseUnitOfWork dbUnitOfWork)
   {
+    Guard.Argument(dbUnitOfWork, nameof(dbUnitOfWork)).NotNull();
+
     var physRoom = new TtalkTopicRoom
     {
       Name = Name,
@@ -198,6 +208,9 @@ public class ConferenceTopic
     TopicParticipant moderatorDto,
     DispatchedMessages messageQueue)
   {
+    Guard.Argument(moderatorDto, nameof(moderatorDto)).NotNull();
+    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
+
     DatabaseUnitOfWork dbUnitOfWork = null;
 
     try
@@ -221,7 +234,7 @@ public class ConferenceTopic
       if (dtoModerator == null)
       {
         var newRoomDto = await CreateTopicRoomAsync(dbUnitOfWork);
-        moderatorDto = await newRoomDto.AssignModerator(
+        moderatorDto = await newRoomDto.AssignModeratorToRoom(
           dbUnitOfWork,
           moderatorDto,
           messageQueue);
@@ -265,4 +278,71 @@ public class ConferenceTopic
     }
   }
 
+  /// <summary>
+  /// Assign a learner to a room
+  /// </summary>
+  /// <param name="moderatorSessionId">moderator session id</param>
+  /// <param name="learnerSessionId">learner session id</param>
+  /// <param name="seatNumber">requested seat number</param>
+  /// <param name="messageQueue">Dispatch messages</param>
+  /// <returns></returns>
+  internal void AssignLearnerToRoom(
+    DispatchedMessages messageQueue,
+    string moderatorSessionId,
+    string learnerSessionId,
+    uint? seatNumber = null)
+  {
+    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
+    Guard.Argument(moderatorSessionId, nameof(moderatorSessionId)).NotEmpty();
+    Guard.Argument(learnerSessionId, nameof(learnerSessionId)).NotEmpty();
+
+    var dbUnit = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
+
+    var physModerator = dbUnit
+      .TopicParticipantRepository
+      .GetBySessionId(moderatorSessionId);
+
+    // ensure learner exists
+    var physLearner = dbUnit
+      .TopicParticipantRepository
+      .GetBySessionId(learnerSessionId);
+
+    // auto assign seat number based on participants
+    // existing in the room
+    if (!seatNumber.HasValue)
+      seatNumber = dbUnit
+        .TopicRoomRepository
+        .GetAvailableRoomSeat(physModerator.RoomId.Value);
+
+    if (seatNumber.HasValue)
+    {
+      dbUnit.TopicParticipantRepository.AssignToRoom(
+        learnerSessionId,
+        physModerator.RoomId.Value,
+        seatNumber);
+
+      // signal room assignment to learner
+      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+          Conference.Configuration,
+          $"{physLearner.TopicId}//{physModerator.RoomId}//{physLearner.SessionId}//session",
+          physModerator.Room.Name,
+          physModerator.Room.Id,
+          seatNumber.Value,
+          physModerator.UserName,
+          false));
+
+      // signal room assignment to moderator
+      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+          Conference.Configuration,
+          $"{physModerator.TopicId}//{physModerator.RoomId}//moderator",
+          physModerator.Room.Name,
+          physModerator.Room.Id,
+          seatNumber.Value,
+          physModerator.UserName,
+          false));
+    }
+
+    dbUnit.Save();
+
+  }
 }

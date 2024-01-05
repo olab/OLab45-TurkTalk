@@ -1,13 +1,12 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
-public class RoomAcceptedMethod: TTalkMethod
+public class RoomAcceptedMethod : TTalkMethod
 {
   //  payload properties
+  public uint RoomId { get; set; }
   public string RoomName { get; set; }
   public uint SeatNumber { get; }
   public string ModeratorName { get; set; }
@@ -15,19 +14,25 @@ public class RoomAcceptedMethod: TTalkMethod
 
   public RoomAcceptedMethod(
     IOLabConfiguration configuration,
-    string groupName,
-    TopicRoom room,
+    string channelName,
+    string roomName,
+    uint roomId,
     uint seatNumber,
+    string moderatorName,
     bool wasAdded) : base(
       configuration,
-      groupName,
+      channelName,
       "roomaccepted")
   {
-    Guard.Argument(room).NotNull(nameof(room));
+    Guard.Argument(configuration).NotNull(nameof(configuration));
+    Guard.Argument(channelName).NotEmpty(nameof(channelName));
+    Guard.Argument(roomName).NotEmpty(nameof(roomName));
+    Guard.Argument(roomId, nameof(roomId)).NotZero();
+    Guard.Argument(moderatorName).NotEmpty(nameof(moderatorName));
 
-    RoomName = room.Name;
+    RoomName = roomName;
     SeatNumber = seatNumber;
-    ModeratorName = room.Moderator.UserName;
+    ModeratorName = moderatorName;
     WasAdded = wasAdded;
   }
 

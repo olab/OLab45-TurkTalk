@@ -7,23 +7,24 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public async Task AssignLearnerAsync(
+  public async Task<DispatchedMessages> AssignLearnerAsync(
     AssignLearnerRequest payload)
   {
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      // get topic from conference, using questionId, create topic if not exist yet
-      var topic = await _conference.GetTopicAsync(payload.TopicName);
+      var physRoom = GetRoomFromQuestion(payload.QuestionId);
 
-      var dtoLearner = new TopicParticipant(payload);
-      dtoLearner.TopicId = topic.Id;
+      // get topic from conference, using questionId
+      var topic = await _conference.GetTopicAsync(physRoom, false);
 
-      // add learner to topic
-      await topic.AddLearnerAsync(
-        dtoLearner,
-        MessageQueue);
+      // add learner to topic room
+      topic.AssignLearnerToRoom(
+        MessageQueue,
+        payload.ModeratorSessionId,
+        payload.LearnerSessionId,
+        payload.SeatNumber);
 
       return MessageQueue;
     }

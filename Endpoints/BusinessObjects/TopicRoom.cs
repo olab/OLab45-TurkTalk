@@ -24,7 +24,14 @@ public class TopicRoom
   /// </summary>
   public string RoomLearnersChannel { get { return $"{Topic.Id}//{Id}//learners"; } }
 
-  public async Task<TopicParticipant> AssignModerator(
+  /// <summary>
+  /// Assign a moderator to a room
+  /// </summary>
+  /// <param name="dbUnitOfWork"></param>
+  /// <param name="dtoModerator"></param>
+  /// <param name="messageQueue"></param>
+  /// <returns></returns>
+  public async Task<TopicParticipant> AssignModeratorToRoom(
     DatabaseUnitOfWork dbUnitOfWork,
     TopicParticipant dtoModerator,
     DispatchedMessages messageQueue)
@@ -67,8 +74,10 @@ public class TopicRoom
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         Topic.Conference.Configuration,
         RoomModeratorChannel,
-        this,
+        Name,
+        Id,
         0,
+        Moderator.NickName,
         true));
 
     return dtoModerator;

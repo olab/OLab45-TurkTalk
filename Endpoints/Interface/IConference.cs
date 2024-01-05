@@ -9,6 +9,6 @@ public interface IConference
 {
     IOLabConfiguration Configuration { get; }
     Task<ConferenceTopic> GetTopicAsync(
-      string roomName, 
+      TtalkTopicRoom physRoom, 
       bool createInDb = true);
 }

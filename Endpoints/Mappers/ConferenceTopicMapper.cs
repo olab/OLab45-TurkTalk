@@ -20,10 +20,10 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
     Conference conference)
   {
     var dto = base.PhysicalToDto(phys);
-    dto.Name = phys.Name;
 
-    // load the topic atrium
+    dto.Name = phys.Name;
     dto.Conference = conference;
+
     return dto;
   }
 

@@ -74,39 +74,41 @@ public class Conference : IConference
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns>ConferenceTopic</returns>
   public virtual async Task<ConferenceTopic> GetTopicAsync(
-    string roomName,
+    TtalkTopicRoom physRoom,
     bool createInDb = true)
   {
+    Guard.Argument(physRoom).NotNull(nameof(physRoom));
+
     DatabaseUnitOfWork dbUnitOfWork = null;
 
     try
     {
       var mapper = new ConferenceTopicMapper(Logger);
 
-      ConferenceTopic dtoTopic = new ConferenceTopic(this);
+      ConferenceTopic dtoTopic = null;
 
       await SemaphoreLogger.WaitAsync(
         Logger,
-        $"room {roomName}",
+        $"room {physRoom.Name}",
         _topicSemaphore);
 
       dbUnitOfWork = new DatabaseUnitOfWork(_logger, TTDbContext);
       var physTopic = await dbUnitOfWork
         .ConferenceTopicRepository
-        .GetByNameAsync(TTDbContext, roomName);
+        .GetByNameAsync(TTDbContext, physRoom.Name);
 
 
       // test if found topic in database
       if (physTopic != null)
       {
-        Logger.LogInformation($"topic '{physTopic.Name}' found in database");
+        Logger.LogInformation($"topic '{physTopic.Name}' exists in database");
 
         dbUnitOfWork.ConferenceTopicRepository.UpdateUsage(physTopic);
 
         dtoTopic = mapper.PhysicalToDto(physTopic, this);
 
         // update the atrium from the loaded topic attendees
-        dtoTopic.Atrium.Load(dtoTopic.Attendees);
+        await dtoTopic.Atrium.LoadAsync(dtoTopic.Attendees);
       }
 
 
@@ -115,7 +117,7 @@ public class Conference : IConference
       {
         physTopic = new TtalkConferenceTopic
         {
-          Name = roomName,
+          Name = physRoom.Name,
           ConferenceId = Id,
           CreatedAt = DateTime.UtcNow,
         };
@@ -123,10 +125,10 @@ public class Conference : IConference
         await dbUnitOfWork.ConferenceTopicRepository.InsertAsync(physTopic);
         // explicit save needed because we need new inserted Id for mapper
         dbUnitOfWork.Save();
+        Logger.LogInformation($"topic '{physTopic.Name}' ({physTopic.Id}) created in database");
 
         dtoTopic = mapper.PhysicalToDto(physTopic, this);
 
-        Logger.LogInformation($"topic '{physTopic.Name}' ({dtoTopic.Id}) created in database");
       }
 
       return dtoTopic;
@@ -142,7 +144,7 @@ public class Conference : IConference
 
       SemaphoreLogger.Release(
         Logger,
-        $"room {roomName}",
+        $"room {physRoom.Name}",
         _topicSemaphore);
     }
 

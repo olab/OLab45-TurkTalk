@@ -14,10 +14,10 @@ public partial class TurkTalkEndpoint
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      var roomName = GetRoomNameFromQuestion(payload.QuestionId);
+      var physRoom = GetRoomFromQuestion(payload.QuestionId);
 
-      // get topic from conference, using questionId, create topic if not exist yet
-      var topic = await _conference.GetTopicAsync(roomName);
+      // get topic from conference, using questionId
+      var topic = await _conference.GetTopicAsync(physRoom, false);
 
       var dtoLearner = new TopicParticipant(payload);
       dtoLearner.TopicId = topic.Id;
