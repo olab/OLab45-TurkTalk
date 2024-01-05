@@ -10,4 +10,5 @@ public class AssignLearnerRequest : RequestBase
 {
   public string LearnerSessionId { get; set; }
   public string ModeratorSessionId { get; set; }
+  public string TopicName { get; set; }
 }

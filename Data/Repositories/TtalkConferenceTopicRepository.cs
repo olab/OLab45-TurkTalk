@@ -12,14 +12,22 @@ namespace OLab.TurkTalk.Data.Repositories;
 public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkConferenceTopic>
 {
   public TtalkConferenceTopicRepository(
-    DatabaseUnitOfWork databaseUnitOfWork) : base( databaseUnitOfWork)
+    DatabaseUnitOfWork databaseUnitOfWork) : base(databaseUnitOfWork)
   {
   }
 
-  public TtalkConferenceTopicRepository(    
-    IOLabLogger logger, 
+  public TtalkConferenceTopicRepository(
+    IOLabLogger logger,
     TTalkDBContext dbContext) : base(logger, dbContext)
   {
+  }
+
+  public void UpdateUsage(TtalkConferenceTopic phys)
+  {
+    // update last used
+    phys.LastusedAt = DateTime.UtcNow;
+    Update(phys);
+
   }
 
   public async Task<TtalkConferenceTopic> GetByNameAsync(

@@ -99,13 +99,11 @@ public class Conference : IConference
       // test if found topic in database
       if (physTopic != null)
       {
-        Logger.LogInformation($"topic '{roomName}' found in database");
+        Logger.LogInformation($"topic '{physTopic.Name}' found in database");
 
-        // update last used
-        physTopic.LastusedAt = DateTime.UtcNow;
-        dbUnitOfWork.ConferenceTopicRepository.Update(physTopic);
+        dbUnitOfWork.ConferenceTopicRepository.UpdateUsage(physTopic);
 
-        dtoTopic = mapper.PhysicalToDto(physTopic, roomName, this);
+        dtoTopic = mapper.PhysicalToDto(physTopic, this);
 
         // update the atrium from the loaded topic attendees
         dtoTopic.Atrium.Load(dtoTopic.Attendees);
@@ -123,12 +121,12 @@ public class Conference : IConference
         };
 
         await dbUnitOfWork.ConferenceTopicRepository.InsertAsync(physTopic);
-        // explicit save needed because we need new inserted Id
+        // explicit save needed because we need new inserted Id for mapper
         dbUnitOfWork.Save();
 
-        dtoTopic = mapper.PhysicalToDto(physTopic, roomName, this);
+        dtoTopic = mapper.PhysicalToDto(physTopic, this);
 
-        Logger.LogInformation($"topic '{roomName}' ({dtoTopic.Id}) created in database");
+        Logger.LogInformation($"topic '{physTopic.Name}' ({dtoTopic.Id}) created in database");
       }
 
       return dtoTopic;

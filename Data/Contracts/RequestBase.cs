@@ -12,7 +12,7 @@ public class RequestBase
   public UserToken UserToken { get; set; }
   public string ConnectionId { get; set; }
 
-  public void RefreshUserToken(string secret)
+  public void DecryptAndRefreshUserToken(string secret)
   {
     UserToken = new UserToken().DecryptToken( secret, UserKey );
   }
