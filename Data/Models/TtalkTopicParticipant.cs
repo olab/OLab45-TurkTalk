@@ -35,7 +35,7 @@ public partial class TtalkTopicParticipant
     public string TokenIssuer { get; set; }
 
     [Column("topic_id", TypeName = "int(11) unsigned")]
-    public uint TopicId { get; set; }
+    public uint? TopicId { get; set; }
 
     [Column("room_id", TypeName = "int(11) unsigned")]
     public uint? RoomId { get; set; }

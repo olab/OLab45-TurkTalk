@@ -69,7 +69,9 @@ public partial class TTalkDBContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_ttalk_tra_ttr");
 
-            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicParticipants).HasConstraintName("fk_ttalk_ttp_tct");
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicParticipants)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_ttalk_ttp_tct");
         });
 
         modelBuilder.Entity<TtalkTopicRoom>(entity =>

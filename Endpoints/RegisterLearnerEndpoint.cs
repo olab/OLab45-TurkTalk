@@ -33,7 +33,7 @@ public partial class TurkTalkEndpoint
         dbUnitOfWork.TopicParticipantRepository.GetLearnerBySessionId(payload.ContextId);
 
       // existing learner
-      if (physLearner == null)
+      if (physLearner != null)
       {
         physRoom =
           roomHandler.Get(physLearner.RoomId.Value);
@@ -49,23 +49,6 @@ public partial class TurkTalkEndpoint
       // new learner
       else
       {
-        // create and save new learner
-        physLearner = new TtalkTopicParticipant
-        {
-          SessionId = payload.ContextId,
-          TokenIssuer = payload.UserToken.TokenIssuer,
-          UserId = payload.UserToken.UserId,
-          UserName = payload.UserToken.UserName,
-          NickName = payload.UserToken.NickName,
-          ConnectionId = payload.ConnectionId
-        };
-
-        await dbUnitOfWork
-          .TopicParticipantRepository
-          .InsertAsync(physLearner);
-
-        dbUnitOfWork.Save();
-
         var topicName = 
           GetTopicNameFromQuestion(payload.QuestionId);
 
@@ -75,8 +58,26 @@ public partial class TurkTalkEndpoint
             _conference.Id,
             topicName);
 
+        // create and save new learner
+        physLearner = new TtalkTopicParticipant
+        {
+          SessionId = payload.ContextId,
+          TokenIssuer = payload.UserToken.TokenIssuer,
+          UserId = payload.UserToken.UserId,
+          UserName = payload.UserToken.UserName,
+          NickName = payload.UserToken.NickName,
+          ConnectionId = payload.ConnectionId,
+          TopicId = physTopic.Id
+        };
+
+        await dbUnitOfWork
+          .TopicParticipantRepository
+          .InsertAsync(physLearner);
+
+        dbUnitOfWork.Save();        
+
         // notify moderators of atrium change
-        topicHandler.AddLearnerToAtriumAsync(
+        await topicHandler.AddLearnerToAtriumAsync(
           physTopic,
           physLearner,
           MessageQueue);

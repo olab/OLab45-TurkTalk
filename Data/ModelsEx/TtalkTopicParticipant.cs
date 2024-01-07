@@ -9,5 +9,5 @@ namespace OLab.TurkTalk.Data.Models;
 
 public partial class TtalkTopicParticipant
 {
-  public string RoomLearnerSessionChannel { get { return $"{Room.Topic.Name}//{RoomId}//{SessionId}//session"; } }
+  public string RoomLearnerSessionChannel { get { return $"{TopicId}//{RoomId}//{SessionId}//session"; } }
 }

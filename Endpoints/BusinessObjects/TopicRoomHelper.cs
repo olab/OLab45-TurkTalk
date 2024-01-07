@@ -125,6 +125,8 @@ public class TopicRoomHelper
 
     // update the moderator with the room id
     physModerator.RoomId = phys.Id;
+    physModerator.TopicId = topic.Id;
+
     _dbUnitOfWork
       .TopicParticipantRepository.Update(physModerator);
 
@@ -177,7 +179,7 @@ public class TopicRoomHelper
     physRoom =
       Get(physModerator.RoomId.Value);
 
-    var atriumLearners = _topicHelper.GetTopicParticipants(physModerator.TopicId);
+    var atriumLearners = _topicHelper.GetTopicParticipants(physModerator.TopicId.Value);
 
     // get and update the room assignment for learner
     var physLearner =
