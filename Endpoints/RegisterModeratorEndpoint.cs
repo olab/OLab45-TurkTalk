@@ -14,9 +14,11 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public async Task RegisterModeratorAsync(
+  public async Task<DispatchedMessages> RegisterModeratorAsync(
     RegisterParticipantRequest payload)
   {
+    DatabaseUnitOfWork dbUnitOfWork = null;
+
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
@@ -24,7 +26,7 @@ public partial class TurkTalkEndpoint
       TtalkConferenceTopic physTopic = null;
       TtalkTopicRoom physRoom = null;
 
-      var dbUnitOfWork = new DatabaseUnitOfWork(
+      dbUnitOfWork = new DatabaseUnitOfWork(
         _logger,
         ttalkDbContext);
 
@@ -93,11 +95,17 @@ public partial class TurkTalkEndpoint
         physRoom,
         physModerator);
 
+      return MessageQueue;
+
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "RegisterModeratorAsync");
       throw;
+    }
+    finally 
+    { 
+      dbUnitOfWork.Save(); 
     }
   }
 }

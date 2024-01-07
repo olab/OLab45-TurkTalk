@@ -21,8 +21,8 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
   {
     var dto = base.PhysicalToDto(phys);
 
-    dto.Name = phys.Name;
-    dto.Conference = conference;
+    //dto.Name = phys.Name;
+    //dto.Conference = conference;
 
     return dto;
   }

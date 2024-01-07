@@ -202,17 +202,17 @@ public class TopicAtrium : ITopicAtrium
         Logger.LogInformation($"assigned learner '{dtoLearner}' to topic '{TopicName}' atrium");
 
         // signal to learner 'new' add to atrium
-        messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
-            Configuration,
-            dtoLearner.RoomLearnerSessionChannel,
-            TopicName,
-            true));
+        //messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
+        //    Configuration,
+        //    dtoLearner.RoomLearnerSessionChannel,
+        //    TopicName,
+        //    true));
 
-        // signal to topic moderators atrium update
-        messageQueue.EnqueueMessage(new AtriumUpdateMethod(
-          Configuration,
-          Topic.TopicModeratorsChannel,
-          _atriumLearners.Values.OrderBy(x => x.NickName).ToList()));
+        //// signal to topic moderators atrium update
+        //messageQueue.EnqueueMessage(new AtriumUpdateMethod(
+        //  Configuration,
+        //  Topic.TopicModeratorsChannel,
+        //  _atriumLearners.Values.OrderBy(x => x.NickName).ToList()));
 
         return true;
 

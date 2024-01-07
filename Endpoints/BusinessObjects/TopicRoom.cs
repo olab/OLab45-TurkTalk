@@ -19,16 +19,6 @@ public class TopicRoom
   public virtual ConferenceTopic Topic { get; set; }
   public virtual TopicParticipant Moderator { get; set; }
 
-  /// <summary>
-  /// Group for room moderator commands (e.g. learner connect/disconnects)
-  /// </summary>
-  public string RoomModeratorChannel { get { return $"{TopicId}//{Id}//moderators"; } }
-
-  /// <summary>
-  /// Group for room learner commands (e.g. moderator connect/disconnects)
-  /// </summary>
-  public string RoomLearnersChannel { get { return $"{Topic.Id}//{Id}//learners"; } }
-
   public TopicRoom()
   {
 
@@ -85,19 +75,19 @@ public class TopicRoom
       .Update(physRoom);
 
     // create and add connection to room moderator channel
-    messageQueue.EnqueueAddConnectionToGroupAction(
-      dtoModerator.ConnectionId,
-      RoomModeratorChannel);
+    //messageQueue.EnqueueAddConnectionToGroupAction(
+    //  dtoModerator.ConnectionId,
+    //  RoomModeratorChannel);
 
-    // signal moderator added to new moderated room
-    messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-        Topic.Conference.Configuration,
-        RoomModeratorChannel,
-        Name,
-        Id,
-        0,
-        Moderator.NickName,
-        true));
+    //// signal moderator added to new moderated room
+    //messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+    //    Topic.Conference.Configuration,
+    //    RoomModeratorChannel,
+    //    Name,
+    //    Id,
+    //    0,
+    //    Moderator.NickName,
+    //    true));
 
     return dtoModerator;
   }
@@ -114,12 +104,12 @@ public class TopicRoom
     // create and add connection to room moderator channel
     messageQueue.EnqueueAddConnectionToGroupAction(
       physModerator.ConnectionId,
-      RoomModeratorChannel);
+      physRoom.RoomModeratorChannel);
 
     // signal moderator added to new moderated room
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         Topic.Conference.Configuration,
-        RoomModeratorChannel,
+        physRoom.RoomModeratorChannel,
         physRoom.Topic.Name,
         physRoom.Id,
         0,

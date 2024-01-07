@@ -12,11 +12,11 @@ using OLab.TurkTalk.Endpoints.MessagePayloads;
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class ConferenceTopic
 {
-  public uint Id { get; set; }
-  public string Name { get; internal set; }
-  public uint ConferenceId { get; internal set; }
-  public DateTime CreatedAt { get; set; }
-  public DateTime LastUsedAt { get; set; }
+  //public uint Id { get; set; }
+  //public string Name { get; internal set; }
+  //public uint ConferenceId { get; internal set; }
+  //public DateTime CreatedAt { get; set; }
+  //public DateTime LastUsedAt { get; set; }
 
   public ITopicAtrium Atrium;
   public readonly IOLabLogger Logger;
@@ -29,12 +29,10 @@ public class ConferenceTopic
 
   private SemaphoreSlim _roomSemaphore = new SemaphoreSlim(1, 1);
 
-  public string TopicModeratorsChannel { get { return $"{Id}//moderators"; } }
-
   public ConferenceTopic()
   {
-    CreatedAt = DateTime.UtcNow;
-    LastUsedAt = DateTime.UtcNow;
+    //CreatedAt = DateTime.UtcNow;
+    //LastUsedAt = DateTime.UtcNow;
     Attendees = new List<TopicParticipant>();
     Rooms = new List<TopicRoom>();
   }
@@ -49,10 +47,10 @@ public class ConferenceTopic
 
     Conference = conference;
     DbUnitOfWork = dbUnitOfWork;
-    Atrium = new TopicAtrium(
-      Name,
-      Logger,
-      Conference.Configuration);
+    //Atrium = new TopicAtrium(
+    //  Name,
+    //  Logger,
+    //  Conference.Configuration);
   }
 
   public TopicParticipant GetTopicParticipant(string sessionId)
@@ -138,9 +136,9 @@ public class ConferenceTopic
           Logger.LogInformation($"re-assigning learner '{dtoRequestLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
 
           // assign channel for room learners
-          messageQueue.EnqueueAddConnectionToGroupAction(
-            dtoRequestLearner.ConnectionId,
-            dtoRoom.RoomLearnersChannel);
+          //messageQueue.EnqueueAddConnectionToGroupAction(
+          //  dtoRequestLearner.ConnectionId,
+          //  dtoRoom.RoomLearnersChannel);
 
           // signal attendee found in existing, moderated room
           messageQueue.EnqueueMessage(new RoomAcceptedMethod(
@@ -362,6 +360,16 @@ public class ConferenceTopic
     // create and add connection to topic moderators channel
     messageQueue.EnqueueAddConnectionToGroupAction(
       physModerator.ConnectionId,
-      TopicModeratorsChannel);
+      physTopic.TopicModeratorsChannel);
+  }
+
+  internal async Task AddToAtriumAsync(
+    TtalkConferenceTopic physTopic,
+    TtalkTopicParticipant physLearner)
+  {
+    Guard.Argument(physTopic, nameof(physTopic)).NotNull();
+    Guard.Argument(physLearner, nameof(physLearner)).NotNull();
+    
+
   }
 }
