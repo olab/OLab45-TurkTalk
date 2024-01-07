@@ -16,7 +16,7 @@ public partial class TtalkConferenceTopic
 
     [Required]
     [Column("name")]
-    [StringLength(100)]
+    [StringLength(45)]
     public string Name { get; set; }
 
     [Column("conference_id", TypeName = "int(11) unsigned")]
@@ -31,9 +31,6 @@ public partial class TtalkConferenceTopic
     [ForeignKey("ConferenceId")]
     [InverseProperty("TtalkConferenceTopics")]
     public virtual TtalkConference Conference { get; set; }
-
-    [InverseProperty("Topic")]
-    public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
 
     [InverseProperty("Topic")]
     public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();

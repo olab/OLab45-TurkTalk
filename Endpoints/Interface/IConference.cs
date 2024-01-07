@@ -7,8 +7,14 @@ using OLab.TurkTalk.Endpoints.Utils;
 namespace OLab.TurkTalk.Endpoints.Interface;
 public interface IConference
 {
-    IOLabConfiguration Configuration { get; }
-    Task<ConferenceTopic> GetTopicAsync(
-      TtalkTopicRoom physRoom, 
-      bool createInDb = true);
+  IOLabConfiguration Configuration { get; }
+  IOLabLogger Logger { get; }
+  TTalkDBContext TTDbContext { get; }
+
+  uint Id { get; set; }
+  string Name { get; set; }
+
+  //Task<ConferenceTopic> GetTopicAsync(
+    //TtalkTopicRoom physRoom,
+    //bool createInDb = true);
 }

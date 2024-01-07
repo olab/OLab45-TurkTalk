@@ -2,7 +2,10 @@
 using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Api.Common.Contracts;
+using OLab.Api.Models;
 using OLab.Common.Interfaces;
+using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using OLab.TurkTalk.Endpoints.Utils;
@@ -18,18 +21,78 @@ public partial class TurkTalkEndpoint
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      var dtoModerator = new TopicParticipant(payload);
+      TtalkConferenceTopic physTopic = null;
+      TtalkTopicRoom physRoom = null;
 
-      var physRoom = GetRoomFromQuestion(payload.QuestionId);
+      var dbUnitOfWork = new DatabaseUnitOfWork(
+        _logger,
+        ttalkDbContext);
 
-      // get topic from conference, create topic if not exist yet
-      var topic = await _conference.GetTopicAsync(physRoom);      
-      dtoModerator.TopicId = topic.Id;
+      var topicHandler = new ConferenceTopic(_logger, _conference, dbUnitOfWork);
+      var roomHandler = new TopicRoom(_logger, topicHandler, dbUnitOfWork);
 
-      // add moderator to topic
-      await topic.AddModeratorAsync(
-        dtoModerator,
-        MessageQueue);
+      // check if moderator is already known
+      var physModerator =
+        dbUnitOfWork.TopicParticipantRepository.GetModeratorBySessionId(payload.ContextId);
+
+      // existing moderator
+      if (physModerator != null)
+      {
+        physRoom =
+          await roomHandler.GetAsync(physModerator.RoomId.Value);
+        physTopic =
+          await topicHandler.GetAsync(physRoom.TopicId);
+
+        // update connectionId since it's probably changed
+        dbUnitOfWork
+          .TopicParticipantRepository
+          .UpdateConnectionId( payload.ContextId, payload.ConnectionId );
+        dbUnitOfWork.Save();
+      }
+
+      // new moderator
+      else
+      {
+        physModerator = new TtalkTopicParticipant
+        {
+          SessionId = payload.ContextId,
+          TokenIssuer = payload.UserToken.TokenIssuer,
+          UserId = payload.UserToken.UserId,
+          UserName = payload.UserToken.UserName,
+          NickName = payload.UserToken.NickName,
+          ConnectionId = payload.ConnectionId,
+          SeatNumber = 0
+        };
+
+        await dbUnitOfWork.TopicParticipantRepository.InsertAsync( physModerator );
+        dbUnitOfWork.Save();
+
+        var topicName = GetTopicNameFromQuestion(payload.QuestionId);
+
+        physTopic =
+          await topicHandler.GetCreateTopicAsync(
+            _conference.Id,
+            topicName);
+
+        physRoom =
+          await roomHandler.CreateRoomAsync(
+            physTopic,
+            physModerator);
+      }
+
+      // create and register signalr groups
+      // against the connectionId
+
+      topicHandler.RegisterModerator(
+        MessageQueue,
+        physTopic,
+        physModerator);
+
+      roomHandler.RegisterModerator(
+        MessageQueue,
+        physRoom,
+        physModerator);
+
     }
     catch (Exception ex)
     {

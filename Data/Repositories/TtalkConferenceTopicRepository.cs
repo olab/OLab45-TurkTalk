@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Dawn;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging.Signing;
 using OLab.Common.Interfaces;
@@ -24,6 +25,8 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
 
   public void UpdateUsage(TtalkConferenceTopic phys)
   {
+    Guard.Argument(phys, nameof(phys)).NotNull();
+
     // update last used
     phys.LastusedAt = DateTime.UtcNow;
     Update(phys);
@@ -31,16 +34,44 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
   }
 
   public async Task<TtalkConferenceTopic> GetByNameAsync(
-  TTalkDBContext dbContext,
-  string roomName)
+    string roomName)
   {
-    var physTopic = await dbContext
+    Guard.Argument(roomName, nameof(roomName)).NotEmpty();
+
+    var physTopic = await DbContext
       .TtalkConferenceTopics
-      .Include(x => x.TtalkTopicParticipants)
       .Include(x => x.TtalkTopicRooms)
+      .ThenInclude( x => x.TtalkTopicParticipants)
       .FirstOrDefaultAsync(x => x.Name == roomName);
 
     return physTopic;
   }
 
+  public async Task<TtalkConferenceTopic> GetCreateTopicAsync(
+    uint conferenceId,
+    string topicName)
+  {
+    Guard.Argument(conferenceId, nameof(conferenceId)).Positive();
+    Guard.Argument(topicName, nameof(topicName)).NotEmpty();
+
+    var phys = await GetByNameAsync(topicName);
+    if ( phys == null) 
+    {
+      phys = new TtalkConferenceTopic
+      {
+        ConferenceId = conferenceId,
+        Name = topicName,
+        CreatedAt = DateTime.UtcNow
+      };
+
+      await InsertAsync( phys );
+
+      // explicit save needed because we need new inserted Id 
+      DbUnitOfWork.Save();
+
+      Logger.LogInformation($"created topic {phys.Name} ({phys.Id})");
+    }
+
+    return phys;
+  }
 }

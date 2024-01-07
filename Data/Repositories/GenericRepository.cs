@@ -1,4 +1,5 @@
 ﻿using Dawn;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
@@ -26,7 +27,9 @@ public abstract class GenericRepository<TEntity> where TEntity : class
 
   protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContext)
   {
-    this.DbUnitOfWork = databaseUnitOfWork;
+    Guard.Argument(databaseUnitOfWork, nameof(databaseUnitOfWork)).NotNull();
+
+    DbUnitOfWork = databaseUnitOfWork;
   }
 
   /// <summary>
@@ -51,7 +54,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
     foreach (var includeProperty in includeProperties.Split
         (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
     {
-      query = query.Include(includeProperty);
+      query = query.Include(includeProperty.Trim());
     }
 
     if (orderBy != null)
@@ -71,6 +74,8 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   /// <returns>Matched record</returns>
   public async virtual Task<TEntity> GetByIdAsync(uint id)
   {
+    Guard.Argument(id, nameof(id)).Positive();
+
     return await dbSet.FindAsync(id);
   }
 
@@ -82,6 +87,8 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   public virtual async Task<TEntity> InsertAsync(
     TEntity phys)
   {
+    Guard.Argument(phys, nameof(phys)).NotNull();
+
     await dbSet.AddAsync(phys);
     return phys;
   }
@@ -94,6 +101,8 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   public TEntity Update(
     TEntity phys)
   {
+    Guard.Argument(phys, nameof(phys)).NotNull();
+
     dbSet.Update(phys);
     return phys;
   }

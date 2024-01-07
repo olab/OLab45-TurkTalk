@@ -15,11 +15,6 @@ public partial class TtalkTopicRoom
     [Column("id", TypeName = "int(11) unsigned")]
     public uint Id { get; set; }
 
-    [Required]
-    [Column("name")]
-    [StringLength(50)]
-    public string Name { get; set; }
-
     [Column("topic_id", TypeName = "int(11) unsigned")]
     public uint TopicId { get; set; }
 

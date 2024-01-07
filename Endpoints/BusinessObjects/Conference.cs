@@ -58,7 +58,7 @@ public class Conference : IConference
     // load the initial conference (for now, it's assumed to
     // only be one of, for now)
     var physConference = TTDbContext.TtalkConferences
-      .FirstOrDefault() ?? throw new Exception("System conference not defined");
+      .FirstOrDefault() ?? throw new Exception("System conference record not defined");
 
     Id = physConference.Id;
     Name = physConference.Name;
@@ -73,80 +73,80 @@ public class Conference : IConference
   /// <param name="topicName">Topic to retrieve/create</param>
   /// <param name="createInDb">Optional flag to create in database, if not found</param>
   /// <returns>ConferenceTopic</returns>
-  public virtual async Task<ConferenceTopic> GetTopicAsync(
-    TtalkTopicRoom physRoom,
-    bool createInDb = true)
-  {
-    Guard.Argument(physRoom).NotNull(nameof(physRoom));
+  //public virtual async Task<ConferenceTopic> GetTopicAsync(
+  //  TtalkTopicRoom physRoom,
+  //  bool createInDb = true)
+  //{
+  //  Guard.Argument(physRoom).NotNull(nameof(physRoom));
 
-    DatabaseUnitOfWork dbUnitOfWork = null;
+  //  DatabaseUnitOfWork dbUnitOfWork = null;
 
-    try
-    {
-      var mapper = new ConferenceTopicMapper(Logger);
+  //  try
+  //  {
+  //    var mapper = new ConferenceTopicMapper(Logger);
 
-      ConferenceTopic dtoTopic = null;
+  //    ConferenceTopic dtoTopic = null;
 
-      await SemaphoreLogger.WaitAsync(
-        Logger,
-        $"room {physRoom.Name}",
-        _topicSemaphore);
+  //    await SemaphoreLogger.WaitAsync(
+  //      Logger,
+  //      $"room {physRoom.Name}",
+  //      _topicSemaphore);
 
-      dbUnitOfWork = new DatabaseUnitOfWork(_logger, TTDbContext);
-      var physTopic = await dbUnitOfWork
-        .ConferenceTopicRepository
-        .GetByNameAsync(TTDbContext, physRoom.Name);
-
-
-      // test if found topic in database
-      if (physTopic != null)
-      {
-        Logger.LogInformation($"topic '{physTopic.Name}' exists in database");
-
-        dbUnitOfWork.ConferenceTopicRepository.UpdateUsage(physTopic);
-
-        dtoTopic = mapper.PhysicalToDto(physTopic, this);
-
-        // update the atrium from the loaded topic attendees
-        await dtoTopic.Atrium.LoadAsync(dtoTopic.Attendees);
-      }
+  //    dbUnitOfWork = new DatabaseUnitOfWork(_logger, TTDbContext);
+  //    var physTopic = await dbUnitOfWork
+  //      .ConferenceTopicRepository
+  //      .GetByNameAsync(TTDbContext, physRoom.Name);
 
 
-      // topic not found in database
-      else if (createInDb)
-      {
-        physTopic = new TtalkConferenceTopic
-        {
-          Name = physRoom.Name,
-          ConferenceId = Id,
-          CreatedAt = DateTime.UtcNow,
-        };
+  //    // test if found topic in database
+  //    if (physTopic != null)
+  //    {
+  //      Logger.LogInformation($"topic '{physTopic.Name}' exists in database");
 
-        await dbUnitOfWork.ConferenceTopicRepository.InsertAsync(physTopic);
-        // explicit save needed because we need new inserted Id for mapper
-        dbUnitOfWork.Save();
-        Logger.LogInformation($"topic '{physTopic.Name}' ({physTopic.Id}) created in database");
+  //      dbUnitOfWork.ConferenceTopicRepository.UpdateUsage(physTopic);
 
-        dtoTopic = mapper.PhysicalToDto(physTopic, this);
+  //      dtoTopic = mapper.PhysicalToDto(physTopic, this);
 
-      }
+  //      // update the atrium from the loaded topic attendees
+  //      await dtoTopic.Atrium.LoadAsync(dtoTopic.Attendees);
+  //    }
 
-      return dtoTopic;
-    }
-    catch (Exception ex)
-    {
-      Logger.LogError($"GetTopicAsync error: {ex.Message}");
-      throw;
-    }
-    finally
-    {
-      dbUnitOfWork.Save();
 
-      SemaphoreLogger.Release(
-        Logger,
-        $"room {physRoom.Name}",
-        _topicSemaphore);
-    }
+  //    // topic not found in database
+  //    else if (createInDb)
+  //    {
+  //      physTopic = new TtalkConferenceTopic
+  //      {
+  //        Name = physRoom.Name,
+  //        ConferenceId = Id,
+  //        CreatedAt = DateTime.UtcNow,
+  //      };
 
-  }
+  //      await dbUnitOfWork.ConferenceTopicRepository.InsertAsync(physTopic);
+  //      // explicit save needed because we need new inserted Id for mapper
+  //      dbUnitOfWork.Save();
+  //      Logger.LogInformation($"topic '{physTopic.Name}' ({physTopic.Id}) created in database");
+
+  //      dtoTopic = mapper.PhysicalToDto(physTopic, this);
+
+  //    }
+
+  //    return dtoTopic;
+  //  }
+  //  catch (Exception ex)
+  //  {
+  //    Logger.LogError($"GetTopicAsync error: {ex.Message}");
+  //    throw;
+  //  }
+  //  finally
+  //  {
+  //    dbUnitOfWork.Save();
+
+  //    SemaphoreLogger.Release(
+  //      Logger,
+  //      $"room {physRoom.Name}",
+  //      _topicSemaphore);
+  //  }
+
+  //}
 }

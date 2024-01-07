@@ -19,12 +19,14 @@ public class ConferenceTopic
   public DateTime LastUsedAt { get; set; }
 
   public ITopicAtrium Atrium;
-  public Conference Conference;
+  public readonly IOLabLogger Logger;
+  public IConference Conference;
+  private readonly DatabaseUnitOfWork DbUnitOfWork;
+
   public IList<TopicParticipant> Attendees { get; set; }
 
   public IList<TopicRoom> Rooms { get; set; }
 
-  public IOLabLogger Logger { get { return Conference.Logger; } }
   private SemaphoreSlim _roomSemaphore = new SemaphoreSlim(1, 1);
 
   public string TopicModeratorsChannel { get { return $"{Id}//moderators"; } }
@@ -33,19 +35,24 @@ public class ConferenceTopic
   {
     CreatedAt = DateTime.UtcNow;
     LastUsedAt = DateTime.UtcNow;
-    Atrium = new TopicAtrium(
-      Name,
-      Logger,
-      Conference.Configuration);
     Attendees = new List<TopicParticipant>();
     Rooms = new List<TopicRoom>();
   }
 
-  public ConferenceTopic(Conference conference) : this()
+  public ConferenceTopic(
+    IOLabLogger logger,
+    IConference conference, 
+    DatabaseUnitOfWork dbUnitOfWork) : this()
   {
     Guard.Argument(conference).NotNull(nameof(conference));
+    Logger = logger;
 
     Conference = conference;
+    DbUnitOfWork = dbUnitOfWork;
+    Atrium = new TopicAtrium(
+      Name,
+      Logger,
+      Conference.Configuration);
   }
 
   public TopicParticipant GetTopicParticipant(string sessionId)
@@ -60,6 +67,8 @@ public class ConferenceTopic
 
   public TopicParticipant GetModerator(string sessionId)
   {
+    Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
+
     var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
     if (dto != null)
       return dto;
@@ -175,108 +184,85 @@ public class ConferenceTopic
 
   }
 
-  private async Task<TopicRoom> CreateTopicRoomAsync(
-    DatabaseUnitOfWork dbUnitOfWork)
-  {
-    Guard.Argument(dbUnitOfWork, nameof(dbUnitOfWork)).NotNull();
-
-    var physRoom = new TtalkTopicRoom
-    {
-      Name = Name,
-      TopicId = Id
-    };
-
-    physRoom = await dbUnitOfWork
-      .TopicRoomRepository
-      .InsertAsync(physRoom);
-    dbUnitOfWork.Save();
-
-    var mapper = new TopicRoomMapper(Logger);
-    var roomDto = mapper.PhysicalToDto(physRoom, this);
-
-    return roomDto;
-
-  }
-
   /// <summary>
   /// Add moderator to topic
   /// </summary>
   /// <param name="moderatorDto">Moderator attendee</param>
   /// <param name="messageQueue">Resulting messages</param>
   /// <returns></returns>
-  internal async Task AddModeratorAsync(
-    TopicParticipant moderatorDto,
-    DispatchedMessages messageQueue)
-  {
-    Guard.Argument(moderatorDto, nameof(moderatorDto)).NotNull();
-    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
+  //internal async Task AddModeratorAsync(
+  //  TopicParticipant moderatorDto,
+  //  DispatchedMessages messageQueue)
+  //{
+  //  Guard.Argument(moderatorDto, nameof(moderatorDto)).NotNull();
+  //  Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
 
-    DatabaseUnitOfWork dbUnitOfWork = null;
+  //  DatabaseUnitOfWork dbUnitOfWork = null;
 
-    try
-    {
-      await SemaphoreLogger.WaitAsync(
-        Logger,
-        $"topic {Id}",
-      _roomSemaphore);
+  //  try
+  //  {
+  //    await SemaphoreLogger.WaitAsync(
+  //      Logger,
+  //      $"topic {Id}",
+  //    _roomSemaphore);
 
-      dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
+  //    dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
-      // look if already a known moderator in loaded topic based on sessionId
-      var dtoModerator = GetModerator(moderatorDto.SessionId);
+  //    // look if already a known moderator in loaded topic based on sessionId
+  //    var dtoModerator = GetModerator(moderatorDto.SessionId);
 
-      // create and add connection to topic moderators channel
-      messageQueue.EnqueueAddConnectionToGroupAction(
-        moderatorDto.ConnectionId,
-        TopicModeratorsChannel);
+  //    // create and add connection to topic moderators channel
+  //    messageQueue.EnqueueAddConnectionToGroupAction(
+  //      moderatorDto.ConnectionId,
+  //      TopicModeratorsChannel);
 
-      // new moderator. create new room and add moderator
-      if (dtoModerator == null)
-      {
-        var newRoomDto = await CreateTopicRoomAsync(dbUnitOfWork);
-        moderatorDto = await newRoomDto.AssignModeratorToRoom(
-          dbUnitOfWork,
-          moderatorDto,
-          messageQueue);
-      }
+  //    // new moderator. create new room and add moderator
+  //    if (dtoModerator == null)
+  //    {
+  //      var newRoomDto = await CreateTopicRoomAsync(dbUnitOfWork);
+  //      moderatorDto = await newRoomDto.AssignModeratorToRoom(
+  //        dbUnitOfWork,
+  //        moderatorDto,
+  //        messageQueue);
+  //    }
 
-      // existing/known moderator
-      else
-      {
-        var physRoom = dbUnitOfWork
-          .TopicRoomRepository
-          .Get(x => (x.Id == dtoModerator.RoomId) && (x.ModeratorId == dtoModerator.Id)).FirstOrDefault();
+  //    // existing/known moderator
+  //    else
+  //    {
+  //      var physRoom = dbUnitOfWork
+  //        .TopicRoomRepository
+  //        .Get(x => (x.Id == dtoModerator.RoomId) && (x.ModeratorId == dtoModerator.Id)).FirstOrDefault();
 
-        var mapper = new TopicRoomMapper(Logger);
-        var dtoRoom = mapper.PhysicalToDto(physRoom, this);
+  //      var mapper = new TopicRoomMapper(Logger);
+  //      var dtoRoom = mapper.PhysicalToDto(physRoom, this);
 
-        // existing room exists for moderator, signal re-assign
-        if (dtoRoom != null)
-        {
-          Logger.LogInformation($"re-assigned moderator {dtoModerator.Id} to topic '{Name}' room. id {dtoRoom.Id}");
+  //      // existing room exists for moderator, signal re-assign
+  //      if (dtoRoom != null)
+  //      {
+  //        Logger.LogInformation($"re-assigned moderator {dtoModerator.Id} to topic '{Name}' room. id {dtoRoom.Id}");
 
-          // TODO: signal attendees in room of moderator re-assigment
-          return;
-        }
-        else
-          Logger.LogError($"moderator id {dtoModerator.Id} room id {dtoModerator.RoomId} does not exist");
-      }
-    }
-    catch (Exception ex)
-    {
-      Logger.LogError($"AddModeratorAsync error: {ex.Message}");
-      throw;
-    }
-    finally
-    {
-      dbUnitOfWork.Save();
+  //        // TODO: signal attendees in room of moderator re-assigment
+  //        return;
+  //      }
+  //      else
+  //        Logger.LogError($"moderator id {dtoModerator.Id} room id {dtoModerator.RoomId} does not exist");
+  //    }
+  //  }
+  //  catch (Exception ex)
+  //  {
+  //    Logger.LogError($"AddModeratorAsync error: {ex.Message}");
+  //    throw;
+  //  }
+  //  finally
+  //  {
+  //    dbUnitOfWork.Save();
 
-      SemaphoreLogger.Release(
-        Logger,
-        $"topic {Id}",
-        _roomSemaphore);
-    }
-  }
+  //    SemaphoreLogger.Release(
+  //      Logger,
+  //      $"topic {Id}",
+  //      _roomSemaphore);
+  //  }
+  //}
 
   /// <summary>
   /// Assign a learner to a room
@@ -298,51 +284,84 @@ public class ConferenceTopic
 
     var dbUnit = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
-    var physModerator = dbUnit
-      .TopicParticipantRepository
-      .GetBySessionId(moderatorSessionId);
+    //var physModerator = dbUnit
+    //  .TopicParticipantRepository
+    //  .GetBySessionId(moderatorSessionId);
 
-    // ensure learner exists
-    var physLearner = dbUnit
-      .TopicParticipantRepository
-      .GetBySessionId(learnerSessionId);
+    //// ensure learner exists
+    //var physLearner = dbUnit
+    //  .TopicParticipantRepository
+    //  .GetBySessionId(learnerSessionId);
 
-    // auto assign seat number based on participants
-    // existing in the room
-    if (!seatNumber.HasValue)
-      seatNumber = dbUnit
-        .TopicRoomRepository
-        .GetAvailableRoomSeat(physModerator.RoomId.Value);
+    //// auto assign seat number based on participants
+    //// existing in the room
+    //if (!seatNumber.HasValue)
+    //  seatNumber = dbUnit
+    //    .TopicRoomRepository
+    //    .GetAvailableRoomSeat(physModerator.RoomId.Value);
 
-    if (seatNumber.HasValue)
-    {
-      dbUnit.TopicParticipantRepository.AssignToRoom(
-        learnerSessionId,
-        physModerator.RoomId.Value,
-        seatNumber);
+    //if (seatNumber.HasValue)
+    //{
+    //  dbUnit.TopicParticipantRepository.AssignToRoom(
+    //    learnerSessionId,
+    //    physModerator.RoomId.Value,
+    //    seatNumber);
 
-      // signal room assignment to learner
-      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-          Conference.Configuration,
-          $"{physLearner.TopicId}//{physModerator.RoomId}//{physLearner.SessionId}//session",
-          physModerator.Room.Name,
-          physModerator.Room.Id,
-          seatNumber.Value,
-          physModerator.UserName,
-          false));
+    //  // signal room assignment to learner
+    //  messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+    //      Conference.Configuration,
+    //      $"{physLearner.TopicId}//{physModerator.RoomId}//{physLearner.SessionId}//session",
+    //      physModerator.Room.Topic.Name,
+    //      physModerator.Room.Id,
+    //      seatNumber.Value,
+    //      physModerator.UserName,
+    //      false));
 
-      // signal room assignment to moderator
-      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-          Conference.Configuration,
-          $"{physModerator.TopicId}//{physModerator.RoomId}//moderator",
-          physModerator.Room.Name,
-          physModerator.Room.Id,
-          seatNumber.Value,
-          physModerator.UserName,
-          false));
-    }
+    //  // signal room assignment to moderator
+    //  messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+    //      Conference.Configuration,
+    //      $"{physModerator.TopicId}//{physModerator.RoomId}//moderator",
+    //      physModerator.Room.Topic.Name,
+    //      physModerator.Room.Id,
+    //      seatNumber.Value,
+    //      physModerator.UserName,
+    //      false));
+    //}
 
     dbUnit.Save();
 
+  }
+
+  internal async Task<TtalkConferenceTopic> GetCreateTopicAsync(
+    uint conferenceId, 
+    string topicName)
+  {
+    Guard.Argument(conferenceId, nameof(conferenceId)).Positive();
+    Guard.Argument(topicName, nameof(topicName)).NotEmpty();
+
+    var phys = 
+      await DbUnitOfWork.ConferenceTopicRepository.GetCreateTopicAsync(conferenceId, topicName);
+
+    return phys;
+  }
+
+  internal async Task<TtalkConferenceTopic> GetAsync(uint topicId)
+  {
+    return await DbUnitOfWork.ConferenceTopicRepository.GetByIdAsync(topicId);
+  }
+
+  internal void RegisterModerator(
+    DispatchedMessages messageQueue,
+    TtalkConferenceTopic physTopic,
+    TtalkTopicParticipant physModerator)
+  {
+    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
+    Guard.Argument(physTopic, nameof(physTopic)).NotNull();
+    Guard.Argument(physModerator, nameof(physModerator)).NotNull();
+
+    // create and add connection to topic moderators channel
+    messageQueue.EnqueueAddConnectionToGroupAction(
+      physModerator.ConnectionId,
+      TopicModeratorsChannel);
   }
 }

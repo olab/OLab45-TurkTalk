@@ -23,7 +23,7 @@ public class DispatchedMessages
     var action = method.MessageAction();
     Messages.Add(action);
 
-    _logger.LogInformation($"enqueued message '{action.Target}': {{ {method} }}");
+    _logger.LogInformation($"sending message '{action.Target}': {{ {method} }}");
   }
 
   /// <summary>
@@ -40,6 +40,6 @@ public class DispatchedMessages
 
     Messages.Add(action);
 
-    _logger.LogInformation($"enqueuing SignalRGroupAction '{connectionId}' to group {groupName}");
+    _logger.LogInformation($"registering connection '{connectionId}' to group '{groupName}'");
   }
 }

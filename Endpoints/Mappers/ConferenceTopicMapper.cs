@@ -38,7 +38,6 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
       cfg.CreateMap<TtalkConference, Conference>()
         .ReverseMap();
       cfg.CreateMap<TtalkConferenceTopic, ConferenceTopic>()
-        .ForMember(dest => dest.Attendees, opt => opt.MapFrom(src => src.TtalkTopicParticipants))
         .ForMember(dest => dest.Rooms, opt => opt.MapFrom(src => src.TtalkTopicRooms))
         .ReverseMap();
       cfg.CreateMap<TtalkTopicParticipant, TopicParticipant>()

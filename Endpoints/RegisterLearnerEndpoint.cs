@@ -7,32 +7,32 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public async Task<DispatchedMessages> RegisterLearnerAsync(
-    RegisterParticipantRequest payload)
-  {
-    try
-    {
-      Guard.Argument(payload).NotNull(nameof(payload));
+  //public async Task<DispatchedMessages> RegisterLearnerAsync(
+  //  RegisterParticipantRequest payload)
+  //{
+  //  try
+  //  {
+  //    Guard.Argument(payload).NotNull(nameof(payload));
 
-      var physRoom = GetRoomFromQuestion(payload.QuestionId);
+  //    var physRoom = GetRoomFromQuestion(payload.QuestionId);
 
-      // get topic from conference, using questionId
-      var topic = await _conference.GetTopicAsync(physRoom, false);
+  //    // get topic from conference, using questionId
+  //    var topic = await _conference.GetTopicAsync(physRoom, false);
 
-      var dtoLearner = new TopicParticipant(payload);
-      dtoLearner.TopicId = topic.Id;
+  //    var dtoLearner = new TopicParticipant(payload);
+  //    dtoLearner.TopicId = topic.Id;
 
-      // add learner to topic
-      await topic.AddLearnerAsync(
-        dtoLearner,
-        MessageQueue);
+  //    // add learner to topic
+  //    await topic.AddLearnerAsync(
+  //      dtoLearner,
+  //      MessageQueue);
 
-      return MessageQueue;
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "RegisterLearnerAsync");
-      throw;
-    }
-  }
+  //    return MessageQueue;
+  //  }
+  //  catch (Exception ex)
+  //  {
+  //    _logger.LogError(ex, "RegisterLearnerAsync");
+  //    throw;
+  //  }
+  //}
 }
