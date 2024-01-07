@@ -33,5 +33,8 @@ public partial class TtalkConferenceTopic
     public virtual TtalkConference Conference { get; set; }
 
     [InverseProperty("Topic")]
+    public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
+
+    [InverseProperty("Topic")]
     public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();
 }

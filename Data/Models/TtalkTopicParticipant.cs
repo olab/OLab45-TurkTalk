@@ -8,6 +8,7 @@ namespace OLab.TurkTalk.Data.Models;
 
 [Table("ttalk_topic_participant")]
 [Index("RoomId", Name = "fk_ttalk_tra_ttr_idx")]
+[Index("TopicId", Name = "fk_ttalk_ttp_tct_idx")]
 public partial class TtalkTopicParticipant
 {
     [Key]
@@ -33,6 +34,9 @@ public partial class TtalkTopicParticipant
     [StringLength(45)]
     public string TokenIssuer { get; set; }
 
+    [Column("topic_id", TypeName = "int(11) unsigned")]
+    public uint TopicId { get; set; }
+
     [Column("room_id", TypeName = "int(11) unsigned")]
     public uint? RoomId { get; set; }
 
@@ -51,6 +55,10 @@ public partial class TtalkTopicParticipant
     [ForeignKey("RoomId")]
     [InverseProperty("TtalkTopicParticipants")]
     public virtual TtalkTopicRoom Room { get; set; }
+
+    [ForeignKey("TopicId")]
+    [InverseProperty("TtalkTopicParticipants")]
+    public virtual TtalkConferenceTopic Topic { get; set; }
 
     [InverseProperty("Moderator")]
     public virtual ICollection<TtalkTopicRoom> TtalkTopicRooms { get; } = new List<TtalkTopicRoom>();

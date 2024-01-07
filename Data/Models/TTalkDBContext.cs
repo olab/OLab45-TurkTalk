@@ -68,13 +68,17 @@ public partial class TTalkDBContext : DbContext
             entity.HasOne(d => d.Room).WithMany(p => p.TtalkTopicParticipants)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_ttalk_tra_ttr");
+
+            entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicParticipants).HasConstraintName("fk_ttalk_ttp_tct");
         });
 
         modelBuilder.Entity<TtalkTopicRoom>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms).HasConstraintName("fk_ttalk_topic_room_ttalk_room_attendee1");
+            entity.HasOne(d => d.Moderator).WithMany(p => p.TtalkTopicRooms)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_ttalk_topic_room_ttalk_room_attendee1");
 
             entity.HasOne(d => d.Topic).WithMany(p => p.TtalkTopicRooms).HasConstraintName("fk_tr_t");
         });

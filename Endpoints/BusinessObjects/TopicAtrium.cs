@@ -14,7 +14,7 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
 public class TopicAtrium : ITopicAtrium
 {
-  public ConferenceTopic Topic { get; }
+  public ConferenceTopicHelper Topic { get; }
   private IDictionary<string, TopicParticipant> _atriumLearners;
   private SemaphoreSlim _contentsSemaphore = new SemaphoreSlim(1, 1);
 

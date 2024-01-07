@@ -1,5 +1,7 @@
 ﻿using Dawn;
 using OLab.TurkTalk.Data.Contracts;
+using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -7,31 +9,39 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  //public async Task<DispatchedMessages> AssignLearnerAsync(
-  //  AssignLearnerRequest payload)
-  //{
-  //  try
-  //  {
-  //    Guard.Argument(payload).NotNull(nameof(payload));
+  public async Task<DispatchedMessages> AssignLearnerAsync(
+    AssignLearnerRequest payload)
+  {
+    DatabaseUnitOfWork dbUnitOfWork = null;
 
-  //    var physRoom = GetRoomFromQuestion(payload.QuestionId);
+    try
+    {
+      Guard.Argument(payload).NotNull(nameof(payload));
 
-  //    // get topic from conference, using questionId
-  //    var topic = await _conference.GetTopicAsync(physRoom, false);
+      dbUnitOfWork = new DatabaseUnitOfWork(
+        _logger,
+        ttalkDbContext);
 
-  //    // add learner to topic room
-  //    topic.AssignLearnerToRoom(
-  //      MessageQueue,
-  //      payload.ModeratorSessionId,
-  //      payload.LearnerSessionId,
-  //      payload.SeatNumber);
+      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
+      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
-  //    return MessageQueue;
-  //  }
-  //  catch (Exception ex)
-  //  {
-  //    _logger.LogError(ex, "RegisterLearnerAsync");
-  //    throw;
-  //  }
-  //}
+      // add learner to room
+      await roomHandler.AssignLearnerToRoomAsync(
+        MessageQueue,
+        payload.LearnerSessionId,
+        payload.ModeratorSessionId,
+        payload.SeatNumber);
+
+      return MessageQueue;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "AssignLearnerAsync");
+      throw;
+    }
+    finally
+    {
+      dbUnitOfWork.Save();
+    }
+  }
 }

@@ -30,8 +30,8 @@ public partial class TurkTalkEndpoint
         _logger,
         ttalkDbContext);
 
-      var topicHandler = new ConferenceTopic(_logger, _conference, dbUnitOfWork);
-      var roomHandler = new TopicRoom(_logger, topicHandler, dbUnitOfWork);
+      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
+      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
       // check if moderator is already known
       var physModerator =
@@ -41,9 +41,8 @@ public partial class TurkTalkEndpoint
       if (physModerator != null)
       {
         physRoom =
-          await roomHandler.GetAsync(physModerator.RoomId.Value);
-        physTopic =
-          await topicHandler.GetAsync(physRoom.TopicId);
+          roomHandler.Get(physModerator.RoomId.Value);
+        physTopic = physRoom.Topic;
 
         // update connectionId since it's probably changed
         dbUnitOfWork

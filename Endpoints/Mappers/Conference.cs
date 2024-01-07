@@ -34,7 +34,7 @@ public class ConferenceMapper : OLabMapper<TtalkConference, Conference>
     return new MapperConfiguration(cfg =>
     {
       cfg.CreateMap<TtalkConference, Conference>().ReverseMap();
-      cfg.CreateMap<TtalkConferenceTopic, ConferenceTopic>().ReverseMap();
+      cfg.CreateMap<TtalkConferenceTopic, ConferenceTopicHelper>().ReverseMap();
       cfg.CreateMap<TtalkTopicParticipant, TopicParticipant>().ReverseMap();
     });
   }

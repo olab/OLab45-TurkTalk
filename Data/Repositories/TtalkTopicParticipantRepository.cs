@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Drawing.Spreadsheet;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Common.Interfaces;
+using OLab.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 
 namespace OLab.TurkTalk.Data.Models;
@@ -31,8 +32,8 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
     var phys = Get(
-        filter: x => ( x.SessionId == sessionId ) && 
-          ( ( x.SeatNumber.HasValue && x.SeatNumber > 0 ) || ( !x.SeatNumber.HasValue )), 
+        filter: x => (x.SessionId == sessionId) &&
+          ((x.SeatNumber.HasValue && x.SeatNumber > 0) || (!x.SeatNumber.HasValue)),
         includeProperties: "Room, Room.Topic")
       .FirstOrDefault();
 
@@ -50,7 +51,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
     var phys = Get(
-        filter: x => ( x.SessionId == sessionId ) && ( x.SeatNumber == 0 ), 
+        filter: x => (x.SessionId == sessionId) && (x.SeatNumber == 0),
         includeProperties: "Room, Room.Topic")
       .FirstOrDefault();
 
@@ -68,7 +69,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
 
     var phys = Get(
-        filter: x => x.ConnectionId == connectionId, 
+        filter: x => x.ConnectionId == connectionId,
         includeProperties: "Room, Topic")
       .FirstOrDefault();
 
@@ -91,7 +92,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     // look for participant record for session and is a moderator
     // (with seat number is null)
     var phys = Get(
-        filter: x => x.SessionId == sessionId, 
+        filter: x => x.SessionId == sessionId,
         includeProperties: "Room, Topic")
       .FirstOrDefault();
 
@@ -166,16 +167,16 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   }
 
   /// <summary>
-  /// Get atrium learners for room
+  /// Get atrium learners for topic
   /// </summary>
-  /// <param name="roomId">Room id</param>
+  /// <param name="topicId">Topic id</param>
   /// <returns>List of learners</returns>
-  public IList<TtalkTopicParticipant> GetAtriumLearnersForRoom(uint roomId)
+  public IList<TtalkTopicParticipant> GetAtriumLearnersForTopic(uint topicId)
   {
-    Guard.Argument(roomId, nameof(roomId)).Positive();
+    Guard.Argument(topicId, nameof(topicId)).Positive();
 
     var physList =
-      Get(x => (x.RoomId == roomId) && ( !x.SeatNumber.HasValue )).ToList();
+      Get(x => (x.TopicId == topicId) && (!x.SeatNumber.HasValue)).ToList();
 
     return physList;
   }
@@ -191,8 +192,25 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
 
     var physList =
       Get(
-        filter: x => (x.RoomId == roomId) && ( x.SeatNumber.HasValue && x.SeatNumber > 0 ),
-        includeProperties: "Room").ToList();
+        filter: x => (x.RoomId == roomId) && (x.SeatNumber.HasValue && x.SeatNumber > 0),
+        includeProperties: "Room, Room.Topic").ToList();
+
+    return physList;
+  }
+
+  /// <summary>
+  /// Get all participants for room
+  /// </summary>
+  /// <param name="roomId">Room id</param>
+  /// <returns>List of learners</returns>
+  public IList<TtalkTopicParticipant> GetParticipantsForRoom(uint roomId)
+  {
+    Guard.Argument(roomId, nameof(roomId)).Positive();
+
+    var physList =
+      Get(
+        filter: x => (x.RoomId == roomId),
+        includeProperties: "Room, Room.Topic").ToList();
 
     return physList;
   }
@@ -214,5 +232,22 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
       includeProperties: "Room").FirstOrDefault();
 
     return phys;
+  }
+
+  /// <summary>
+  /// Get participants for topic
+  /// </summary>
+  /// <param name="topicId">Topic id</param>
+  /// <returns>List of TTalkParticipant</returns>
+  public List<TtalkTopicParticipant> GetParticipantsForTopic(uint topicId)
+  {
+    Guard.Argument(topicId, nameof(topicId)).Positive();
+
+    var physList = Get(
+      filter: x => x.TopicId == topicId,
+      includeProperties: "Room,Topic")
+      .ToList();
+
+    return physList;
   }
 }

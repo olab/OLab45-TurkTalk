@@ -6,7 +6,7 @@ using OLab.TurkTalk.Endpoints.BusinessObjects;
 
 namespace OLab.TurkTalk.Endpoints.Mappers;
 
-public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, ConferenceTopic>
+public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, ConferenceTopicHelper>
 {
   public ConferenceTopicMapper(
     IOLabLogger logger,
@@ -15,7 +15,7 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
 
   }
 
-  public ConferenceTopic PhysicalToDto(
+  public ConferenceTopicHelper PhysicalToDto(
     TtalkConferenceTopic phys, 
     Conference conference)
   {
@@ -37,12 +37,12 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
     {
       cfg.CreateMap<TtalkConference, Conference>()
         .ReverseMap();
-      cfg.CreateMap<TtalkConferenceTopic, ConferenceTopic>()
-        .ForMember(dest => dest.Rooms, opt => opt.MapFrom(src => src.TtalkTopicRooms))
-        .ReverseMap();
+      //cfg.CreateMap<TtalkConferenceTopic, ConferenceTopicHelper>()
+      //  .ForMember(dest => dest.Rooms, opt => opt.MapFrom(src => src.TtalkTopicRooms))
+      //  .ReverseMap();
       cfg.CreateMap<TtalkTopicParticipant, TopicParticipant>()
         .ReverseMap();
-      cfg.CreateMap<TtalkTopicRoom, TopicRoom>()
+      cfg.CreateMap<TtalkTopicRoom, TopicRoomHelper>()
         .ReverseMap();
     });
   }

@@ -10,68 +10,53 @@ using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
-public class ConferenceTopic
+public class ConferenceTopicHelper
 {
-  //public uint Id { get; set; }
-  //public string Name { get; internal set; }
-  //public uint ConferenceId { get; internal set; }
-  //public DateTime CreatedAt { get; set; }
-  //public DateTime LastUsedAt { get; set; }
-
-  public ITopicAtrium Atrium;
   public readonly IOLabLogger Logger;
   public IConference Conference;
   private readonly DatabaseUnitOfWork DbUnitOfWork;
 
-  public IList<TopicParticipant> Attendees { get; set; }
-
-  public IList<TopicRoom> Rooms { get; set; }
-
   private SemaphoreSlim _roomSemaphore = new SemaphoreSlim(1, 1);
+  private SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
 
-  public ConferenceTopic()
+  public ConferenceTopicHelper()
   {
-    //CreatedAt = DateTime.UtcNow;
-    //LastUsedAt = DateTime.UtcNow;
-    Attendees = new List<TopicParticipant>();
-    Rooms = new List<TopicRoom>();
   }
 
-  public ConferenceTopic(
+  public ConferenceTopicHelper(
     IOLabLogger logger,
-    IConference conference, 
+    IConference conference,
     DatabaseUnitOfWork dbUnitOfWork) : this()
   {
+    Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(conference).NotNull(nameof(conference));
+    Guard.Argument(dbUnitOfWork).NotNull(nameof(dbUnitOfWork));
+
     Logger = logger;
 
     Conference = conference;
     DbUnitOfWork = dbUnitOfWork;
-    //Atrium = new TopicAtrium(
-    //  Name,
-    //  Logger,
-    //  Conference.Configuration);
   }
 
-  public TopicParticipant GetTopicParticipant(string sessionId)
-  {
-    Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
+  //public TopicParticipant GetTopicParticipant(string sessionId)
+  //{
+  //  Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
-    var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
-    if (dto != null)
-      return dto;
-    return null;
-  }
+  //  //var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
+  //  //if (dto != null)
+  //  //  return dto;
+  //  return null;
+  //}
 
-  public TopicParticipant GetModerator(string sessionId)
-  {
-    Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
+  //public TopicParticipant GetModerator(string sessionId)
+  //{
+  //  Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
-    var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
-    if (dto != null)
-      return dto;
-    return null;
-  }
+  //  //var dto = Attendees.FirstOrDefault(x => x.SessionId == sessionId);
+  //  //if (dto != null)
+  //  //  return dto;
+  //  return null;
+  //}
 
 
   /// <summary>
@@ -87,98 +72,98 @@ public class ConferenceTopic
     Guard.Argument(dtoRequestLearner).NotNull(nameof(dtoRequestLearner));
     Guard.Argument(messageQueue).NotNull(nameof(messageQueue));
 
-    DatabaseUnitOfWork dbUnitOfWork = null;
+    //DatabaseUnitOfWork dbUnitOfWork = null;
 
-    try
-    {
-      var mapper = new TopicParticipantMapper(Logger);
+    //try
+    //{
+    //  var mapper = new TopicParticipantMapper(Logger);
 
-      dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
+    //  dbUnitOfWork = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
 
-      // see if already a known learner based on sessionId
-      var dtoTopicParticipant = GetTopicParticipant(dtoRequestLearner.SessionId);
+    //  // see if already a known learner based on sessionId
+    //  var dtoTopicParticipant = GetTopicParticipant(dtoRequestLearner.SessionId);
 
-      // if not known to topic - create new learner and add to atrium
-      if (dtoTopicParticipant == null)
-      {
-        var physLearner = mapper.DtoToPhysical(dtoRequestLearner);
-        await dbUnitOfWork
-          .TopicParticipantRepository
-          .InsertAsync(physLearner);
+    //  // if not known to topic - create new learner and add to atrium
+    //  if (dtoTopicParticipant == null)
+    //  {
+    //    var physLearner = mapper.DtoToPhysical(dtoRequestLearner);
+    //    await dbUnitOfWork
+    //      .TopicParticipantRepository
+    //      .InsertAsync(physLearner);
 
-        dtoRequestLearner = mapper.PhysicalToDto(physLearner);
+    //    dtoRequestLearner = mapper.PhysicalToDto(physLearner);
 
-        // add learner connection to learner-specific room channel
-        messageQueue.EnqueueAddConnectionToGroupAction(
-          dtoRequestLearner.ConnectionId,
-          dtoRequestLearner.RoomLearnerSessionChannel);
+    //    // add learner connection to learner-specific room channel
+    //    messageQueue.EnqueueAddConnectionToGroupAction(
+    //      dtoRequestLearner.ConnectionId,
+    //      dtoRequestLearner.RoomLearnerSessionChannel);
 
-        await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
+    //    await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
 
-        return;
-      }
+    //    return;
+    //  }
 
-      // learner known, update participant with new connection id
-      var physParticipant = dbUnitOfWork
-        .TopicParticipantRepository
-        .UpdateConnectionId(
-          dtoRequestLearner.SessionId,
-          dtoRequestLearner.ConnectionId);
+    //  // learner known, update participant with new connection id
+    //  var physParticipant = dbUnitOfWork
+    //    .TopicParticipantRepository
+    //    .UpdateConnectionId(
+    //      dtoRequestLearner.SessionId,
+    //      dtoRequestLearner.ConnectionId);
 
-      // test if was in room already 
-      if (dtoTopicParticipant.RoomId != 0)
-      {
-        var dtoRoom = Rooms.FirstOrDefault(x => x.Id == dtoTopicParticipant.RoomId);
+    //  // test if was in room already 
+    //  if (dtoTopicParticipant.RoomId != 0)
+    //  {
+    //    var dtoRoom = Rooms.FirstOrDefault(x => x.Id == dtoTopicParticipant.RoomId);
 
-        // ensure room exists and has a moderator to receive them
-        if (dtoRoom != null && dtoRoom.ModeratorId > 0)
-        {
-          Logger.LogInformation($"re-assigning learner '{dtoRequestLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
+    //    // ensure room exists and has a moderator to receive them
+    //    if (dtoRoom != null && dtoRoom.ModeratorId > 0)
+    //    {
+    //      Logger.LogInformation($"re-assigning learner '{dtoRequestLearner}' to room '{dtoRoom.Id}' with moderator {dtoRoom.ModeratorId}");
 
-          // assign channel for room learners
-          //messageQueue.EnqueueAddConnectionToGroupAction(
-          //  dtoRequestLearner.ConnectionId,
-          //  dtoRoom.RoomLearnersChannel);
+    //      // assign channel for room learners
+    //      //messageQueue.EnqueueAddConnectionToGroupAction(
+    //      //  dtoRequestLearner.ConnectionId,
+    //      //  dtoRoom.RoomLearnersChannel);
 
-          // signal attendee found in existing, moderated room
-          messageQueue.EnqueueMessage(new RoomAcceptedMethod(
-              Conference.Configuration,
-              dtoRequestLearner.RoomLearnerSessionChannel,
-              dtoRoom.Name,
-              dtoRoom.Id,
-              dtoTopicParticipant.SeatNumber,
-              dtoRoom.Moderator.NickName,
-              false));
+    //      // signal attendee found in existing, moderated room
+    //      messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+    //          Conference.Configuration,
+    //          dtoRequestLearner.RoomLearnerSessionChannel,
+    //          dtoRoom.Name,
+    //          dtoRoom.Id,
+    //          dtoTopicParticipant.SeatNumber,
+    //          dtoRoom.Moderator.NickName,
+    //          false));
 
-          return;
-        }
+    //      return;
+    //    }
 
-        // else, all other cases, add to atrium
-        else
-        {
-          Logger.LogInformation($"learner '{dtoRequestLearner}' set for non-existant room.  asssigning to atrium");
+    //    // else, all other cases, add to atrium
+    //    else
+    //    {
+    //      Logger.LogInformation($"learner '{dtoRequestLearner}' set for non-existant room.  asssigning to atrium");
 
-          await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
+    //      await Atrium.AddLearnerAsync(dtoRequestLearner, messageQueue);
 
-          // change room to signify learner is in atrium
-          physParticipant.RoomId = null;
-          physParticipant.SeatNumber = null;
-          dbUnitOfWork.TopicParticipantRepository.Update(physParticipant);
+    //      // change room to signify learner is in atrium
+    //      physParticipant.RoomId = null;
+    //      physParticipant.SeatNumber = null;
+    //      dbUnitOfWork.TopicParticipantRepository.Update(physParticipant);
 
-          return;
-        }
+    //      return;
+    //    }
 
-      }
-    }
-    catch (Exception ex)
-    {
-      Logger.LogError(ex, "AddLearnerAsync exception");
-      throw;
-    }
-    finally
-    {
-      dbUnitOfWork.Save();
-    }
+    //  }
+    //}
+    //catch (Exception ex)
+    //{
+    //  Logger.LogError(ex, "AddLearnerAsync exception");
+    //  throw;
+    //}
+    //finally
+    //{
+    //  dbUnitOfWork.Save();
+    //}
 
   }
 
@@ -331,13 +316,13 @@ public class ConferenceTopic
   }
 
   internal async Task<TtalkConferenceTopic> GetCreateTopicAsync(
-    uint conferenceId, 
+    uint conferenceId,
     string topicName)
   {
     Guard.Argument(conferenceId, nameof(conferenceId)).Positive();
     Guard.Argument(topicName, nameof(topicName)).NotEmpty();
 
-    var phys = 
+    var phys =
       await DbUnitOfWork.ConferenceTopicRepository.GetCreateTopicAsync(conferenceId, topicName);
 
     return phys;
@@ -345,7 +330,12 @@ public class ConferenceTopic
 
   internal async Task<TtalkConferenceTopic> GetAsync(uint topicId)
   {
-    return await DbUnitOfWork.ConferenceTopicRepository.GetByIdAsync(topicId);
+    var phys = await DbUnitOfWork.ConferenceTopicRepository.GetByIdAsync(topicId);
+
+    if (phys == null)
+      Logger.LogWarning($"topic {topicId} does not exist");
+
+    return phys;
   }
 
   internal void RegisterModerator(
@@ -363,13 +353,107 @@ public class ConferenceTopic
       physTopic.TopicModeratorsChannel);
   }
 
-  internal async Task AddToAtriumAsync(
+  internal async Task SignalAtriumChangeAsync(
     TtalkConferenceTopic physTopic,
-    TtalkTopicParticipant physLearner)
+    DispatchedMessages messageQueue)
   {
     Guard.Argument(physTopic, nameof(physTopic)).NotNull();
-    Guard.Argument(physLearner, nameof(physLearner)).NotNull();
-    
+    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
 
+    try
+    {
+      await SemaphoreLogger.WaitAsync(
+        Logger,
+        $"topic {physTopic.Id} atrium",
+        _atriumSemaphore);
+
+      // load atrium users for topic
+      var atriumLearners = DbUnitOfWork
+        .TopicParticipantRepository
+        .GetAtriumLearnersForTopic(physTopic.Id).OrderBy(x => x.NickName)
+        .ToList();
+
+      // signal to topic moderators atrium update
+      messageQueue.EnqueueMessage(new AtriumUpdateMethod(
+        Conference.Configuration,
+        physTopic.TopicModeratorsChannel,
+        atriumLearners));
+
+    }
+    finally
+    {
+      SemaphoreLogger.Release(
+        Logger,
+        $"topic {physTopic.Id} atrium",
+        _atriumSemaphore);
+    }
+
+  }
+
+  internal async Task AddLearnerToAtriumAsync(
+    TtalkConferenceTopic physTopic,
+    TtalkTopicParticipant physLearner,
+    DispatchedMessages messageQueue)
+  {
+    Guard.Argument(physLearner, nameof(physLearner)).NotNull();
+    Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
+    Guard.Argument(physTopic, nameof(physTopic)).NotNull();
+
+    Logger.LogInformation($"adding '{physLearner.NickName}' to atrium.");
+
+    if (physLearner != null)
+      // signal to learner 'new' add to atrium
+      messageQueue.EnqueueMessage(new AtriumAcceptedMethod(
+        Conference.Configuration,
+        physLearner.RoomLearnerSessionChannel,
+        physTopic.Name,
+        true));
+
+    await SignalAtriumChangeAsync(
+      physTopic,
+      messageQueue);
+  }
+
+  internal IList<TtalkTopicParticipant> GetTopicParticipants(uint topicId)
+  {
+    var physList = DbUnitOfWork
+      .TopicParticipantRepository
+      .GetParticipantsForTopic(topicId)
+      .ToList();
+
+    return physList;
+  }
+
+  /// <summary>
+  /// Gets open/requested seat number
+  /// </summary>
+  /// <param name="atriumLearners">List of participants</param>
+  /// <param name="seatNumberPerference">Seat number preference</param>
+  /// <returns>New seat number</returns>
+  internal uint GetSeatNumber(IList<TtalkTopicParticipant> atriumLearners, uint? seatNumberPerference)
+  {
+    uint seatNumber = 0;
+
+    if (seatNumberPerference.HasValue)
+    {
+      seatNumber = seatNumberPerference.Value;
+      Logger.LogInformation($"using seat number perference {seatNumber}");
+    }
+
+    else
+    {
+      for (uint i = 1; i <= 8; i++)
+      {
+        var seat = atriumLearners.FirstOrDefault(x => x.SeatNumber.HasValue && x.SeatNumber.Value == i);
+        if (seat == null)
+        {
+          seatNumber = i;
+          Logger.LogInformation($"found open seat number {seatNumber}");
+          break;
+        }
+      }
+    }
+
+    return seatNumber;
   }
 }

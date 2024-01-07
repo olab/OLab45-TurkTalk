@@ -25,8 +25,8 @@ public partial class TurkTalkEndpoint
         _logger,
         ttalkDbContext);
 
-      var topicHandler = new ConferenceTopic(_logger, _conference, dbUnitOfWork);
-      var roomHandler = new TopicRoom(_logger, topicHandler, dbUnitOfWork);
+      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
+      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
       // check if moderator is already known
       var physLearner =
@@ -36,20 +36,20 @@ public partial class TurkTalkEndpoint
       if (physLearner == null)
       {
         physRoom =
-          await roomHandler.GetAsync(physLearner.RoomId.Value);
-        physTopic =
-          await topicHandler.GetAsync(physRoom.TopicId);
+          roomHandler.Get(physLearner.RoomId.Value);
 
         // update connectionId since it's probably changed
         dbUnitOfWork
           .TopicParticipantRepository
           .UpdateConnectionId(payload.ContextId, payload.ConnectionId);
+
         dbUnitOfWork.Save();
       }
 
       // new learner
       else
       {
+        // create and save new learner
         physLearner = new TtalkTopicParticipant
         {
           SessionId = payload.ContextId,
@@ -57,24 +57,29 @@ public partial class TurkTalkEndpoint
           UserId = payload.UserToken.UserId,
           UserName = payload.UserToken.UserName,
           NickName = payload.UserToken.NickName,
-          ConnectionId = payload.ConnectionId,
-          SeatNumber = 0
+          ConnectionId = payload.ConnectionId
         };
 
-        await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physLearner);
+        await dbUnitOfWork
+          .TopicParticipantRepository
+          .InsertAsync(physLearner);
+
         dbUnitOfWork.Save();
 
-        var topicName = GetTopicNameFromQuestion(payload.QuestionId);
+        var topicName = 
+          GetTopicNameFromQuestion(payload.QuestionId);
 
+        // get existing, or create new topic
         physTopic =
           await topicHandler.GetCreateTopicAsync(
             _conference.Id,
             topicName);
 
-        // add learner to topic atrium
-        await topicHandler.AddToAtriumAsync(
-          physTopic, 
-          physLearner);
+        // notify moderators of atrium change
+        topicHandler.AddLearnerToAtriumAsync(
+          physTopic,
+          physLearner,
+          MessageQueue);
       }
 
       return MessageQueue;
