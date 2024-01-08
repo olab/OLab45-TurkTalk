@@ -15,6 +15,12 @@ public class AtriumUpdateMethod : TTalkMethod
     IList<TtalkTopicParticipant> learners) : base(configuration, groupName, "atriumupdate")
   {
     Attendees = learners;
+    // null out navigation properties that are circular
+    foreach (var attendee in Attendees)
+    {
+      attendee.Topic = null;
+      attendee.Room = null;
+    }
   }
 
   public override object Arguments()
@@ -27,7 +33,7 @@ public class AtriumUpdateMethod : TTalkMethod
     var sb = new StringBuilder();
     sb.AppendLine(GroupName);
     foreach (var attendee in Attendees)
-      sb.AppendLine($" {attendee.ToString()}");
+      sb.AppendLine($" atrium: {attendee.ToString()}");
     return sb.ToString();
   }
 }
