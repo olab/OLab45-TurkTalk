@@ -338,7 +338,7 @@ public class ConferenceTopicHelper
     return phys;
   }
 
-  internal void RegisterModerator(
+  internal async Task RegisterModeratorAsync(
     DispatchedMessages messageQueue,
     TtalkConferenceTopic physTopic,
     TtalkTopicParticipant physModerator)
@@ -351,6 +351,11 @@ public class ConferenceTopicHelper
     messageQueue.EnqueueAddConnectionToGroupAction(
       physModerator.ConnectionId,
       physTopic.TopicModeratorsChannel);
+
+    // send current atrium contents
+    await SignalAtriumChangeAsync(
+      physTopic,
+      messageQueue);
   }
 
   internal async Task SignalAtriumChangeAsync(
@@ -378,7 +383,6 @@ public class ConferenceTopicHelper
         Conference.Configuration,
         physTopic.TopicModeratorsChannel,
         atriumLearners));
-
     }
     finally
     {

@@ -1,26 +1,50 @@
 ﻿using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
+public class AtriumLearner
+{
+  public string ConnectionId { get; set; }
+  public string NickName { get; set; }
+  public string SessionId { get; set; }
+  public string TokenIssuer { get; set; }
+  public string UserId { get; set; }
+  public string UserName { get; set; }
+  public uint Id { get; set; }
+  public uint? TopicId { get; set; }
+
+  public AtriumLearner(TtalkTopicParticipant source)
+  {
+    ConnectionId = source.ConnectionId;
+    NickName = source.NickName;
+    SessionId = source.SessionId;
+    TokenIssuer = source.TokenIssuer;
+    UserId = source.UserId;
+    UserName = source.UserName;
+    Id = source.Id;
+    TopicId = source.TopicId;
+  }
+}
+
 public class AtriumUpdateMethod : TTalkMethod
 {
-  public IList<TtalkTopicParticipant> Attendees { get; set; }
+  public IList<AtriumLearner> Attendees { get; set; }
 
   public AtriumUpdateMethod(
     IOLabConfiguration configuration,
     string groupName,
     IList<TtalkTopicParticipant> learners) : base(configuration, groupName, "atriumupdate")
   {
-    Attendees = learners;
+    Attendees = new List<AtriumLearner>();
+
     // null out navigation properties that are circular
-    foreach (var attendee in Attendees)
-    {
-      attendee.Topic = null;
-      attendee.Room = null;
-    }
+    foreach (var learner in learners)
+      Attendees.Add(new AtriumLearner(learner));
   }
 
   public override object Arguments()

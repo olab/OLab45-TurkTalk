@@ -18,21 +18,12 @@ public partial class TurkTalkEndpoint
   public async Task<DispatchedMessages> RegisterModeratorAsync(
     RegisterParticipantRequest payload)
   {
-    DatabaseUnitOfWork dbUnitOfWork = null;
-
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
       TtalkConferenceTopic physTopic = null;
       TtalkTopicRoom physRoom = null;
-
-      dbUnitOfWork = new DatabaseUnitOfWork(
-        _logger,
-        ttalkDbContext);
-
-      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
-      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
       // check if moderator is already known
       var physModerator =
@@ -85,7 +76,7 @@ public partial class TurkTalkEndpoint
       // create and register signalr groups
       // against the connectionId
 
-      topicHandler.RegisterModerator(
+      await topicHandler.RegisterModeratorAsync(
         MessageQueue,
         physTopic,
         physModerator);

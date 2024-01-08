@@ -178,6 +178,8 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     var physList =
       Get(x => (x.TopicId == topicId) && (!x.SeatNumber.HasValue)).ToList();
 
+    Logger.LogInformation($"found '{physList.Count}' atrium learners for topic id '{topicId}'");
+
     return physList;
   }
 

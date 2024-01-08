@@ -8,6 +8,7 @@ using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
@@ -22,7 +23,10 @@ public partial class TurkTalkEndpoint
   private IOLabLogger _logger;
   public DispatchedMessages MessageQueue { get; }
 
-  protected readonly IOLabConfiguration _configuration;
+  protected readonly DatabaseUnitOfWork dbUnitOfWork;
+  protected readonly ConferenceTopicHelper topicHandler;
+  protected readonly TopicRoomHelper roomHandler;
+  protected readonly IOLabConfiguration configuration;
 
   public TurkTalkEndpoint(
     IOLabLogger logger,
@@ -39,11 +43,18 @@ public partial class TurkTalkEndpoint
     this.dbContext = dbContext;
     this.ttalkDbContext = ttalkDbContext;
     _conference = conference;
-    _configuration = configuration;
+    this.configuration = configuration;
 
     _logger = logger;
 
     MessageQueue = new DispatchedMessages(_logger);
+
+    dbUnitOfWork = new DatabaseUnitOfWork(
+      _logger,
+      ttalkDbContext);
+
+    topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
+    roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
   }
 
   public string GetTopicNameFromQuestion(uint questionId)

@@ -12,18 +12,9 @@ public partial class TurkTalkEndpoint
   public async Task<DispatchedMessages> AssignLearnerAsync(
     AssignLearnerRequest payload)
   {
-    DatabaseUnitOfWork dbUnitOfWork = null;
-
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
-
-      dbUnitOfWork = new DatabaseUnitOfWork(
-        _logger,
-        ttalkDbContext);
-
-      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
-      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
       // add learner to room
       await roomHandler.AssignLearnerToRoomAsync(

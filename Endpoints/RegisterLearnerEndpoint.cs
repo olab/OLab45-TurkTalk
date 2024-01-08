@@ -12,21 +12,12 @@ public partial class TurkTalkEndpoint
   public async Task<DispatchedMessages> RegisterLearnerAsync(
     RegisterParticipantRequest payload)
   {
-    DatabaseUnitOfWork dbUnitOfWork = null;
-
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
       TtalkConferenceTopic physTopic = null;
       TtalkTopicRoom physRoom = null;
-
-      dbUnitOfWork = new DatabaseUnitOfWork(
-        _logger,
-        ttalkDbContext);
-
-      var topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
-      var roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
 
       // check if moderator is already known
       var physLearner =
@@ -49,7 +40,7 @@ public partial class TurkTalkEndpoint
       // new learner
       else
       {
-        var topicName = 
+        var topicName =
           GetTopicNameFromQuestion(payload.QuestionId);
 
         // get existing, or create new topic
@@ -74,7 +65,12 @@ public partial class TurkTalkEndpoint
           .TopicParticipantRepository
           .InsertAsync(physLearner);
 
-        dbUnitOfWork.Save();        
+        dbUnitOfWork.Save();
+
+        // create and add connection to learners session channel
+        MessageQueue.EnqueueAddConnectionToGroupAction(
+          physLearner.ConnectionId,
+          physLearner.RoomLearnerSessionChannel);
 
         // notify moderators of atrium change
         await topicHandler.AddLearnerToAtriumAsync(

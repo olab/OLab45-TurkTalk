@@ -78,6 +78,7 @@ public class TopicRoomHelper
     Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
     Guard.Argument(physRoom, nameof(physRoom)).NotNull();
     Guard.Argument(physLearner, nameof(physLearner)).NotNull();
+    Guard.Argument(physModerator, nameof(physModerator)).NotNull();
 
     // signal to learner added to room
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
@@ -89,7 +90,7 @@ public class TopicRoomHelper
         physModerator.NickName,
         true));
 
-    // signal to moderator learner (re)added
+    // signal to moderator learner (re)addedd
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         _topicHelper.Conference.Configuration,
         physRoom.RoomModeratorChannel,
@@ -194,6 +195,8 @@ public class TopicRoomHelper
         learnerSessionId,
         physModerator.RoomId.Value,
         seatNumber);
+
+    _dbUnitOfWork.Save();
 
     RegisterLearner(
       messageQueue, 

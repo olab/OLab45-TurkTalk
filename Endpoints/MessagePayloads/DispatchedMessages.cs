@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Worker;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Azure.Functions.Worker;
 using OLab.Common.Interfaces;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
@@ -23,7 +24,7 @@ public class DispatchedMessages
     var action = method.MessageAction();
     Messages.Add(action);
 
-    _logger.LogInformation($"sending message '{action.Target}': {{ {method} }}");
+    _logger.LogInformation($"enqueing message '{action.Target}' -> {method.Destination}: {{ {method} }}");
   }
 
   /// <summary>
