@@ -4,5 +4,7 @@ namespace OLab.FunctionApp.Functions.SignalR;
 
 public class SendMessageRequest : RequestBase
 {
-  public string ToGroupName{ get; set; }
+  public uint TopicId{ get; set; }
+  public string SessionId{ get; set; }
+  public string Message { set; get; }
 }

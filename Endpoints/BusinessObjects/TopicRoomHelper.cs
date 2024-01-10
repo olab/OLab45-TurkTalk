@@ -56,10 +56,9 @@ public class TopicRoomHelper
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         _topicHelper.Conference.Configuration,
         physRoom.RoomModeratorChannel,
-        physRoom.Topic.Name,
-        physRoom.Id,
+        physRoom,
         0,
-        physModerator.NickName,
+        physModerator,
         true));
   }
 
@@ -74,7 +73,8 @@ public class TopicRoomHelper
     DispatchedMessages messageQueue,
     TtalkTopicRoom physRoom,
     TtalkTopicParticipant physLearner,
-    TtalkTopicParticipant physModerator)
+    TtalkTopicParticipant physModerator,
+    uint seatNumber)
   {
     Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
     Guard.Argument(physRoom, nameof(physRoom)).NotNull();
@@ -85,20 +85,18 @@ public class TopicRoomHelper
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         _topicHelper.Conference.Configuration,
         physLearner.RoomLearnerSessionChannel,
-        physRoom.Topic.Name,
-        physRoom.Id,
-        0,
-        physModerator.NickName,
+        physRoom,
+        seatNumber,
+        physModerator,
         true));
 
-    // signal to moderator learner (re)addedd
+    // signal to moderator learner (re)added
     messageQueue.EnqueueMessage(new RoomAcceptedMethod(
         _topicHelper.Conference.Configuration,
         physRoom.RoomModeratorChannel,
-        physRoom.Topic.Name,
-        physRoom.Id,
-        0,
-        physModerator.NickName,
+        physRoom,
+        seatNumber,
+        physModerator,
         true));
   }
 
@@ -195,7 +193,7 @@ public class TopicRoomHelper
       .AssignToRoom(
         learnerSessionId,
         physModerator.RoomId.Value,
-        seatNumber);
+        seatNumber.Value);
 
     _dbUnitOfWork.Save();
 
@@ -203,7 +201,8 @@ public class TopicRoomHelper
       messageQueue, 
       physRoom,
       physLearner,
-      physModerator);
+      physModerator,
+      seatNumber.Value);
 
     _logger.LogInformation($"learner '{physLearner.NickName}' ({physLearner.Id}). assigned to room {physRoom.Id}, seat {seatNumber}");
 
@@ -217,10 +216,13 @@ public class TopicRoomHelper
   /// Send message to group
   /// </summary>
   /// <param name="payload"></param>
-  internal void SendMessageAsync(SendMessageRequest payload)
+  internal async Task SendMessageAsync(
+    SendMessageRequest payload,
+    DispatchedMessages messageQueue)
   {
-      // signal to topic moderators atrium update
-      //messageQueue.EnqueueMessage(new MessageMethod(
-      //  Conference.Configuration));
+    // signal to topic moderators atrium update
+    messageQueue.EnqueueMessage(new MessageMethod(
+      _topicHelper.Conference.Configuration,
+      payload));
   }
 }

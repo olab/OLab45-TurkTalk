@@ -13,6 +13,6 @@ public partial class TurkTalkEndpoint
   public async Task<DispatchedMessages> SendMessageAsync(
     SendMessageRequest payload)
   {
-    roomHandler.SendMessageAsync(payload);
+    await roomHandler.SendMessageAsync(payload, MessageQueue);
   }
 }

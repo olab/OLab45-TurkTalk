@@ -53,8 +53,15 @@ public partial class TurkTalkEndpoint
       _logger,
       ttalkDbContext);
 
-    topicHandler = new ConferenceTopicHelper(_logger, _conference, dbUnitOfWork);
-    roomHandler = new TopicRoomHelper(_logger, topicHandler, dbUnitOfWork);
+    topicHandler = new ConferenceTopicHelper(
+      _logger, 
+      _conference, 
+      dbUnitOfWork);
+
+    roomHandler = new TopicRoomHelper(
+      _logger, 
+      topicHandler, 
+      dbUnitOfWork);
   }
 
   public string GetTopicNameFromQuestion(uint questionId)

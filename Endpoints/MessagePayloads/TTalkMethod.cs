@@ -12,7 +12,7 @@ namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
 public abstract class TTalkMethod
 {
-  public string GroupName { get; }
+  public string GroupName { get; protected set; }
   public string ConnectionId { get; }
   public string Destination 
   { 
