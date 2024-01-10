@@ -64,7 +64,7 @@ public partial class TurkTalkEndpoint
 
         physTopic =
           await topicHandler.GetCreateTopicAsync(
-            _conference.Id,
+            _conference,
             topicName);
 
         physRoom =

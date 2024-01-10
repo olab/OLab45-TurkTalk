@@ -13,13 +13,13 @@ namespace OLab.Api.Common.Contracts
   {
     public Envelope Envelope { get; set; }
     public TargetNode Data { get; set; }
-    public SessionInfo Session { get; set; }
+    //public SessionInfo Session { get; set; }
 
-    public JumpNodePayload(Envelope envelope, TargetNode data, SessionInfo session)
+    public JumpNodePayload(Envelope envelope, TargetNode data /* SessionInfo session */ )
     {
       Envelope = envelope;
       Data = data;
-      Session = session;
+      //Session = session;
     }
 
   }

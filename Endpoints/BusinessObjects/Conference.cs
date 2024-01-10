@@ -24,8 +24,10 @@ public class Conference : IConference
   private IOLabConfiguration _configuration { get; }
   private OLabDBContext _dbContext { get; }
   private TTalkDBContext _ttalkDbContext { get; }
-  private IOLabLogger _logger { get; }
   private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
+  private SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
+
+  private IOLabLogger _logger { get; }
 
   public uint Id { get; set; }
   public string Name { get; set; } = null!;
@@ -33,6 +35,8 @@ public class Conference : IConference
   public IOLabConfiguration Configuration { get { return _configuration; } }
   public IOLabLogger Logger { get { return _logger; } }
   public TTalkDBContext TTDbContext { get { return _ttalkDbContext; } }
+  public SemaphoreSlim TopicSemaphore { get { return _topicSemaphore; } }
+  public SemaphoreSlim AtriumSemaphore { get { return _atriumSemaphore; } }
 
   public Conference()
   {

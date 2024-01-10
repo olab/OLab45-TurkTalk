@@ -10,6 +10,8 @@ public interface IConference
   IOLabConfiguration Configuration { get; }
   IOLabLogger Logger { get; }
   TTalkDBContext TTDbContext { get; }
+  SemaphoreSlim TopicSemaphore { get; }
+  SemaphoreSlim AtriumSemaphore { get; }
 
   uint Id { get; set; }
   string Name { get; set; }

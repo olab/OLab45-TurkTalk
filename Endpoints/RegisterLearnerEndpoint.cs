@@ -1,4 +1,5 @@
 ﻿using Dawn;
+using OLab.FunctionApp.Functions.SignalR;
 using OLab.TurkTalk.Data.Contracts;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
@@ -46,7 +47,7 @@ public partial class TurkTalkEndpoint
         // get existing, or create new topic
         physTopic =
           await topicHandler.GetCreateTopicAsync(
-            _conference.Id,
+            _conference,
             topicName);
 
         // create and save new learner

@@ -5,7 +5,7 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects
 {
   public class Envelope
   {
-    public string To { get; set; }
+    public string ToSessionId { get; set; }
     public UserToken From { get; set; }
 
     public Envelope()

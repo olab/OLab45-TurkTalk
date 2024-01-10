@@ -16,9 +16,6 @@ public class ConferenceTopicHelper
   public IConference Conference;
   private readonly DatabaseUnitOfWork DbUnitOfWork;
 
-  private SemaphoreSlim _roomSemaphore = new SemaphoreSlim(1, 1);
-  private SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
-
   public ConferenceTopicHelper()
   {
   }
@@ -316,16 +313,32 @@ public class ConferenceTopicHelper
   }
 
   internal async Task<TtalkConferenceTopic> GetCreateTopicAsync(
-    uint conferenceId,
+    IConference conference,
     string topicName)
   {
-    Guard.Argument(conferenceId, nameof(conferenceId)).Positive();
+    Guard.Argument(conference, nameof(conference)).NotNull();
     Guard.Argument(topicName, nameof(topicName)).NotEmpty();
 
-    var phys =
-      await DbUnitOfWork.ConferenceTopicRepository.GetCreateTopicAsync(conferenceId, topicName);
+    try
+    {
+      await SemaphoreLogger.WaitAsync(
+        Logger,
+        $"topic '{topicName}' creation",
+        Conference.TopicSemaphore);
 
-    return phys;
+      var phys =
+        await DbUnitOfWork.ConferenceTopicRepository.GetCreateTopicAsync(conference.Id, topicName);
+
+      return phys;
+
+    }
+    finally
+    {
+      SemaphoreLogger.Release(
+        Logger,
+        $"topic '{topicName}' creation",
+        Conference.TopicSemaphore);
+    }
   }
 
   internal async Task<TtalkConferenceTopic> GetAsync(uint topicId)
@@ -370,7 +383,7 @@ public class ConferenceTopicHelper
       await SemaphoreLogger.WaitAsync(
         Logger,
         $"topic {physTopic.Id} atrium",
-        _atriumSemaphore);
+        Conference.AtriumSemaphore);
 
       // load atrium users for topic
       var atriumLearners = DbUnitOfWork
@@ -389,7 +402,7 @@ public class ConferenceTopicHelper
       SemaphoreLogger.Release(
         Logger,
         $"topic {physTopic.Id} atrium",
-        _atriumSemaphore);
+        Conference.AtriumSemaphore);
     }
 
   }

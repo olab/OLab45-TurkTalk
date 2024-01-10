@@ -5,6 +5,7 @@ using OLab.TurkTalk.Endpoints.MessagePayloads;
 using OLab.Common.Interfaces;
 using Dawn;
 using DocumentFormat.OpenXml.Spreadsheet;
+using OLab.FunctionApp.Functions.SignalR;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicRoomHelper
@@ -210,5 +211,16 @@ public class TopicRoomHelper
     await _topicHelper.SignalAtriumChangeAsync(
       physRoom.Topic,
       messageQueue);
+  }
+
+  /// <summary>
+  /// Send message to group
+  /// </summary>
+  /// <param name="payload"></param>
+  internal void SendMessageAsync(SendMessageRequest payload)
+  {
+      // signal to topic moderators atrium update
+      //messageQueue.EnqueueMessage(new MessageMethod(
+      //  Conference.Configuration));
   }
 }
