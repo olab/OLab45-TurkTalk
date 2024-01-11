@@ -216,11 +216,11 @@ public class TopicRoomHelper
   /// Send message to group
   /// </summary>
   /// <param name="payload"></param>
-  internal async Task SendMessageAsync(
+  internal void SendMessage(
     SendMessageRequest payload,
     DispatchedMessages messageQueue)
   {
-    // signal to topic moderators atrium update
+    // signal message to learner group
     messageQueue.EnqueueMessage(new MessageMethod(
       _topicHelper.Conference.Configuration,
       payload));

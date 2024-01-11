@@ -10,9 +10,9 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public async Task<DispatchedMessages> SendMessageAsync(
+  public void SendMessage(
     SendMessageRequest payload)
   {
-    await roomHandler.SendMessageAsync(payload, MessageQueue);
+    roomHandler.SendMessage(payload, MessageQueue);
   }
 }

@@ -5,6 +5,12 @@ namespace OLab.FunctionApp.Functions.SignalR;
 public class SendMessageRequest : RequestBase
 {
   public uint TopicId{ get; set; }
+  /// <summary>
+  /// Target learner session id
+  /// </summary>
   public string SessionId{ get; set; }
+  /// <summary>
+  /// Text message
+  /// </summary>
   public string Message { set; get; }
 }
