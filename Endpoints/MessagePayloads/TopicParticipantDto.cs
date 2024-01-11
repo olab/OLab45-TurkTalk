@@ -12,6 +12,7 @@ public class TopicParticipantDto
   public string UserName { get; set; }
   public uint Id { get; set; }
   public uint? TopicId { get; set; }
+  public string GroupName { get; set; }
 
   public TopicParticipantDto(TtalkTopicParticipant source)
   {
@@ -23,5 +24,6 @@ public class TopicParticipantDto
     UserName = source.UserName;
     Id = source.Id;
     TopicId = source.TopicId;
+    GroupName = source.RoomLearnerSessionChannel;
   }
 }

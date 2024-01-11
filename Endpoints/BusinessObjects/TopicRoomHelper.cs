@@ -91,12 +91,12 @@ public class TopicRoomHelper
         true));
 
     // signal to moderator learner (re)added
-    messageQueue.EnqueueMessage(new RoomAcceptedMethod(
+    messageQueue.EnqueueMessage(new LearnerAssignedMethod(
         _topicHelper.Conference.Configuration,
         physRoom.RoomModeratorChannel,
         physRoom,
         seatNumber,
-        physModerator,
+        physLearner,
         true));
   }
 
