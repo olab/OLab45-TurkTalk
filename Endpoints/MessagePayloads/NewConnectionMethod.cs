@@ -1,9 +1,7 @@
 ﻿using Dawn;
-using Grpc.Net.Client.Configuration;
 using OLab.Access.Interfaces;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Utils;
-using OLab.TurkTalk.Endpoints.Utils;
 using System.Security.Claims;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
@@ -16,6 +14,7 @@ public class NewConnectionMethod : TTalkMethod
   public NewConnectionMethod(
     IOLabConfiguration configuration,
     string connectionId,
+    uint topicId,
     IOLabAuthentication auth) : base(
       configuration,
       connectionId,
@@ -30,7 +29,8 @@ public class NewConnectionMethod : TTalkMethod
       _auth.Claims["id"],
       _auth.Claims[ClaimTypes.Name],
       _auth.Claims["name"],
-      _auth.Claims["iss"]);
+      _auth.Claims["iss"],
+      topicId);
   }
 
   public override object Arguments()

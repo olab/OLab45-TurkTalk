@@ -9,15 +9,17 @@ public class UserToken
   public string UserName { get; set; }
   public string NickName { get; set; }
   public string TokenIssuer { get; set; }
+  public uint TopicId { get; set; }
 
   public string EncryptToken(
   string secret,
   string userId,
   string userName,
   string nickName,
-  string tokenIssuer)
+  string tokenIssuer,
+  uint topicId)
   {
-    var authString = $"{userId}//{userName}//{nickName}//{tokenIssuer}";
+    var authString = $"{userId}//{userName}//{nickName}//{tokenIssuer}//{topicId}";
     return StringUtils.EncryptString(secret, authString);
   }
 
@@ -30,6 +32,7 @@ public class UserToken
     UserName = parts[1];
     NickName = parts[2];
     TokenIssuer = parts[3];
+    TopicId = Convert.ToUInt32(parts[4]);
 
     return this;
   }
