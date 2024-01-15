@@ -10,6 +10,10 @@ public class SendMessageRequest : RequestBase
   /// </summary>
   public string SessionId{ get; set; }
   /// <summary>
+  /// Session that sent the message
+  /// </summary>
+  public string FromSessionId{ get; set; }
+  /// <summary>
   /// Text message
   /// </summary>
   public string Message { set; get; }
