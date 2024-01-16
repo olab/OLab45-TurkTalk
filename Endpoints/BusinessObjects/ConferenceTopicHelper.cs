@@ -8,6 +8,7 @@ using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.Mappers;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
+using OLab.Common.Exceptions;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class ConferenceTopicHelper
