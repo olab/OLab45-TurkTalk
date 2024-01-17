@@ -139,8 +139,11 @@ public class TopicRoomHelper
     return phys;
   }
 
-  internal TtalkTopicRoom Get(uint id)
+  internal TtalkTopicRoom Get(uint? id)
   {
+    if (!id.HasValue)
+      return null;
+
     var phys = _dbUnitOfWork
       .TopicRoomRepository
       .Get(

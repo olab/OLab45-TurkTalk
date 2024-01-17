@@ -30,7 +30,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     var phys = Get(
         filter: x => (x.SessionId == sessionId) &&
           ((x.SeatNumber.HasValue && x.SeatNumber > 0) || (!x.SeatNumber.HasValue)),
-        includeProperties: "Room, Room.Topic")
+        includeProperties: "Room, Topic")
       .FirstOrDefault();
 
     return phys;

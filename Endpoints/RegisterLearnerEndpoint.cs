@@ -23,15 +23,18 @@ public partial class TurkTalkEndpoint
       // existing learner
       if (physLearner != null)
       {
-        physRoom =
-          roomHandler.Get(physLearner.RoomId.Value);
-
         // update connectionId since it's probably changed
         dbUnitOfWork
           .TopicParticipantRepository
           .UpdateConnectionId(payload.ContextId, payload.ConnectionId);
 
         dbUnitOfWork.Save();
+
+        // test if assigned to room yet
+        physRoom =
+          roomHandler.Get(physLearner.RoomId);
+
+        // TODO: reconnect to room logic
       }
 
       // new learner

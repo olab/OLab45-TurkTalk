@@ -28,7 +28,7 @@ public partial class TurkTalkEndpoint
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "AssignLearnerAsync");
+      _logger.LogError(ex, "OnConnected");
       throw;
     }
     finally
