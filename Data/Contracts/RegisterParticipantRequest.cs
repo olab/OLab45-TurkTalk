@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OLab.TurkTalk.Data.Contracts;
-using OLab.TurkTalk.Data.Utils;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 

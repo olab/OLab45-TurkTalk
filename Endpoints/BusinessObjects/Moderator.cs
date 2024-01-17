@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using System;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 

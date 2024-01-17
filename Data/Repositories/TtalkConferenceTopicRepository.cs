@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Dawn;
+﻿using Dawn;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging.Signing;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 
@@ -41,7 +36,7 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
     var physTopic = await DbContext
       .TtalkConferenceTopics
       .Include(x => x.TtalkTopicRooms)
-      .ThenInclude( x => x.TtalkTopicParticipants)
+      .ThenInclude(x => x.TtalkTopicParticipants)
       .FirstOrDefaultAsync(x => x.Name == roomName);
 
     return physTopic;
@@ -55,7 +50,7 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
     Guard.Argument(topicName, nameof(topicName)).NotEmpty();
 
     var phys = await GetByNameAsync(topicName);
-    if ( phys == null) 
+    if (phys == null)
     {
       phys = new TtalkConferenceTopic
       {
@@ -64,7 +59,7 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
         CreatedAt = DateTime.UtcNow
       };
 
-      await InsertAsync( phys );
+      await InsertAsync(phys);
 
       // explicit save needed because we need new inserted Id 
       DbUnitOfWork.Save();

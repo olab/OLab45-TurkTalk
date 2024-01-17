@@ -16,7 +16,7 @@ public class ConferenceTopicMapper : OLabMapper<TtalkConferenceTopic, Conference
   }
 
   public ConferenceTopicHelper PhysicalToDto(
-    TtalkConferenceTopic phys, 
+    TtalkConferenceTopic phys,
     Conference conference)
   {
     var dto = base.PhysicalToDto(phys);

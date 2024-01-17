@@ -1,6 +1,4 @@
-﻿using OLab.Common.Interfaces;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
-using OLab.TurkTalk.Endpoints.MessagePayloads;
+﻿using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.Interface;
 

@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Spreadsheet;
-using Microsoft.EntityFrameworkCore;
-using OLab.Common.Interfaces;
+﻿using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
 
 namespace OLab.TurkTalk.Data.Repositories;

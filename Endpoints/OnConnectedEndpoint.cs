@@ -2,10 +2,6 @@
 using Microsoft.Azure.Functions.Worker;
 using OLab.Access;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Contracts;
-using OLab.TurkTalk.Data.Models;
-using OLab.TurkTalk.Data.Repositories;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;
@@ -13,8 +9,8 @@ namespace OLab.TurkTalk.Endpoints;
 public partial class TurkTalkEndpoint
 {
   public SignalRMessageAction OnConnected(
-    IOLabConfiguration configuration, 
-    string connectionId, 
+    IOLabConfiguration configuration,
+    string connectionId,
     OLabAuthentication auth)
   {
     try

@@ -1,25 +1,18 @@
 ﻿using OLab.Common.Interfaces;
 using OLab.FunctionApp.Functions.SignalR;
-using OLab.TurkTalk.Data.Models;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 internal class MessageMethod : TTalkMethod
 {
-  public uint TopicId{ get; set; }
+  public uint TopicId { get; set; }
   /// <summary>
   /// Session that receives the message
   /// </summary>
-  public string SessionId{ get; set; }
+  public string SessionId { get; set; }
   /// <summary>
   /// Session that sent the message
   /// </summary>
-  public string FromSessionId{ get; set; }
+  public string FromSessionId { get; set; }
   /// <summary>
   /// Text message
   /// </summary>

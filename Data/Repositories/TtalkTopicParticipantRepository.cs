@@ -1,9 +1,5 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Drawing.Spreadsheet;
-using DocumentFormat.OpenXml.Spreadsheet;
 using OLab.Common.Interfaces;
-using OLab.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 
 namespace OLab.TurkTalk.Data.Models;

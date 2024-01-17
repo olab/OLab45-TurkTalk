@@ -29,7 +29,7 @@ public class LearnerAssignedMethod : TTalkMethod
     Guard.Argument(groupName, nameof(groupName)).NotEmpty();
     Guard.Argument(physRoom, nameof(physRoom)).NotNull();
     Guard.Argument(physLearner, nameof(physLearner)).NotNull();
-    
+
     RoomId = physRoom.Id;
     TopicId = physRoom.Topic.Id;
     RoomName = physRoom.Topic.Name;

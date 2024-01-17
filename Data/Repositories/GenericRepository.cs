@@ -1,5 +1,4 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
@@ -72,7 +71,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   /// </summary>
   /// <param name="id">Id to read</param>
   /// <returns>Matched record</returns>
-  public async virtual Task<TEntity> GetByIdAsync(uint id)
+  public virtual async Task<TEntity> GetByIdAsync(uint id)
   {
     Guard.Argument(id, nameof(id)).Positive();
 

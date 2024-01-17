@@ -1,17 +1,15 @@
-﻿using OLab.TurkTalk.Data.Models;
-using OLab.TurkTalk.Endpoints.Mappers;
+﻿using Dawn;
+using OLab.Common.Interfaces;
+using OLab.FunctionApp.Functions.SignalR;
+using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
-using OLab.Common.Interfaces;
-using Dawn;
-using DocumentFormat.OpenXml.Spreadsheet;
-using OLab.FunctionApp.Functions.SignalR;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicRoomHelper
 {
   private readonly DatabaseUnitOfWork _dbUnitOfWork;
-  private IOLabLogger _logger;
+  private readonly IOLabLogger _logger;
   private ConferenceTopicHelper _topicHelper { get; set; }
 
   public TopicRoomHelper()
@@ -69,7 +67,7 @@ public class TopicRoomHelper
   /// <param name="physRoom">Room</param>
   /// <param name="physLearner">Learner assigned</param>
   /// <param name="physModerator">Moderator</param>
-  internal void RegisterLearner(    
+  internal void RegisterLearner(
     DispatchedMessages messageQueue,
     TtalkTopicRoom physRoom,
     TtalkTopicParticipant physLearner,
@@ -198,7 +196,7 @@ public class TopicRoomHelper
     _dbUnitOfWork.Save();
 
     RegisterLearner(
-      messageQueue, 
+      messageQueue,
       physRoom,
       physLearner,
       physModerator,

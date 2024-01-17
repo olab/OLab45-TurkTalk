@@ -3,17 +3,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
-using OLab.TurkTalk.Endpoints.Interface;
-using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Test;
 
 public class TopicAtriumTest
 {
   //private ITopicAtrium _atrium;
-  private IOLabLogger _logger;
-  private IOLabConfiguration _configuration;
+  private readonly IOLabLogger _logger;
+  private readonly IOLabConfiguration _configuration;
 
   public TopicAtriumTest()
   {

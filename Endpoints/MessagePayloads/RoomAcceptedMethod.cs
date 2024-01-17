@@ -29,7 +29,7 @@ public class RoomAcceptedMethod : TTalkMethod
     Guard.Argument(groupName, nameof(groupName)).NotEmpty();
     Guard.Argument(physRoom, nameof(physRoom)).NotNull();
     Guard.Argument(physModerator, nameof(physModerator)).NotNull();
-    
+
     RoomId = physRoom.Id;
     TopicId = physRoom.Topic.Id;
     RoomName = physRoom.Topic.Name;

@@ -1,16 +1,10 @@
 ﻿using Dawn;
-using Humanizer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
-using OLab.Common.Utils;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
-using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
-using OLab.TurkTalk.Endpoints.Mappers;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
@@ -24,8 +18,8 @@ public class Conference : IConference
   private IOLabConfiguration _configuration { get; }
   private OLabDBContext _dbContext { get; }
   private TTalkDBContext _ttalkDbContext { get; }
-  private SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
-  private SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
+  private readonly SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
+  private readonly SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
 
   private IOLabLogger _logger { get; }
 

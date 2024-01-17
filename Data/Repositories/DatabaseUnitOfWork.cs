@@ -1,14 +1,6 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.InkML;
-using Microsoft.Extensions.Logging;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.Data.Repositories;
 public class DatabaseUnitOfWork : IDisposable

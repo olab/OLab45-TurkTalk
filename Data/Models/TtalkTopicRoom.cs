@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
@@ -11,27 +9,27 @@ namespace OLab.TurkTalk.Data.Models;
 [Index("ModeratorId", Name = "fk_ttalk_topic_room_ttalk_room_attendee1_idx")]
 public partial class TtalkTopicRoom
 {
-    [Key]
-    [Column("id", TypeName = "int(11) unsigned")]
-    public uint Id { get; set; }
+  [Key]
+  [Column("id", TypeName = "int(11) unsigned")]
+  public uint Id { get; set; }
 
-    [Column("topic_id", TypeName = "int(11) unsigned")]
-    public uint TopicId { get; set; }
+  [Column("topic_id", TypeName = "int(11) unsigned")]
+  public uint TopicId { get; set; }
 
-    [Column("moderator_id", TypeName = "int(10) unsigned")]
-    public uint? ModeratorId { get; set; }
+  [Column("moderator_id", TypeName = "int(10) unsigned")]
+  public uint? ModeratorId { get; set; }
 
-    [ForeignKey("ModeratorId")]
-    [InverseProperty("TtalkTopicRooms")]
-    public virtual TtalkTopicParticipant Moderator { get; set; }
+  [ForeignKey("ModeratorId")]
+  [InverseProperty("TtalkTopicRooms")]
+  public virtual TtalkTopicParticipant Moderator { get; set; }
 
-    [ForeignKey("TopicId")]
-    [InverseProperty("TtalkTopicRooms")]
-    public virtual TtalkConferenceTopic Topic { get; set; }
+  [ForeignKey("TopicId")]
+  [InverseProperty("TtalkTopicRooms")]
+  public virtual TtalkConferenceTopic Topic { get; set; }
 
-    [InverseProperty("Room")]
-    public virtual ICollection<TtalkRoomSession> TtalkRoomSessions { get; } = new List<TtalkRoomSession>();
+  [InverseProperty("Room")]
+  public virtual ICollection<TtalkRoomSession> TtalkRoomSessions { get; } = new List<TtalkRoomSession>();
 
-    [InverseProperty("Room")]
-    public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
+  [InverseProperty("Room")]
+  public virtual ICollection<TtalkTopicParticipant> TtalkTopicParticipants { get; } = new List<TtalkTopicParticipant>();
 }

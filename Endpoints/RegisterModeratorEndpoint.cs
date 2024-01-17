@@ -1,15 +1,6 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Drawing.Spreadsheet;
-using DocumentFormat.OpenXml.Presentation;
-using DocumentFormat.OpenXml.Spreadsheet;
-using OLab.Api.Common.Contracts;
-using OLab.Api.Models;
-using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Models;
-using OLab.TurkTalk.Data.Repositories;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
-using OLab.TurkTalk.Endpoints.Utils;
 
 namespace OLab.TurkTalk.Endpoints;
 
@@ -39,7 +30,7 @@ public partial class TurkTalkEndpoint
         // update connectionId since it's probably changed
         dbUnitOfWork
           .TopicParticipantRepository
-          .UpdateConnectionId( payload.ContextId, payload.ConnectionId );
+          .UpdateConnectionId(payload.ContextId, payload.ConnectionId);
         dbUnitOfWork.Save();
       }
 
@@ -57,7 +48,7 @@ public partial class TurkTalkEndpoint
           SeatNumber = 0
         };
 
-        await dbUnitOfWork.TopicParticipantRepository.InsertAsync( physModerator );
+        await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physModerator);
         dbUnitOfWork.Save();
 
         var topicName = GetTopicNameFromQuestion(payload.QuestionId);
@@ -94,9 +85,9 @@ public partial class TurkTalkEndpoint
       _logger.LogError(ex, "RegisterModeratorAsync");
       throw;
     }
-    finally 
-    { 
-      dbUnitOfWork.Save(); 
+    finally
+    {
+      dbUnitOfWork.Save();
     }
   }
 }

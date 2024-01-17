@@ -1,10 +1,5 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Presentation;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using OLab.Api.Common.Contracts;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
@@ -20,7 +15,7 @@ public partial class TurkTalkEndpoint
   protected readonly OLabDBContext dbContext;
   protected readonly TTalkDBContext ttalkDbContext;
   private readonly IConference _conference;
-  private IOLabLogger _logger;
+  private readonly IOLabLogger _logger;
   public DispatchedMessages MessageQueue { get; }
 
   protected readonly DatabaseUnitOfWork dbUnitOfWork;
@@ -54,13 +49,13 @@ public partial class TurkTalkEndpoint
       ttalkDbContext);
 
     topicHandler = new ConferenceTopicHelper(
-      _logger, 
-      _conference, 
+      _logger,
+      _conference,
       dbUnitOfWork);
 
     roomHandler = new TopicRoomHelper(
-      _logger, 
-      topicHandler, 
+      _logger,
+      topicHandler,
       dbUnitOfWork);
   }
 

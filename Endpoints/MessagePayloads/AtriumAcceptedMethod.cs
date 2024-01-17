@@ -1,11 +1,9 @@
 ﻿using Dawn;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Endpoints.BusinessObjects;
-using System.Text;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
-public class AtriumAcceptedMethod: TTalkMethod
+public class AtriumAcceptedMethod : TTalkMethod
 {
   //  payload properties
   public string TopicName { get; set; }
@@ -15,7 +13,7 @@ public class AtriumAcceptedMethod: TTalkMethod
     IOLabConfiguration configuration,
     string groupName,
     string topicName,
-    bool wasAdded ) : base(
+    bool wasAdded) : base(
       configuration,
       groupName,
       "atriumaccepted")

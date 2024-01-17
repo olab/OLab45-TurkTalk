@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace OLab.TurkTalk.Data.Models;
 
@@ -10,31 +8,31 @@ namespace OLab.TurkTalk.Data.Models;
 [Index("RoomSessionId", Name = "fk_tsc_trs_idx")]
 public partial class TtalkSessionConversation
 {
-    [Key]
-    [Column("id", TypeName = "int(10) unsigned")]
-    public uint Id { get; set; }
+  [Key]
+  [Column("id", TypeName = "int(10) unsigned")]
+  public uint Id { get; set; }
 
-    [Required]
-    [Column("session_id")]
-    [StringLength(45)]
-    public string SessionId { get; set; }
+  [Required]
+  [Column("session_id")]
+  [StringLength(45)]
+  public string SessionId { get; set; }
 
-    [Column("attendee_id", TypeName = "int(10) unsigned")]
-    public uint AttendeeId { get; set; }
+  [Column("attendee_id", TypeName = "int(10) unsigned")]
+  public uint AttendeeId { get; set; }
 
-    [Column("room_session_id", TypeName = "int(10) unsigned")]
-    public uint RoomSessionId { get; set; }
+  [Column("room_session_id", TypeName = "int(10) unsigned")]
+  public uint RoomSessionId { get; set; }
 
-    [Column("start_date", TypeName = "datetime")]
-    public DateTime StartDate { get; set; }
+  [Column("start_date", TypeName = "datetime")]
+  public DateTime StartDate { get; set; }
 
-    [Column("end_date", TypeName = "datetime")]
-    public DateTime? EndDate { get; set; }
+  [Column("end_date", TypeName = "datetime")]
+  public DateTime? EndDate { get; set; }
 
-    [Column("is_attendee_speaker", TypeName = "tinyint(4)")]
-    public sbyte IsAttendeeSpeaker { get; set; }
+  [Column("is_attendee_speaker", TypeName = "tinyint(4)")]
+  public sbyte IsAttendeeSpeaker { get; set; }
 
-    [ForeignKey("RoomSessionId")]
-    [InverseProperty("TtalkSessionConversations")]
-    public virtual TtalkRoomSession RoomSession { get; set; }
+  [ForeignKey("RoomSessionId")]
+  [InverseProperty("TtalkSessionConversations")]
+  public virtual TtalkRoomSession RoomSession { get; set; }
 }

@@ -1,12 +1,6 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Presentation;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using OLab.Access.Interfaces;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Endpoints.Utils;
-using System.Configuration;
-using System.Security.Claims;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -14,15 +8,15 @@ public abstract class TTalkMethod
 {
   public string GroupName { get; protected set; }
   public string ConnectionId { get; }
-  public string Destination 
-  { 
-    get 
-    { 
-        if ( !string.IsNullOrEmpty( GroupName ) )
-          return GroupName;
-        if ( !string.IsNullOrEmpty( ConnectionId ) )
-          return ConnectionId;
-        return "????";
+  public string Destination
+  {
+    get
+    {
+      if (!string.IsNullOrEmpty(GroupName))
+        return GroupName;
+      if (!string.IsNullOrEmpty(ConnectionId))
+        return ConnectionId;
+      return "????";
     }
   }
 
