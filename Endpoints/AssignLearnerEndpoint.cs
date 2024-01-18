@@ -15,7 +15,7 @@ public partial class TurkTalkEndpoint
       Guard.Argument(payload).NotNull(nameof(payload));
       
       // add learner to room
-      await roomHelper.AssignLearnerToRoomAsync(
+      await RoomHelper.AssignLearnerToRoomAsync(
         MessageQueue,
         payload.LearnerSessionId,
         payload.ModeratorSessionId,

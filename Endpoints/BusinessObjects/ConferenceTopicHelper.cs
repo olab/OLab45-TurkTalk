@@ -12,7 +12,11 @@ namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class ConferenceTopicHelper : OLabHelper
 {
   public IConference Conference;
+
+  public readonly TopicRoomHelper RoomHelper;
   public readonly TopicParticipantHelper ParticipantHelper;
+  private readonly SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
+  private readonly SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
 
   public ConferenceTopicHelper()
   {
@@ -26,6 +30,12 @@ public class ConferenceTopicHelper : OLabHelper
     Guard.Argument(conference).NotNull(nameof(conference));
 
     Conference = conference;
+
+    RoomHelper = new TopicRoomHelper(
+      Logger,
+      this,
+      dbUnitOfWork);
+
     ParticipantHelper = new TopicParticipantHelper(
       Logger,
       dbUnitOfWork);
@@ -258,7 +268,7 @@ public class ConferenceTopicHelper : OLabHelper
     Guard.Argument(moderatorSessionId, nameof(moderatorSessionId)).NotEmpty();
     Guard.Argument(learnerSessionId, nameof(learnerSessionId)).NotEmpty();
 
-    var dbUnit = new DatabaseUnitOfWork(Logger, Conference.TTDbContext, null);
+    var dbUnit = new DatabaseUnitOfWork(Logger, Conference.DbContextTtalk, null);
 
     //var physModerator = dbUnit
     //  .TopicParticipantRepository
@@ -332,7 +342,7 @@ public class ConferenceTopicHelper : OLabHelper
       await SemaphoreLogger.WaitAsync(
         Logger,
         $"topic '{nodeId}:{questionId}' creation",
-        Conference.TopicSemaphore);
+        _topicSemaphore);
 
       var phys =
         await DbUnitOfWork
@@ -347,7 +357,7 @@ public class ConferenceTopicHelper : OLabHelper
       SemaphoreLogger.Release(
         Logger,
         $"topic '{nodeId}:{questionId}' creation",
-        Conference.TopicSemaphore);
+        _topicSemaphore);
     }
   }
 
@@ -400,8 +410,8 @@ public class ConferenceTopicHelper : OLabHelper
     {
       await SemaphoreLogger.WaitAsync(
         Logger,
-        $"topic {physTopic.Id} atrium",
-        Conference.AtriumSemaphore);
+        $"atrium {physTopic.Id}",
+        _atriumSemaphore);
 
       // load atrium users for topic
       var atriumLearners = DbUnitOfWork
@@ -419,8 +429,8 @@ public class ConferenceTopicHelper : OLabHelper
     {
       SemaphoreLogger.Release(
         Logger,
-        $"topic {physTopic.Id} atrium",
-        Conference.AtriumSemaphore);
+        $"atrium {physTopic.Id}",
+        _atriumSemaphore);
     }
 
   }

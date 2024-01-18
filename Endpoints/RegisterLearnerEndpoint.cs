@@ -18,18 +18,18 @@ public partial class TurkTalkEndpoint
 
       // get existing, or create new topic
       physTopic =
-        await topicHelper.GetCreateTopicAsync(
+        await TopicHelper.GetCreateTopicAsync(
           _conference,
           payload.NodeId,
           payload.QuestionId);
 
       var physLearner =
-        topicHelper.GetLearnerBySessionId(payload.ContextId);
+        TopicHelper.GetLearnerBySessionId(payload.ContextId);
 
       // check if participent session is already known to topic
       if (physLearner != null)
       {
-        topicHelper
+        TopicHelper
           .ParticipantHelper
           .UpdateParticipantConnectionId(
             payload.ContextId, 
@@ -38,7 +38,7 @@ public partial class TurkTalkEndpoint
         // if participant was already in atrium,
         // just force an atrium update
         if (physLearner.IsInAtrium())
-          await topicHelper.BroadcastAtriumAddition(
+          await TopicHelper.BroadcastAtriumAddition(
             physTopic,
             physLearner,
             MessageQueue);
@@ -46,7 +46,7 @@ public partial class TurkTalkEndpoint
         else
         {
           physRoom =
-            roomHelper.Get(physLearner.RoomId);
+            RoomHelper.Get(physLearner.RoomId);
 
           //TODO: handle re-connection to room
         }
@@ -66,7 +66,7 @@ public partial class TurkTalkEndpoint
           TopicId = physTopic.Id
         };
 
-        await topicHelper
+        await TopicHelper
           .ParticipantHelper
           .InsertAsync(physLearner);
 
@@ -76,7 +76,7 @@ public partial class TurkTalkEndpoint
           physLearner.RoomLearnerSessionChannel);
 
         // notify moderators of atrium change
-        await topicHelper.BroadcastAtriumAddition(
+        await TopicHelper.BroadcastAtriumAddition(
           physTopic,
           physLearner,
           MessageQueue);

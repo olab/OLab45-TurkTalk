@@ -12,7 +12,6 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  protected readonly OLabDBContext dbContext;
   protected readonly TTalkDBContext ttalkDbContext;
 
   private readonly IConference _conference;
@@ -20,44 +19,31 @@ public partial class TurkTalkEndpoint
   public DispatchedMessages MessageQueue { get; }
 
   protected readonly DatabaseUnitOfWork dbUnitOfWork;
-  protected readonly ConferenceTopicHelper topicHelper;
-  protected readonly TopicRoomHelper roomHelper;
   protected readonly IOLabConfiguration configuration;
+
+  public ConferenceTopicHelper TopicHelper 
+  { 
+    get { return _conference.TopicHelper; } 
+  }
+
+  public TopicRoomHelper RoomHelper 
+  { 
+    get { return _conference.TopicHelper.RoomHelper; } 
+  }
 
   public TurkTalkEndpoint(
     IOLabLogger logger,
     IOLabConfiguration configuration,
-    OLabDBContext dbContext,
-    TTalkDBContext ttalkDbContext,
     IConference conference)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(configuration).NotNull(nameof(configuration));
-    Guard.Argument(dbContext).NotNull(nameof(dbContext));
-    Guard.Argument(ttalkDbContext).NotNull(nameof(ttalkDbContext));
 
-    this.dbContext = dbContext;
-    this.ttalkDbContext = ttalkDbContext;
     _conference = conference;
     this.configuration = configuration;
 
     _logger = logger;
 
     MessageQueue = new DispatchedMessages(_logger);
-
-    dbUnitOfWork = new DatabaseUnitOfWork(
-      _logger,
-      ttalkDbContext,
-      dbContext);
-
-    topicHelper = new ConferenceTopicHelper(
-      _logger,
-      _conference,
-      dbUnitOfWork);
-
-    roomHelper = new TopicRoomHelper(
-      _logger,
-      topicHelper,
-      dbUnitOfWork);
   }
 }

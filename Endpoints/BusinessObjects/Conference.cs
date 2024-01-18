@@ -4,6 +4,7 @@ using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
@@ -16,10 +17,14 @@ public class QuestionSetting
 public class Conference : IConference
 {
   private IOLabConfiguration _configuration { get; }
-  private OLabDBContext _dbContext { get; }
-  private TTalkDBContext _ttalkDbContext { get; }
-  private readonly SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
-  private readonly SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
+  private OLabDBContext _dbContextOLab { get; }
+  private TTalkDBContext _dbContextTtalk { get; }
+  private ConferenceTopicHelper _topicHelper;
+
+  public ConferenceTopicHelper TopicHelper 
+  { 
+    get { return _topicHelper; } 
+  }
 
   private IOLabLogger _logger { get; }
 
@@ -28,9 +33,10 @@ public class Conference : IConference
 
   public IOLabConfiguration Configuration { get { return _configuration; } }
   public IOLabLogger Logger { get { return _logger; } }
-  public TTalkDBContext TTDbContext { get { return _ttalkDbContext; } }
-  public SemaphoreSlim TopicSemaphore { get { return _topicSemaphore; } }
-  public SemaphoreSlim AtriumSemaphore { get { return _atriumSemaphore; } }
+  public TTalkDBContext DbContextTtalk { get { return _dbContextTtalk; } }
+  public OLabDBContext DbContextOLab { get { return _dbContextOLab; } }
+
+  ConferenceTopicHelper IConference.TopicHelper => throw new NotImplementedException();
 
   public Conference()
   {
@@ -40,26 +46,36 @@ public class Conference : IConference
   public Conference(
     ILoggerFactory loggerFactory,
     IOLabConfiguration configuration,
-    OLabDBContext dbContext,
-    TTalkDBContext ttalkDbContext)
+    OLabDBContext dbContextOLab,
+    TTalkDBContext dbContextTtalk)
   {
     Guard.Argument(loggerFactory).NotNull(nameof(loggerFactory));
     Guard.Argument(configuration).NotNull(nameof(configuration));
-    Guard.Argument(dbContext).NotNull(nameof(dbContext));
-    Guard.Argument(ttalkDbContext).NotNull(nameof(ttalkDbContext));
+    Guard.Argument(dbContextOLab).NotNull(nameof(dbContextOLab));
+    Guard.Argument(dbContextTtalk).NotNull(nameof(dbContextTtalk));
 
     _logger = OLabLogger.CreateNew<Conference>(loggerFactory);
     _configuration = configuration;
-    _dbContext = dbContext;
-    _ttalkDbContext = ttalkDbContext;
+    _dbContextOLab = dbContextOLab;
+    _dbContextTtalk = dbContextTtalk;
 
     // load the initial conference (for now, it's assumed to
     // only be one of, for now)
-    var physConference = TTDbContext.TtalkConferences
+    var physConference = DbContextTtalk.TtalkConferences
       .FirstOrDefault() ?? throw new Exception("System conference record not defined");
 
     Id = physConference.Id;
     Name = physConference.Name;
+
+    var dbUnitOfWork = new DatabaseUnitOfWork(
+      _logger,
+      _dbContextTtalk,
+      _dbContextOLab);
+
+    _topicHelper = new ConferenceTopicHelper(
+      _logger,
+      this,
+      dbUnitOfWork);
 
     Logger.LogInformation($"conference'{Name}' ({Id}) loaded from conference");
 

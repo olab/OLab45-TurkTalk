@@ -25,7 +25,7 @@ public partial class TurkTalkEndpoint
       if (physModerator != null)
       {
         physRoom =
-          roomHelper.Get(physModerator.RoomId.Value);
+          RoomHelper.Get(physModerator.RoomId.Value);
         physTopic = physRoom.Topic;
 
         // update connectionId since it's probably changed
@@ -53,13 +53,13 @@ public partial class TurkTalkEndpoint
         dbUnitOfWork.Save();
 
         physTopic =
-          await topicHelper.GetCreateTopicAsync(
+          await TopicHelper.GetCreateTopicAsync(
             _conference, 
             payload.NodeId,
             payload.QuestionId);
 
         physRoom =
-          await roomHelper.CreateRoomAsync(
+          await RoomHelper.CreateRoomAsync(
             physTopic,
             physModerator);
       }
@@ -67,12 +67,12 @@ public partial class TurkTalkEndpoint
       // create and register signalr groups
       // against the connectionId
 
-      await topicHelper.RegisterModeratorAsync(
+      await TopicHelper.RegisterModeratorAsync(
         MessageQueue,
         physTopic,
         physModerator);
 
-      roomHelper.RegisterModerator(
+      RoomHelper.RegisterModerator(
         MessageQueue,
         physRoom,
         physModerator);
