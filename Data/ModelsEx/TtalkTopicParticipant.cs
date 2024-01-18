@@ -12,4 +12,14 @@ public partial class TtalkTopicParticipant
       return $"{TopicId}//{SessionId}//session";
     }
   }
+
+  public bool IsInAtrium()
+  {
+    return !RoomId.HasValue;
+  }
+
+  public bool IsModerator()
+  {
+    return !RoomId.HasValue && !SeatNumber.HasValue;
+  }
 }

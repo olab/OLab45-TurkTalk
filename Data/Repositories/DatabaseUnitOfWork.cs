@@ -1,5 +1,6 @@
 ﻿using Dawn;
 using OLab.Common.Interfaces;
+using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
 
 namespace OLab.TurkTalk.Data.Repositories;
@@ -12,17 +13,21 @@ public class DatabaseUnitOfWork : IDisposable
   private bool disposed = false;
 
   public IOLabLogger Logger { get; }
-  public TTalkDBContext DbContext { get; }
+  public TTalkDBContext DbContextTT { get; }
+  public OLabDBContext DbContextOLab { get; }
 
   public DatabaseUnitOfWork(
     IOLabLogger logger,
-    TTalkDBContext dbContext)
+    TTalkDBContext ttDbContext,
+    OLabDBContext dbContext)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
+    Guard.Argument(ttDbContext).NotNull(nameof(ttDbContext));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));
 
     Logger = logger;
-    DbContext = dbContext;
+    DbContextTT = ttDbContext;
+    DbContextOLab = dbContext;
   }
 
   public TtalkTopicRoomRepository TopicRoomRepository
@@ -57,7 +62,7 @@ public class DatabaseUnitOfWork : IDisposable
 
   public void Save()
   {
-    DbContext.SaveChanges();
+    DbContextTT.SaveChanges();
   }
 
   protected virtual void Dispose(bool disposing)
@@ -66,7 +71,7 @@ public class DatabaseUnitOfWork : IDisposable
     {
       if (disposing)
       {
-        DbContext.Dispose();
+        DbContextTT.Dispose();
       }
     }
     disposed = true;

@@ -29,33 +29,36 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
   }
 
   public async Task<TtalkConferenceTopic> GetByNameAsync(
-    string roomName)
+    string roomName,
+    uint nodeId )
   {
     Guard.Argument(roomName, nameof(roomName)).NotEmpty();
+    Guard.Argument(nodeId, nameof(nodeId)).Positive();
 
     var physTopic = await DbContext
       .TtalkConferenceTopics
-      .Include(x => x.TtalkTopicRooms)
-      .ThenInclude(x => x.TtalkTopicParticipants)
-      .FirstOrDefaultAsync(x => x.Name == roomName);
+      .FirstOrDefaultAsync(x => x.Name == roomName && x.NodeId == nodeId);
 
     return physTopic;
   }
 
   public async Task<TtalkConferenceTopic> GetCreateTopicAsync(
     uint conferenceId,
+    uint nodeId,
     string topicName)
   {
     Guard.Argument(conferenceId, nameof(conferenceId)).Positive();
+    Guard.Argument(nodeId, nameof(nodeId)).Positive();
     Guard.Argument(topicName, nameof(topicName)).NotEmpty();
 
-    var phys = await GetByNameAsync(topicName);
+    var phys = await GetByNameAsync(topicName, nodeId);
     if (phys == null)
     {
       phys = new TtalkConferenceTopic
       {
         ConferenceId = conferenceId,
         Name = topicName,
+        NodeId = nodeId,
         CreatedAt = DateTime.UtcNow
       };
 

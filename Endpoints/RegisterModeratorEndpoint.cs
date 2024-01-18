@@ -18,13 +18,14 @@ public partial class TurkTalkEndpoint
 
       // check if moderator is already known
       var physModerator =
-        dbUnitOfWork.TopicParticipantRepository.GetModeratorBySessionId(payload.ContextId);
+        dbUnitOfWork
+        .TopicParticipantRepository.GetModeratorBySessionId(payload.ContextId);
 
       // existing moderator
       if (physModerator != null)
       {
         physRoom =
-          roomHandler.Get(physModerator.RoomId.Value);
+          roomHelper.Get(physModerator.RoomId.Value);
         physTopic = physRoom.Topic;
 
         // update connectionId since it's probably changed
@@ -51,15 +52,14 @@ public partial class TurkTalkEndpoint
         await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physModerator);
         dbUnitOfWork.Save();
 
-        var topicName = GetTopicNameFromQuestion(payload.QuestionId);
-
         physTopic =
-          await topicHandler.GetCreateTopicAsync(
-            _conference,
-            topicName);
+          await topicHelper.GetCreateTopicAsync(
+            _conference, 
+            payload.NodeId,
+            payload.QuestionId);
 
         physRoom =
-          await roomHandler.CreateRoomAsync(
+          await roomHelper.CreateRoomAsync(
             physTopic,
             physModerator);
       }
@@ -67,12 +67,12 @@ public partial class TurkTalkEndpoint
       // create and register signalr groups
       // against the connectionId
 
-      await topicHandler.RegisterModeratorAsync(
+      await topicHelper.RegisterModeratorAsync(
         MessageQueue,
         physTopic,
         physModerator);
 
-      roomHandler.RegisterModerator(
+      roomHelper.RegisterModerator(
         MessageQueue,
         physRoom,
         physModerator);

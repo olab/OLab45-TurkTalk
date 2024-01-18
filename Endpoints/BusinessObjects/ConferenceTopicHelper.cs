@@ -1,4 +1,6 @@
 ﻿using Dawn;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
 using OLab.TurkTalk.Data.Models;
@@ -6,13 +8,11 @@ using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
-
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
-public class ConferenceTopicHelper
+public class ConferenceTopicHelper : OLabHelper
 {
-  public readonly IOLabLogger Logger;
   public IConference Conference;
-  private readonly DatabaseUnitOfWork DbUnitOfWork;
+  public readonly TopicParticipantHelper ParticipantHelper;
 
   public ConferenceTopicHelper()
   {
@@ -21,16 +21,14 @@ public class ConferenceTopicHelper
   public ConferenceTopicHelper(
     IOLabLogger logger,
     IConference conference,
-    DatabaseUnitOfWork dbUnitOfWork) : this()
+    DatabaseUnitOfWork dbUnitOfWork) : base(logger, dbUnitOfWork)
   {
-    Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(conference).NotNull(nameof(conference));
-    Guard.Argument(dbUnitOfWork).NotNull(nameof(dbUnitOfWork));
-
-    Logger = logger;
 
     Conference = conference;
-    DbUnitOfWork = dbUnitOfWork;
+    ParticipantHelper = new TopicParticipantHelper(
+      Logger,
+      dbUnitOfWork);
   }
 
   //public TopicParticipant GetTopicParticipant(string sessionId)
@@ -260,7 +258,7 @@ public class ConferenceTopicHelper
     Guard.Argument(moderatorSessionId, nameof(moderatorSessionId)).NotEmpty();
     Guard.Argument(learnerSessionId, nameof(learnerSessionId)).NotEmpty();
 
-    var dbUnit = new DatabaseUnitOfWork(Logger, Conference.TTDbContext);
+    var dbUnit = new DatabaseUnitOfWork(Logger, Conference.TTDbContext, null);
 
     //var physModerator = dbUnit
     //  .TopicParticipantRepository
@@ -310,22 +308,36 @@ public class ConferenceTopicHelper
 
   }
 
+  /// <summary>
+  /// Get/create topic
+  /// </summary>
+  /// <param name="conference">Owning conference</param>
+  /// <param name="nodeId">Node id containing ttalk question</param>
+  /// <param name="questionId">Turktalk question id</param>
+  /// <returns>Conference topic</returns>
   internal async Task<TtalkConferenceTopic> GetCreateTopicAsync(
     IConference conference,
-    string topicName)
+    uint nodeId,
+    uint questionId)
   {
     Guard.Argument(conference, nameof(conference)).NotNull();
-    Guard.Argument(topicName, nameof(topicName)).NotEmpty();
+    Guard.Argument(nodeId, nameof(nodeId)).Positive();
+    Guard.Argument(questionId, nameof(questionId)).Positive();
 
     try
     {
+      var topicName = 
+        GetTopicNameFromQuestion(questionId);
+
       await SemaphoreLogger.WaitAsync(
         Logger,
-        $"topic '{topicName}' creation",
+        $"topic '{nodeId}:{questionId}' creation",
         Conference.TopicSemaphore);
 
       var phys =
-        await DbUnitOfWork.ConferenceTopicRepository.GetCreateTopicAsync(conference.Id, topicName);
+        await DbUnitOfWork
+          .ConferenceTopicRepository
+          .GetCreateTopicAsync(conference.Id, nodeId, topicName);
 
       return phys;
 
@@ -334,14 +346,22 @@ public class ConferenceTopicHelper
     {
       SemaphoreLogger.Release(
         Logger,
-        $"topic '{topicName}' creation",
+        $"topic '{nodeId}:{questionId}' creation",
         Conference.TopicSemaphore);
     }
   }
 
+  /// <summary>
+  /// Gets a topic from the database
+  /// </summary>
+  /// <param name="topicId">Topic id</param>
+  /// <returns>Conference topic</returns>
   internal async Task<TtalkConferenceTopic> GetAsync(uint topicId)
   {
-    var phys = await DbUnitOfWork.ConferenceTopicRepository.GetByIdAsync(topicId);
+    var phys = 
+      await DbUnitOfWork
+        .ConferenceTopicRepository
+        .GetByIdAsync(topicId);
 
     if (phys == null)
       Logger.LogWarning($"topic {topicId} does not exist");
@@ -405,7 +425,7 @@ public class ConferenceTopicHelper
 
   }
 
-  internal async Task AddLearnerToAtriumAsync(
+  internal async Task BroadcastAtriumAddition(
     TtalkConferenceTopic physTopic,
     TtalkTopicParticipant physLearner,
     DispatchedMessages messageQueue)
@@ -427,16 +447,6 @@ public class ConferenceTopicHelper
     await SignalAtriumChangeAsync(
       physTopic,
       messageQueue);
-  }
-
-  internal IList<TtalkTopicParticipant> GetTopicParticipants(uint topicId)
-  {
-    var physList = DbUnitOfWork
-      .TopicParticipantRepository
-      .GetParticipantsForTopic(topicId)
-      .ToList();
-
-    return physList;
   }
 
   /// <summary>
@@ -470,5 +480,44 @@ public class ConferenceTopicHelper
     }
 
     return seatNumber;
+  }
+
+  /// <summary>
+  /// Gets the topic name from the TTalk question
+  /// </summary>
+  /// <param name="questionId">TTalk question id</param>
+  /// <returns>Topic Name</returns>
+  /// <exception cref="Exception">Could not find question id or question room/topic name</exception>
+  public string GetTopicNameFromQuestion(uint questionId)
+  {
+    // ensure question is valid and is of correct type (ttalk)
+    var question = DbUnitOfWork
+      .DbContextOLab
+      .SystemQuestions
+      .FirstOrDefault(x => x.Id == questionId &&
+        (x.EntryTypeId == 11 || x.EntryTypeId == 15)) ??
+      throw new Exception($"question id {questionId} not found/invalid");
+
+    var questionSetting =
+      JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
+
+    if (string.IsNullOrEmpty(questionSetting.RoomName))
+      throw new Exception($"unable to get room name from question id {questionId}");
+
+    return questionSetting.RoomName;
+  }
+
+  /// <summary>
+  /// Get learner by session id
+  /// </summary>
+  /// <param name="contextId">Session id</param>
+  /// <returns>Participant (or null of not found)</returns>
+  internal TtalkTopicParticipant GetLearnerBySessionId(string contextId)
+  {
+    var phys = DbUnitOfWork
+      .TopicParticipantRepository
+      .GetLearnerBySessionId(contextId);
+
+    return phys;
   }
 }

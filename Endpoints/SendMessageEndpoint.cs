@@ -7,6 +7,6 @@ public partial class TurkTalkEndpoint
   public void SendMessage(
     SendMessageRequest payload)
   {
-    roomHandler.SendMessage(payload, MessageQueue);
+    roomHelper.SendMessage(payload, MessageQueue);
   }
 }

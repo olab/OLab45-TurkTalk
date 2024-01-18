@@ -4,30 +4,21 @@ using OLab.FunctionApp.Functions.SignalR;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
-public class TopicRoomHelper
+public class TopicRoomHelper : OLabHelper
 {
-  private readonly DatabaseUnitOfWork _dbUnitOfWork;
-  private readonly IOLabLogger _logger;
   private ConferenceTopicHelper _topicHelper { get; set; }
-
-  public TopicRoomHelper()
-  {
-  }
 
   public TopicRoomHelper(
     IOLabLogger logger,
     ConferenceTopicHelper topicHelper,
-    DatabaseUnitOfWork dbUnitOfWork)
+    DatabaseUnitOfWork dbUnitOfWork) : base( logger, dbUnitOfWork )
   {
-    Guard.Argument(logger, nameof(logger)).NotNull();
     Guard.Argument(topicHelper, nameof(topicHelper)).NotNull();
-    Guard.Argument(dbUnitOfWork, nameof(dbUnitOfWork)).NotNull();
 
-    _logger = logger;
     _topicHelper = topicHelper;
-    _dbUnitOfWork = dbUnitOfWork;
   }
 
   /// <summary>
@@ -61,13 +52,13 @@ public class TopicRoomHelper
   }
 
   /// <summary>
-  /// Register learner with SignalR and notify
+  /// Signals new learner with SignalR
   /// </summary>
   /// <param name="messageQueue">Dispatch messages</param>
   /// <param name="physRoom">Room</param>
   /// <param name="physLearner">Learner assigned</param>
   /// <param name="physModerator">Moderator</param>
-  internal void RegisterLearner(
+  internal void BroadcastNewLearner(
     DispatchedMessages messageQueue,
     TtalkTopicRoom physRoom,
     TtalkTopicParticipant physLearner,
@@ -96,6 +87,9 @@ public class TopicRoomHelper
         seatNumber,
         physLearner,
         true));
+
+    Logger.LogInformation($"learner '{physLearner.NickName}' ({physLearner.Id}). assigned to room {physRoom.Id}, seat {seatNumber}");
+
   }
 
   /// <summary>
@@ -114,24 +108,24 @@ public class TopicRoomHelper
       ModeratorId = physModerator.Id
     };
 
-    await _dbUnitOfWork
+    await DbUnitOfWork
       .TopicRoomRepository
       .InsertAsync(phys);
 
     // explicit save needed because we need new inserted Id 
-    _dbUnitOfWork.Save();
+    DbUnitOfWork.Save();
 
     // update the moderator with the room id
     physModerator.RoomId = phys.Id;
     physModerator.TopicId = topic.Id;
 
-    _dbUnitOfWork
+    DbUnitOfWork
       .TopicParticipantRepository.Update(physModerator);
 
     // explicit save needed because we need new inserted Id 
-    _dbUnitOfWork.Save();
+    DbUnitOfWork.Save();
 
-    _logger.LogInformation($"created topic room '{topic.Name}' ({phys.Id}). moderator id {physModerator.Id}");
+    Logger.LogInformation($"created topic room '{topic.Name}' ({phys.Id}). moderator id {physModerator.Id}");
 
     phys.Topic = topic;
 
@@ -139,21 +133,24 @@ public class TopicRoomHelper
     return phys;
   }
 
-  internal TtalkTopicRoom Get(uint? id)
+  internal TtalkTopicRoom Get(uint? id, bool allowNull = true)
   {
     if (!id.HasValue)
       return null;
 
-    var phys = _dbUnitOfWork
+    var phys = DbUnitOfWork
       .TopicRoomRepository
       .Get(
         filter: x => x.Id == id,
-        includeProperties: "Topic"
+        includeProperties: "Topic, Moderator"
       )
       .FirstOrDefault();
 
     if (phys == null)
-      _logger.LogWarning($"topic room id {id} does not exist");
+      Logger.LogWarning($"topic room id {id} does not exist");
+
+    if ( (phys == null) && !allowNull )
+      throw new Exception($"unable to find room for id '{id}'");
 
     return phys;
   }
@@ -171,41 +168,37 @@ public class TopicRoomHelper
     string moderatorSessionId,
     uint? seatNumber)
   {
-    TtalkTopicRoom physRoom = null;
-
-    var physModerator = _dbUnitOfWork
+    var physModerator = DbUnitOfWork
       .TopicParticipantRepository
       .GetModeratorBySessionId(moderatorSessionId);
 
-    physRoom =
-      Get(physModerator.RoomId.Value);
+    var physRoom =
+      Get(physModerator.RoomId.Value, false);
 
-    var atriumLearners = _topicHelper.GetTopicParticipants(physModerator.TopicId.Value);
+    _topicHelper
+      .ParticipantHelper
+      .LoadByTopicId(physModerator.TopicId.Value);
 
     // get and update the room assignment for learner
     var physLearner =
-      atriumLearners.FirstOrDefault(x => x.SessionId == learnerSessionId);
+      _topicHelper.ParticipantHelper.GetBySessionId(learnerSessionId, false);
 
     // assign seat, if none specified
-    seatNumber = _topicHelper.GetSeatNumber(atriumLearners, seatNumber);
+    seatNumber = _topicHelper.GetSeatNumber(
+      _topicHelper.ParticipantHelper.Participants,
+      seatNumber);
 
-    _dbUnitOfWork
-      .TopicParticipantRepository
-      .AssignToRoom(
+    _topicHelper.ParticipantHelper.AssignLearnerToRoom(
         learnerSessionId,
         physModerator.RoomId.Value,
         seatNumber.Value);
 
-    _dbUnitOfWork.Save();
-
-    RegisterLearner(
+    BroadcastNewLearner(
       messageQueue,
       physRoom,
       physLearner,
       physModerator,
       seatNumber.Value);
-
-    _logger.LogInformation($"learner '{physLearner.NickName}' ({physLearner.Id}). assigned to room {physRoom.Id}, seat {seatNumber}");
 
     // notify moderators of atrium change
     await _topicHelper.SignalAtriumChangeAsync(

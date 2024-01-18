@@ -1,5 +1,6 @@
 ﻿using Dawn;
 using OLab.TurkTalk.Data.Contracts;
+using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;
@@ -12,9 +13,9 @@ public partial class TurkTalkEndpoint
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
-
+      
       // add learner to room
-      await roomHandler.AssignLearnerToRoomAsync(
+      await roomHelper.AssignLearnerToRoomAsync(
         MessageQueue,
         payload.LearnerSessionId,
         payload.ModeratorSessionId,

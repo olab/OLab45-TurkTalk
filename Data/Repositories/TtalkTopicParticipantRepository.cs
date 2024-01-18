@@ -1,4 +1,5 @@
 ﻿using Dawn;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Repositories;
 
@@ -50,6 +51,9 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
         filter: x => (x.SessionId == sessionId) && (x.SeatNumber == 0),
         includeProperties: "Room, Topic")
       .FirstOrDefault();
+
+    if (phys == null)
+      throw new Exception($"cannot find moderator for sessionid {sessionId}");
 
     return phys;
   }
@@ -114,7 +118,8 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
     Guard.Argument(roomId, nameof(roomId)).Positive();
 
-    var phys = Get(x => x.SessionId == sessionId)
+    var phys = 
+      Get(x => x.SessionId == sessionId)
       .FirstOrDefault();
 
     if (phys == null)

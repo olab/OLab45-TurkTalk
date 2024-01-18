@@ -16,40 +16,45 @@ public partial class TurkTalkEndpoint
       TtalkConferenceTopic physTopic = null;
       TtalkTopicRoom physRoom = null;
 
-      // check if moderator is already known
-      var physLearner =
-        dbUnitOfWork.TopicParticipantRepository.GetLearnerBySessionId(payload.ContextId);
+      // get existing, or create new topic
+      physTopic =
+        await topicHelper.GetCreateTopicAsync(
+          _conference,
+          payload.NodeId,
+          payload.QuestionId);
 
-      // existing learner
+      var physLearner =
+        topicHelper.GetLearnerBySessionId(payload.ContextId);
+
+      // check if participent session is already known to topic
       if (physLearner != null)
       {
-        // update connectionId since it's probably changed
-        dbUnitOfWork
-          .TopicParticipantRepository
-          .UpdateConnectionId(payload.ContextId, payload.ConnectionId);
+        topicHelper
+          .ParticipantHelper
+          .UpdateParticipantConnectionId(
+            payload.ContextId, 
+            payload.ConnectionId);
 
-        dbUnitOfWork.Save();
+        // if participant was already in atrium,
+        // just force an atrium update
+        if (physLearner.IsInAtrium())
+          await topicHelper.BroadcastAtriumAddition(
+            physTopic,
+            physLearner,
+            MessageQueue);
 
-        // test if assigned to room yet
-        physRoom =
-          roomHandler.Get(physLearner.RoomId);
+        else
+        {
+          physRoom =
+            roomHelper.Get(physLearner.RoomId);
 
-        // TODO: reconnect to room logic
+          //TODO: handle re-connection to room
+        }
       }
 
-      // new learner
+      // learner not known to topic
       else
       {
-        var topicName =
-          GetTopicNameFromQuestion(payload.QuestionId);
-
-        // get existing, or create new topic
-        physTopic =
-          await topicHandler.GetCreateTopicAsync(
-            _conference,
-            topicName);
-
-        // create and save new learner
         physLearner = new TtalkTopicParticipant
         {
           SessionId = payload.ContextId,
@@ -61,11 +66,9 @@ public partial class TurkTalkEndpoint
           TopicId = physTopic.Id
         };
 
-        await dbUnitOfWork
-          .TopicParticipantRepository
+        await topicHelper
+          .ParticipantHelper
           .InsertAsync(physLearner);
-
-        dbUnitOfWork.Save();
 
         // create and add connection to learners session channel
         MessageQueue.EnqueueAddConnectionToGroupAction(
@@ -73,7 +76,7 @@ public partial class TurkTalkEndpoint
           physLearner.RoomLearnerSessionChannel);
 
         // notify moderators of atrium change
-        await topicHandler.AddLearnerToAtriumAsync(
+        await topicHelper.BroadcastAtriumAddition(
           physTopic,
           physLearner,
           MessageQueue);

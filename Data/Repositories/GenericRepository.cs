@@ -24,7 +24,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
     dbSet = DbContext.Set<TEntity>();
   }
 
-  protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContext)
+  protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContextTT)
   {
     Guard.Argument(databaseUnitOfWork, nameof(databaseUnitOfWork)).NotNull();
 

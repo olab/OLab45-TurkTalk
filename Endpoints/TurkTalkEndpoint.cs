@@ -14,13 +14,14 @@ public partial class TurkTalkEndpoint
 {
   protected readonly OLabDBContext dbContext;
   protected readonly TTalkDBContext ttalkDbContext;
+
   private readonly IConference _conference;
   private readonly IOLabLogger _logger;
   public DispatchedMessages MessageQueue { get; }
 
   protected readonly DatabaseUnitOfWork dbUnitOfWork;
-  protected readonly ConferenceTopicHelper topicHandler;
-  protected readonly TopicRoomHelper roomHandler;
+  protected readonly ConferenceTopicHelper topicHelper;
+  protected readonly TopicRoomHelper roomHelper;
   protected readonly IOLabConfiguration configuration;
 
   public TurkTalkEndpoint(
@@ -46,31 +47,17 @@ public partial class TurkTalkEndpoint
 
     dbUnitOfWork = new DatabaseUnitOfWork(
       _logger,
-      ttalkDbContext);
+      ttalkDbContext,
+      dbContext);
 
-    topicHandler = new ConferenceTopicHelper(
+    topicHelper = new ConferenceTopicHelper(
       _logger,
       _conference,
       dbUnitOfWork);
 
-    roomHandler = new TopicRoomHelper(
+    roomHelper = new TopicRoomHelper(
       _logger,
-      topicHandler,
+      topicHelper,
       dbUnitOfWork);
   }
-
-  public string GetTopicNameFromQuestion(uint questionId)
-  {
-    // ensure question is valid and is of correct type (ttalk)
-    var question = dbContext.SystemQuestions.FirstOrDefault(x =>
-      x.Id == questionId &&
-      (x.EntryTypeId == 11 || x.EntryTypeId == 15)) ??
-      throw new Exception($"question id {questionId} not found/invalid");
-
-    var questionSetting =
-      JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
-
-    return questionSetting.RoomName;
-  }
-
 }
