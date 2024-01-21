@@ -13,13 +13,23 @@ public partial class TtalkTopicParticipant
     }
   }
 
-  public bool IsInAtrium()
+  public bool IsInRoom()
   {
-    return !RoomId.HasValue;
+    return TopicId.HasValue && RoomId.HasValue;
+  }
+
+  public bool IsInTopicAtrium()
+  {
+    return TopicId.HasValue && !RoomId.HasValue;
+  }
+
+  public bool IsRoomLearner()
+  {
+    return IsInRoom() && SeatNumber.HasValue && ( SeatNumber.Value > 0 );
   }
 
   public bool IsModerator()
   {
-    return !RoomId.HasValue && !SeatNumber.HasValue;
+    return IsInRoom() && SeatNumber.HasValue && ( SeatNumber.Value == 0 );
   }
 }

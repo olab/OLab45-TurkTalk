@@ -18,8 +18,7 @@ public partial class TurkTalkEndpoint
 
       // check if moderator is already known
       var physModerator =
-        dbUnitOfWork
-        .TopicParticipantRepository.GetModeratorBySessionId(payload.ContextId);
+        TopicHelper.ParticipantHelper.GetBySessionId(payload.ContextId);
 
       // existing moderator
       if (physModerator != null)
@@ -29,10 +28,9 @@ public partial class TurkTalkEndpoint
         physTopic = physRoom.Topic;
 
         // update connectionId since it's probably changed
-        dbUnitOfWork
-          .TopicParticipantRepository
-          .UpdateConnectionId(payload.ContextId, payload.ConnectionId);
-        dbUnitOfWork.Save();
+        TopicHelper
+          .ParticipantHelper
+          .UpdateParticipantConnectionId(payload.ContextId, payload.ConnectionId);
       }
 
       // new moderator
@@ -49,8 +47,7 @@ public partial class TurkTalkEndpoint
           SeatNumber = 0
         };
 
-        await dbUnitOfWork.TopicParticipantRepository.InsertAsync(physModerator);
-        dbUnitOfWork.Save();
+        await TopicHelper.ParticipantHelper.InsertAsync(physModerator);
 
         physTopic =
           await TopicHelper.GetCreateTopicAsync(
@@ -87,7 +84,7 @@ public partial class TurkTalkEndpoint
     }
     finally
     {
-      dbUnitOfWork.Save();
+      TopicHelper.CommitChanges();
     }
   }
 }

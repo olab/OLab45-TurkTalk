@@ -19,14 +19,19 @@ public class OLabHelper
   }
 
   public OLabHelper(
-  IOLabLogger logger,
-  DatabaseUnitOfWork dbUnitOfWork)
+    IOLabLogger logger,
+    DatabaseUnitOfWork dbUnitOfWork)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(dbUnitOfWork).NotNull(nameof(dbUnitOfWork));
 
     Logger = logger;
     DbUnitOfWork = dbUnitOfWork;
+  }
+
+  public void CommitChanges()
+  {
+    DbUnitOfWork.Save();
   }
 
 }

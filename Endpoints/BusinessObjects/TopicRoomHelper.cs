@@ -14,7 +14,7 @@ public class TopicRoomHelper : OLabHelper
   public TopicRoomHelper(
     IOLabLogger logger,
     ConferenceTopicHelper topicHelper,
-    DatabaseUnitOfWork dbUnitOfWork) : base( logger, dbUnitOfWork )
+    DatabaseUnitOfWork dbUnitOfWork) : base(logger, dbUnitOfWork)
   {
     Guard.Argument(topicHelper, nameof(topicHelper)).NotNull();
 
@@ -113,7 +113,7 @@ public class TopicRoomHelper : OLabHelper
       .InsertAsync(phys);
 
     // explicit save needed because we need new inserted Id 
-    DbUnitOfWork.Save();
+    CommitChanges();
 
     // update the moderator with the room id
     physModerator.RoomId = phys.Id;
@@ -123,7 +123,7 @@ public class TopicRoomHelper : OLabHelper
       .TopicParticipantRepository.Update(physModerator);
 
     // explicit save needed because we need new inserted Id 
-    DbUnitOfWork.Save();
+    CommitChanges();
 
     Logger.LogInformation($"created topic room '{topic.Name}' ({phys.Id}). moderator id {physModerator.Id}");
 
@@ -133,23 +133,30 @@ public class TopicRoomHelper : OLabHelper
     return phys;
   }
 
+  /// <summary>
+  /// Get room
+  /// </summary>
+  /// <param name="id">Room id</param>
+  /// <param name="allowNull">throw exception if not found</param>
+  /// <returns>TtalkTopicRoom</returns>
+  /// <exception cref="Exception">Room id not found</exception>
   internal TtalkTopicRoom Get(uint? id, bool allowNull = true)
   {
-    if (!id.HasValue)
-      return null;
+    TtalkTopicRoom phys = null;
 
-    var phys = DbUnitOfWork
-      .TopicRoomRepository
-      .Get(
-        filter: x => x.Id == id,
-        includeProperties: "Topic, Moderator"
-      )
-      .FirstOrDefault();
+    if (id.HasValue)
+      phys = DbUnitOfWork
+        .TopicRoomRepository
+        .Get(
+          filter: x => x.Id == id,
+          includeProperties: "Topic, Moderator"
+        )
+        .FirstOrDefault();
 
     if (phys == null)
       Logger.LogWarning($"topic room id {id} does not exist");
 
-    if ( (phys == null) && !allowNull )
+    if ((phys == null) && !allowNull)
       throw new Exception($"unable to find room for id '{id}'");
 
     return phys;
@@ -218,5 +225,43 @@ public class TopicRoomHelper : OLabHelper
     messageQueue.EnqueueMessage(new MessageMethod(
       _topicHelper.Conference.Configuration,
       payload));
+  }
+
+  /// <summary>
+  /// Signal room that learner has disconnected
+  /// </summary>
+  /// <param name="messageQueue">Dispatched messages</param>
+  /// <param name="physRoom">Target room</param>
+  /// <param name="physLearner">Learner to remove</param>
+  internal void DisconnectLearner(
+    DispatchedMessages messageQueue,
+    TtalkTopicRoom physRoom,
+    TtalkTopicParticipant physLearner)
+  {
+    // signal to topic moderators disconnected learner
+    messageQueue.EnqueueMessage(new LearnerStatusMethod(
+      _topicHelper.Conference.Configuration,
+      physRoom,
+      physLearner,
+      false));
+  }
+
+  /// <summary>
+  /// Signal room that learner has disconnected
+  /// </summary>
+  /// <param name="messageQueue">Dispatched messages</param>
+  /// <param name="physRoom">Target room</param>
+  /// <param name="physModerator">Moderator to remove</param>
+  internal void DisconnectModerator(
+    DispatchedMessages messageQueue,
+    TtalkTopicRoom physRoom,
+    TtalkTopicParticipant physModerator)
+  {
+    // signal to topic moderators disconnected learner
+    messageQueue.EnqueueMessage(new ModeratorStatusMethod(
+      _topicHelper.Conference.Configuration,
+      physRoom,
+      physModerator,
+      false));
   }
 }

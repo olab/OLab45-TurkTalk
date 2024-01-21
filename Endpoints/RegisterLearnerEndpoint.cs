@@ -1,4 +1,10 @@
 ﻿using Dawn;
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.Extensions.Primitives;
+using OLab.Access;
+using OLab.Common.Interfaces;
+using OLab.TurkTalk.Data.Contracts;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
@@ -6,6 +12,30 @@ namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
+  public TtalkTopicParticipant GetParticipant(
+    OLabAuthentication auth, 
+    string sessionId)
+  {
+    var physLearner =
+      TopicHelper.GetLearnerBySessionId(sessionId);
+
+    if (physLearner == null)
+    {
+      physLearner = new TtalkTopicParticipant
+      {
+        SessionId = sessionId,
+        TokenIssuer = payload.UserToken.TokenIssuer,
+        UserId = payload.UserToken.UserId,
+        UserName = payload.UserToken.UserName,
+        NickName = payload.UserToken.NickName,
+        ConnectionId = payload.ConnectionId,
+        TopicId = physTopic.Id
+      };
+    }
+
+    return physLearner;
+  }
+
   public async Task<DispatchedMessages> RegisterLearnerAsync(
     RegisterParticipantRequest payload)
   {
@@ -32,12 +62,12 @@ public partial class TurkTalkEndpoint
         TopicHelper
           .ParticipantHelper
           .UpdateParticipantConnectionId(
-            payload.ContextId, 
+            payload.ContextId,
             payload.ConnectionId);
 
         // if participant was already in atrium,
         // just force an atrium update
-        if (physLearner.IsInAtrium())
+        if (physLearner.IsInTopicAtrium())
           await TopicHelper.BroadcastAtriumAddition(
             physTopic,
             physLearner,
@@ -91,7 +121,7 @@ public partial class TurkTalkEndpoint
     }
     finally
     {
-      dbUnitOfWork.Save();
+      TopicHelper.CommitChanges();
     }
   }
 }

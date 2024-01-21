@@ -36,8 +36,6 @@ public class Conference : IConference
   public TTalkDBContext DbContextTtalk { get { return _dbContextTtalk; } }
   public OLabDBContext DbContextOLab { get { return _dbContextOLab; } }
 
-  ConferenceTopicHelper IConference.TopicHelper => throw new NotImplementedException();
-
   public Conference()
   {
 

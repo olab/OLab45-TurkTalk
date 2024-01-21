@@ -18,8 +18,7 @@ public partial class TurkTalkEndpoint
   private readonly IOLabLogger _logger;
   public DispatchedMessages MessageQueue { get; }
 
-  protected readonly DatabaseUnitOfWork dbUnitOfWork;
-  protected readonly IOLabConfiguration configuration;
+  protected readonly IOLabConfiguration Configuration;
 
   public ConferenceTopicHelper TopicHelper 
   { 
@@ -38,11 +37,11 @@ public partial class TurkTalkEndpoint
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(configuration).NotNull(nameof(configuration));
+    Guard.Argument(conference).NotNull(nameof(conference));
 
     _conference = conference;
-    this.configuration = configuration;
-
     _logger = logger;
+    Configuration = configuration;
 
     MessageQueue = new DispatchedMessages(_logger);
   }

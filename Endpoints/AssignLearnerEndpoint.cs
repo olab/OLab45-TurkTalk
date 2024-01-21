@@ -30,7 +30,7 @@ public partial class TurkTalkEndpoint
     }
     finally
     {
-      dbUnitOfWork.Save();
+      TopicHelper.CommitChanges();
     }
   }
 }

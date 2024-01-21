@@ -79,6 +79,18 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   }
 
   /// <summary>
+  /// Removes record to the database
+  /// </summary>
+  /// <param name="phys">Record to add</param>
+  /// <returns>Record added</returns>
+  public virtual void Remove(
+    TEntity phys)
+  {
+    Guard.Argument(phys, nameof(phys)).NotNull();
+    dbSet.Remove(phys);
+  }
+
+  /// <summary>
   /// Adds a record to the database
   /// </summary>
   /// <param name="phys">Record to add</param>
