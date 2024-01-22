@@ -12,7 +12,7 @@ public class OnAuthenticatedMethod : TTalkMethod
   private readonly IOLabAuthentication _auth;
   public string UserKey { get; set; }
   public string ErrorMessage { get; set; }
-  public TopicParticipantDto TopicParticipant { get; set; }
+  public TopicParticipantDto Participant { get; set; }
 
   /// <summary>
   /// Authentication succeesed version of method
@@ -23,12 +23,11 @@ public class OnAuthenticatedMethod : TTalkMethod
   /// <param name="auth">OLab authentication information</param>
   public OnAuthenticatedMethod(
     IOLabConfiguration configuration,
-    string connectionId,
     uint topicId,
     TtalkTopicParticipant physParticipant,
     IOLabAuthentication auth) : base(
       configuration,
-      connectionId,
+      physParticipant.ConnectionId,
       "onauthenticated")
   {
     Guard.Argument(auth).NotNull(nameof(auth));
@@ -43,7 +42,7 @@ public class OnAuthenticatedMethod : TTalkMethod
       _auth.Claims["iss"],
       topicId);
 
-    TopicParticipant = new TopicParticipantDto(physParticipant);
+    Participant = new TopicParticipantDto(physParticipant);
   }
 
   /// <summary>

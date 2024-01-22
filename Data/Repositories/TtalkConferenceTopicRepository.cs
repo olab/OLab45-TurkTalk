@@ -37,6 +37,7 @@ public partial class TtalkConferenceTopicRepository : GenericRepository<TtalkCon
 
     var physTopic = await DbContext
       .TtalkConferenceTopics
+      .Include("TtalkTopicParticipants")
       .FirstOrDefaultAsync(x => x.Name == roomName && x.NodeId == nodeId);
 
     return physTopic;

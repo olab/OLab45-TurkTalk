@@ -73,6 +73,9 @@ public class ConferenceTopicHelper : OLabHelper
           .ConferenceTopicRepository
           .GetCreateTopicAsync(conference.Id, nodeId, topicName);
 
+      // topic any topic participants into participant helper
+      ParticipantHelper.LoadFromTopic(phys);
+
       return phys;
 
     }
@@ -186,6 +189,7 @@ public class ConferenceTopicHelper : OLabHelper
         physTopic.Name,
         true));
 
+    // signal atrium change to topic
     await SignalAtriumChangeAsync(
       physTopic,
       messageQueue);
@@ -252,14 +256,19 @@ public class ConferenceTopicHelper : OLabHelper
   /// <summary>
   /// Get learner by session id
   /// </summary>
-  /// <param name="contextId">Session id</param>
+  /// <param name="sessionId">Session id</param>
   /// <returns>Participant (or null of not found)</returns>
-  internal TtalkTopicParticipant GetLearnerBySessionId(string contextId)
-  {
-    var phys = DbUnitOfWork
-      .TopicParticipantRepository
-      .GetLearnerBySessionId(contextId);
+  //internal TtalkTopicParticipant GetLearnerBySessionId(
+  //  string sessionId,
+  //  bool allowNull = true)
+  //{
+  //  var phys = DbUnitOfWork
+  //    .TopicParticipantRepository
+  //    .GetLearnerBySessionId(sessionId);
 
-    return phys;
-  }
+  //  if ((phys == null && !allowNull))
+  //    throw new Exception($"learner session id {sessionId} not found");
+
+  //  return phys;
+  //}
 }

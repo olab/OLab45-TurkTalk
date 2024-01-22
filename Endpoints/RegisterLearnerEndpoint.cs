@@ -7,30 +7,44 @@ using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Contracts;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
+using System.Security.Claims;
 
 namespace OLab.TurkTalk.Endpoints;
 
 public partial class TurkTalkEndpoint
 {
-  public TtalkTopicParticipant GetParticipant(
-    OLabAuthentication auth, 
-    string sessionId)
+  /// <summary>
+  /// Get (or create) participant by session id
+  /// </summary>
+  /// <param name="auth">OLabAuthorization</param>
+  /// <param name="sessionId">Session Id</param>
+  /// <param name="connectionId">Connection Id</param>
+  /// <returns>TtalkTopicParticipant</returns>
+  public async Task<TtalkTopicParticipant> GetCreateParticipantAsync(
+    OLabAuthentication auth,
+    string sessionId,
+    string connectionId)
   {
     var physLearner =
-      TopicHelper.GetLearnerBySessionId(sessionId);
+      TopicHelper
+      .ParticipantHelper
+      .GetBySessionId(sessionId);
 
     if (physLearner == null)
     {
       physLearner = new TtalkTopicParticipant
       {
         SessionId = sessionId,
-        TokenIssuer = payload.UserToken.TokenIssuer,
-        UserId = payload.UserToken.UserId,
-        UserName = payload.UserToken.UserName,
-        NickName = payload.UserToken.NickName,
-        ConnectionId = payload.ConnectionId,
-        TopicId = physTopic.Id
+        TokenIssuer = auth.Claims["iss"],
+        UserId = auth.Claims["id"],
+        UserName = auth.Claims[ClaimTypes.Name],
+        NickName = auth.Claims["name"],
+        ConnectionId = connectionId
       };
+
+      await TopicHelper
+        .ParticipantHelper
+        .InsertAsync(physLearner);
     }
 
     return physLearner;
@@ -43,73 +57,48 @@ public partial class TurkTalkEndpoint
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      TtalkConferenceTopic physTopic = null;
-      TtalkTopicRoom physRoom = null;
-
       // get existing, or create new topic
-      physTopic =
+      var physTopic =
         await TopicHelper.GetCreateTopicAsync(
           _conference,
           payload.NodeId,
           payload.QuestionId);
 
+      // get learner by session id
       var physLearner =
-        TopicHelper.GetLearnerBySessionId(payload.ContextId);
+        TopicHelper.ParticipantHelper.GetBySessionId(payload.ContextId);
 
-      // check if participent session is already known to topic
-      if (physLearner != null)
+      // previously unauthenticated learner, or topic has changed
+      if ((!physLearner.TopicId.HasValue) ||
+           (physLearner.TopicId.HasValue && (physLearner.TopicId != physTopic.Id)))
       {
-        TopicHelper
+        physLearner.TopicId = physTopic.Id;
+        physLearner = TopicHelper
           .ParticipantHelper
-          .UpdateParticipantConnectionId(
-            payload.ContextId,
-            payload.ConnectionId);
+          .Update(physLearner);
 
-        // if participant was already in atrium,
-        // just force an atrium update
-        if (physLearner.IsInTopicAtrium())
-          await TopicHelper.BroadcastAtriumAddition(
-            physTopic,
-            physLearner,
-            MessageQueue);
-
-        else
-        {
-          physRoom =
-            RoomHelper.Get(physLearner.RoomId);
-
-          //TODO: handle re-connection to room
-        }
+        // commit topic update to participant
+        TopicHelper.CommitChanges();
       }
 
-      // learner not known to topic
-      else
-      {
-        physLearner = new TtalkTopicParticipant
-        {
-          SessionId = payload.ContextId,
-          TokenIssuer = payload.UserToken.TokenIssuer,
-          UserId = payload.UserToken.UserId,
-          UserName = payload.UserToken.UserName,
-          NickName = payload.UserToken.NickName,
-          ConnectionId = payload.ConnectionId,
-          TopicId = physTopic.Id
-        };
+      // create and add connection to learners session channel
+      MessageQueue.EnqueueAddConnectionToGroupAction(
+        physLearner.ConnectionId,
+        physLearner.RoomLearnerSessionChannel);
 
-        await TopicHelper
-          .ParticipantHelper
-          .InsertAsync(physLearner);
-
-        // create and add connection to learners session channel
-        MessageQueue.EnqueueAddConnectionToGroupAction(
-          physLearner.ConnectionId,
-          physLearner.RoomLearnerSessionChannel);
-
-        // notify moderators of atrium change
+      // force an atrium update
+      if (physLearner.IsInTopicAtrium())
         await TopicHelper.BroadcastAtriumAddition(
           physTopic,
           physLearner,
           MessageQueue);
+
+      else
+      {
+        var physRoom =
+          RoomHelper.Get(physLearner.RoomId);
+
+        //TODO: handle re-connection to room
       }
 
       return MessageQueue;

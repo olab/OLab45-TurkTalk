@@ -13,11 +13,9 @@ public partial class TurkTalkEndpoint
 {
   public async Task<DispatchedMessages> OnDisconnectedAsync(
     IOLabConfiguration configuration,
-    string connectionId,
     OnDisconnectedRequest payload)
   {
     Guard.Argument(configuration, nameof(configuration)).NotNull();
-    Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
     Guard.Argument(payload, nameof(payload)).NotNull();
 
     var physParticipant = 

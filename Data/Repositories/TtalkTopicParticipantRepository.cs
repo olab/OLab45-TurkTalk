@@ -24,7 +24,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   /// <param name="connectionId">Session id</param>
   /// <returns>TtalkTopicParticipant </returns>
   /// <exception cref="KeyNotFoundException">session not found</exception>
-  public TtalkTopicParticipant GetLearnerBySessionId(string sessionId)
+  public TtalkTopicParticipant GetLearnerBySessionId(string sessionId, bool allowNull = true)
   {
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
@@ -33,6 +33,9 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
           ((x.SeatNumber.HasValue && x.SeatNumber > 0) || (!x.SeatNumber.HasValue)),
         includeProperties: "Room, Topic")
       .FirstOrDefault();
+
+    if ((phys == null) && !allowNull)
+      throw new Exception($"cannot find learner for sessionid {sessionId}");
 
     return phys;
   }
@@ -43,7 +46,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   /// <param name="connectionId">Session id</param>
   /// <returns>TtalkTopicParticipant </returns>
   /// <exception cref="KeyNotFoundException">session not found</exception>
-  public TtalkTopicParticipant GetModeratorBySessionId(string sessionId)
+  public TtalkTopicParticipant GetModeratorBySessionId(string sessionId, bool allowNull = true)
   {
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
@@ -52,7 +55,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
         includeProperties: "Room, Topic")
       .FirstOrDefault();
 
-    if (phys == null)
+    if ((phys == null) && !allowNull)
       throw new Exception($"cannot find moderator for sessionid {sessionId}");
 
     return phys;
@@ -62,9 +65,10 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   /// Get a participant by connection id
   /// </summary>
   /// <param name="connectionId">Session id</param>
+  /// <param name="allowNull">Optional throw exception if not found</param>
   /// <returns>TtalkTopicParticipant </returns>
   /// <exception cref="KeyNotFoundException">session not found</exception>
-  public TtalkTopicParticipant GetByConnectionId(string connectionId)
+  public TtalkTopicParticipant GetByConnectionId(string connectionId, bool allowNull = true)
   {
     Guard.Argument(connectionId, nameof(connectionId)).NotEmpty();
 
@@ -73,8 +77,8 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
         includeProperties: "Room, Topic")
       .FirstOrDefault();
 
-    if (phys == null)
-      throw new KeyNotFoundException($"unable to find participant with session {connectionId} ");
+    if ((phys == null) && !allowNull)
+      throw new KeyNotFoundException($"unable to find participant with connection {connectionId} ");
 
     return phys;
   }
@@ -85,18 +89,17 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   /// <param name="sessionId">Session id</param>
   /// <returns>TtalkTopicParticipant </returns>
   /// <exception cref="KeyNotFoundException">session not found</exception>
-  public TtalkTopicParticipant GetBySessionId(string sessionId)
+  public TtalkTopicParticipant GetBySessionId(string sessionId, bool allowNull = true)
   {
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
 
-    // look for participant record for session and is a moderator
-    // (with seat number is null)
+    // look for participant record for session
     var phys = Get(
         filter: x => x.SessionId == sessionId,
         includeProperties: "Room, Topic")
       .FirstOrDefault();
 
-    if (phys == null)
+    if ((phys == null) && !allowNull)
       throw new KeyNotFoundException($"unable to find participant with session {sessionId} ");
 
     return phys;
@@ -118,7 +121,7 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
     Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
     Guard.Argument(roomId, nameof(roomId)).Positive();
 
-    var phys = 
+    var phys =
       Get(x => x.SessionId == sessionId)
       .FirstOrDefault();
 
@@ -136,6 +139,40 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
 
     return phys;
   }
+
+  /// <summary>
+  /// Update a participant's topicId
+  /// </summary>
+  /// <param name="sessionId">OLab session id</param>
+  /// <param name="topicId">new topic id</param>
+  /// <returns>Changed record</returns>
+  /// <exception cref="KeyNotFoundException">session id not found</exception> 
+  public TtalkTopicParticipant UpdateTopicId(
+    string sessionId,
+    uint topicId)
+  {
+    Guard.Argument(sessionId, nameof(sessionId)).NotEmpty();
+    Guard.Argument(topicId, nameof(topicId)).Positive();
+
+    var phys =
+      Get(x => x.SessionId == sessionId)
+        .FirstOrDefault();
+
+    if (phys == null)
+      throw new KeyNotFoundException($"unable to find participant for session id '{sessionId}' ");
+
+    var oldId = phys.TopicId;
+
+    phys.TopicId = topicId;
+    phys.SeatNumber = null;
+    phys.RoomId = null;
+
+    Update(phys);
+
+    Logger.LogInformation($"updated participant session '{sessionId}' '{oldId}' -> '{phys.TopicId}'");
+    return phys;
+  }
+
 
   /// <summary>
   /// Update a participant's connectionId

@@ -20,11 +20,24 @@ public class TopicParticipantHelper : OLabHelper
   {
   }
 
+  /// <summary>
+  /// Load participants from a topic ic
+  /// </summary>
+  /// <param name="topicId">Topic id</param>
   public void LoadByTopicId(uint topicId)
   {
     Participants = DbUnitOfWork
       .TopicParticipantRepository
       .GetParticipantsForTopic(topicId).ToList();
+  }
+
+  /// <summary>
+  /// Load participants from all already loaded topic
+  /// </summary>
+  /// <param name="phys">Topic object</param>
+  public void LoadFromTopic(TtalkConferenceTopic phys)
+  {
+    Participants = phys.TtalkTopicParticipants.ToList();
   }
 
   /// <summary>
@@ -37,6 +50,12 @@ public class TopicParticipantHelper : OLabHelper
   public TtalkTopicParticipant GetBySessionId(string sessionId, bool allowNull = true)
   {
     var phys = Participants.FirstOrDefault(x => x.SessionId == sessionId);
+
+    if (phys == null)
+      phys = DbUnitOfWork
+        .TopicParticipantRepository
+        .GetBySessionId(sessionId);
+
     if ((phys == null) && !allowNull)
       throw new Exception($"unable to find participant for session id '{sessionId}'");
 
@@ -53,6 +72,12 @@ public class TopicParticipantHelper : OLabHelper
   internal TtalkTopicParticipant GetByConnectionId(string connectionId, bool allowNull = true)
   {
     var phys = Participants.FirstOrDefault(x => x.ConnectionId == connectionId);
+
+    if (phys == null)
+      phys = DbUnitOfWork
+        .TopicParticipantRepository
+        .GetByConnectionId(connectionId);
+
     if ((phys == null) && !allowNull)
       throw new Exception($"unable to find participant for connection id '{connectionId}'");
 
@@ -64,6 +89,20 @@ public class TopicParticipantHelper : OLabHelper
     var phys = Participants.FirstOrDefault(x => x.RoomId.HasValue && !x.SeatNumber.HasValue);
     if (phys == null)
       Logger.LogWarning($"no moderator found for room.");
+
+    return phys;
+  }
+
+  public TtalkTopicParticipant UpdateParticipantTopicId(
+    string sessionId,
+    uint topicId)
+  {
+    // update connectionId since it's probably changed
+    var phys = DbUnitOfWork
+      .TopicParticipantRepository
+      .UpdateTopicId(sessionId, topicId);
+
+    CommitChanges();
 
     return phys;
   }
@@ -113,4 +152,12 @@ public class TopicParticipantHelper : OLabHelper
     CommitChanges();
   }
 
+  internal TtalkTopicParticipant Update(TtalkTopicParticipant physLearner)
+  {
+    var phys = DbUnitOfWork
+      .TopicParticipantRepository
+      .Update(physLearner);
+
+    return phys;
+  }
 }
