@@ -81,6 +81,9 @@ public partial class TurkTalkEndpoint
         TopicHelper.CommitChanges();
       }
 
+      var physModeratorList =
+        TopicHelper.ParticipantHelper.GetModerators(physTopic.Id);
+
       // create and add connection to learners session channel
       MessageQueue.EnqueueAddConnectionToGroupAction(
         physLearner.ConnectionId,
@@ -91,6 +94,7 @@ public partial class TurkTalkEndpoint
         await TopicHelper.BroadcastAtriumAddition(
           physTopic,
           physLearner,
+          physModeratorList.Count,
           MessageQueue);
 
       else

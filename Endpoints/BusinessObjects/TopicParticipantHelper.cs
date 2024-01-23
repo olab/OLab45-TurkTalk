@@ -24,11 +24,11 @@ public class TopicParticipantHelper : OLabHelper
   /// Load participants from a topic ic
   /// </summary>
   /// <param name="topicId">Topic id</param>
-  public void LoadByTopicId(uint topicId)
+  public void LoadByTopicId(uint topicId, uint roomId = 0)
   {
     Participants = DbUnitOfWork
       .TopicParticipantRepository
-      .GetParticipantsForTopic(topicId).ToList();
+      .GetParticipantsForTopic(topicId, roomId).ToList();
   }
 
   /// <summary>
@@ -84,13 +84,24 @@ public class TopicParticipantHelper : OLabHelper
     return phys;
   }
 
-  public TtalkTopicParticipant GetModerator()
+  /// <summary>
+  /// Get moderators assigned to topic
+  /// </summary>
+  /// <param name="topicId">Topic id</param>
+  /// <returns></returns>
+  public IList<TtalkTopicParticipant> GetModerators(uint topicId)
   {
-    var phys = Participants.FirstOrDefault(x => x.RoomId.HasValue && !x.SeatNumber.HasValue);
-    if (phys == null)
-      Logger.LogWarning($"no moderator found for room.");
+    var physList = Participants.Where(x => 
+      x.TopicId == topicId && 
+      x.SeatNumber.HasValue && 
+      x.SeatNumber.Value == 0 ).ToList();
 
-    return phys;
+    if (physList.Count == 0)
+      physList = DbUnitOfWork
+        .TopicParticipantRepository
+        .GetModeratorsForTopic(topicId);
+
+    return physList;
   }
 
   public TtalkTopicParticipant UpdateParticipantTopicId(

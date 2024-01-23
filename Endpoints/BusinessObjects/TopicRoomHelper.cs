@@ -184,7 +184,9 @@ public class TopicRoomHelper : OLabHelper
 
     _topicHelper
       .ParticipantHelper
-      .LoadByTopicId(physModerator.TopicId.Value);
+      .LoadByTopicId(
+      physModerator.TopicId.Value,
+      physModerator.RoomId.Value);
 
     // get and update the room assignment for learner
     var physLearner =

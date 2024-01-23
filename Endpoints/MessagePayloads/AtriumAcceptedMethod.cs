@@ -8,11 +8,13 @@ public class AtriumAcceptedMethod : TTalkMethod
   //  payload properties
   public string TopicName { get; set; }
   public bool WasAdded { get; set; }
+  public bool ModeratorPresent { get; }
 
   public AtriumAcceptedMethod(
     IOLabConfiguration configuration,
     string groupName,
     string topicName,
+    int numberOfModerators,
     bool wasAdded) : base(
       configuration,
       groupName,
@@ -22,6 +24,7 @@ public class AtriumAcceptedMethod : TTalkMethod
 
     TopicName = topicName;
     WasAdded = wasAdded;
+    ModeratorPresent = numberOfModerators > 0;
   }
 
   public override object Arguments()

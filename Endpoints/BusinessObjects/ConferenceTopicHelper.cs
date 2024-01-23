@@ -173,6 +173,7 @@ public class ConferenceTopicHelper : OLabHelper
   internal async Task BroadcastAtriumAddition(
     TtalkConferenceTopic physTopic,
     TtalkTopicParticipant physLearner,
+    int numberOfModerators,
     DispatchedMessages messageQueue)
   {
     Guard.Argument(physLearner, nameof(physLearner)).NotNull();
@@ -187,6 +188,7 @@ public class ConferenceTopicHelper : OLabHelper
         Conference.Configuration,
         physLearner.RoomLearnerSessionChannel,
         physTopic.Name,
+        numberOfModerators,
         true));
 
     // signal atrium change to topic

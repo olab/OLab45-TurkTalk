@@ -278,13 +278,42 @@ public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTo
   /// Get participants for topic
   /// </summary>
   /// <param name="topicId">Topic id</param>
+  /// <param name="roomId">Optional room id</param>
   /// <returns>List of TTalkParticipant</returns>
-  public List<TtalkTopicParticipant> GetParticipantsForTopic(uint topicId)
+  public List<TtalkTopicParticipant> GetParticipantsForTopic(
+    uint topicId, 
+    uint roomId = 0)
+  {
+    Guard.Argument(topicId, nameof(topicId)).Positive();
+
+    List<TtalkTopicParticipant> physList = null;
+
+    if ( roomId == 0 )
+      physList = Get(
+        filter: x => x.TopicId == topicId,
+        includeProperties: "Room,Topic").ToList();
+    else
+      physList = Get(
+        filter: x => x.TopicId == topicId && x.RoomId == roomId,
+        includeProperties: "Room,Topic").ToList();
+
+    return physList;
+  }
+
+  /// <summary>
+  /// Get moderators for topic
+  /// </summary>
+  /// <param name="topicId">Topic id</param>
+  /// <returns>List of TTalkParticipant</returns>
+  public List<TtalkTopicParticipant> GetModeratorsForTopic(uint topicId)
   {
     Guard.Argument(topicId, nameof(topicId)).Positive();
 
     var physList = Get(
-      filter: x => x.TopicId == topicId,
+      filter: x => 
+        x.TopicId == topicId && 
+        x.SeatNumber.HasValue && 
+        x.SeatNumber.Value == 0,
       includeProperties: "Room,Topic")
       .ToList();
 

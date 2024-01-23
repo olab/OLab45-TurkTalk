@@ -11,7 +11,7 @@ public class RoomAcceptedMethod : TTalkMethod
   public uint TopicId { get; set; }
   public string RoomName { get; set; }
   public uint SeatNumber { get; }
-  public string ModeratorName { get; set; }
+  public TopicParticipantDto Moderator { get; set; }
   public bool WasAdded { get; set; }
 
   public RoomAcceptedMethod(
@@ -34,7 +34,7 @@ public class RoomAcceptedMethod : TTalkMethod
     TopicId = physRoom.Topic.Id;
     RoomName = physRoom.Topic.Name;
     SeatNumber = seatNumber;
-    ModeratorName = physModerator.NickName;
+    Moderator = new TopicParticipantDto( physModerator );
     WasAdded = wasAdded;
   }
 
@@ -45,6 +45,6 @@ public class RoomAcceptedMethod : TTalkMethod
 
   public override string ToString()
   {
-    return $"room {RoomName} moderator {ModeratorName} -> {Destination}";
+    return $"room {RoomName} moderator {Moderator.UserName} -> {Destination}";
   }
 }
