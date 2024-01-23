@@ -45,21 +45,25 @@ public abstract class TTalkMethod
   public SignalRMessageAction MessageAction()
   {
     var actionArguments = new object[] { Arguments() };
+    SignalRMessageAction action = null;
 
     if (!string.IsNullOrEmpty(GroupName))
-      return new SignalRMessageAction(MethodName)
+      action = new SignalRMessageAction(MethodName)
       {
         Arguments = actionArguments,
         GroupName = GroupName
       };
 
-    if (!string.IsNullOrEmpty(ConnectionId))
-      return new SignalRMessageAction(MethodName)
+    else if (!string.IsNullOrEmpty(ConnectionId))
+      action = new SignalRMessageAction(MethodName)
       {
         Arguments = actionArguments,
         ConnectionId = ConnectionId
       };
 
-    throw new ArgumentNullException("Missing target id type for method");
+    else
+      throw new ArgumentNullException("Missing target id type for method");
+
+    return action;
   }
 }
