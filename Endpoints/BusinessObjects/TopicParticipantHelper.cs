@@ -46,7 +46,6 @@ public class TopicParticipantHelper : OLabHelper
   /// <param name="sessionId">Session Id</param>
   /// <param name="allowNull">optionlaly throw an exception</param>
   /// <returns>TtalkTopicParticipant</returns>
-  /// <exception cref="Exception">Participant not found</exception>
   public TtalkTopicParticipant GetBySessionId(string sessionId, bool allowNull = true)
   {
     var phys = Participants.FirstOrDefault(x => x.SessionId == sessionId);
@@ -55,9 +54,6 @@ public class TopicParticipantHelper : OLabHelper
       phys = DbUnitOfWork
         .TopicParticipantRepository
         .GetBySessionId(sessionId);
-
-    if ((phys == null) && !allowNull)
-      throw new Exception($"unable to find participant for session id '{sessionId}'");
 
     return phys;
   }
@@ -68,7 +64,6 @@ public class TopicParticipantHelper : OLabHelper
   /// <param name="connectionId">Connection Id</param>
   /// <param name="allowNull">optionlaly throw an exception</param>
   /// <returns>TtalkTopicParticipant</returns>
-  /// <exception cref="Exception">Participant not found</exception>
   internal TtalkTopicParticipant GetByConnectionId(string connectionId, bool allowNull = true)
   {
     var phys = Participants.FirstOrDefault(x => x.ConnectionId == connectionId);
@@ -77,9 +72,6 @@ public class TopicParticipantHelper : OLabHelper
       phys = DbUnitOfWork
         .TopicParticipantRepository
         .GetByConnectionId(connectionId);
-
-    if ((phys == null) && !allowNull)
-      throw new Exception($"unable to find participant for connection id '{connectionId}'");
 
     return phys;
   }

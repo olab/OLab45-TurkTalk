@@ -236,9 +236,9 @@ public class TopicRoomHelper : OLabHelper
   /// <param name="physRoom">Target room</param>
   /// <param name="physLearner">Learner to remove</param>
   internal void DisconnectLearner(
-    DispatchedMessages messageQueue,
     TtalkTopicRoom physRoom,
-    TtalkTopicParticipant physLearner)
+    TtalkTopicParticipant physLearner,
+    DispatchedMessages messageQueue)
   {
     // signal to topic moderators disconnected learner
     messageQueue.EnqueueMessage(new LearnerStatusMethod(
@@ -255,9 +255,9 @@ public class TopicRoomHelper : OLabHelper
   /// <param name="physRoom">Target room</param>
   /// <param name="physModerator">Moderator to remove</param>
   internal void DisconnectModerator(
-    DispatchedMessages messageQueue,
     TtalkTopicRoom physRoom,
-    TtalkTopicParticipant physModerator)
+    TtalkTopicParticipant physModerator,
+    DispatchedMessages messageQueue)
   {
     // signal to topic moderators disconnected learner
     messageQueue.EnqueueMessage(new ModeratorStatusMethod(

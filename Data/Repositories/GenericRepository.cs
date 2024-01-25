@@ -9,7 +9,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
 {
   public IOLabLogger Logger { get; }
   public TTalkDBContext DbContext { get; }
-  public DbSet<TEntity> dbSet;
+  public DbSet<TEntity> DbSet;
   protected readonly DatabaseUnitOfWork DbUnitOfWork;
 
   public GenericRepository(
@@ -21,10 +21,11 @@ public abstract class GenericRepository<TEntity> where TEntity : class
 
     Logger = logger;
     DbContext = dbContext;
-    dbSet = DbContext.Set<TEntity>();
+    DbSet = DbContext.Set<TEntity>();
   }
 
-  protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContextTT)
+  protected GenericRepository(DatabaseUnitOfWork databaseUnitOfWork) : 
+    this(databaseUnitOfWork.Logger, databaseUnitOfWork.DbContextTT)
   {
     Guard.Argument(databaseUnitOfWork, nameof(databaseUnitOfWork)).NotNull();
 
@@ -43,7 +44,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
       Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
       string includeProperties = "")
   {
-    IQueryable<TEntity> query = dbSet;
+    IQueryable<TEntity> query = DbSet;
 
     if (filter != null)
     {
@@ -75,7 +76,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   {
     Guard.Argument(id, nameof(id)).Positive();
 
-    return await dbSet.FindAsync(id);
+    return await DbSet.FindAsync(id);
   }
 
   /// <summary>
@@ -87,7 +88,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
     TEntity phys)
   {
     Guard.Argument(phys, nameof(phys)).NotNull();
-    dbSet.Remove(phys);
+    DbSet.Remove(phys);
   }
 
   /// <summary>
@@ -100,7 +101,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   {
     Guard.Argument(phys, nameof(phys)).NotNull();
 
-    await dbSet.AddAsync(phys);
+    await DbSet.AddAsync(phys);
     return phys;
   }
 
@@ -114,7 +115,7 @@ public abstract class GenericRepository<TEntity> where TEntity : class
   {
     Guard.Argument(phys, nameof(phys)).NotNull();
 
-    dbSet.Update(phys);
+    DbSet.Update(phys);
     return phys;
   }
 }

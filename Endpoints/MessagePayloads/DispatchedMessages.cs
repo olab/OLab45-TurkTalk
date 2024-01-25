@@ -23,7 +23,7 @@ public class DispatchedMessages
     var action = method.MessageAction();
     Messages.Add(action);
 
-    _logger.LogInformation($"enqueing message '{action.Target}' -> {method.Destination}: {{ {method} }}");
+    _logger.LogInformation($"EnqueueMessage '{action.Target}' -> {method.Destination}: {{ {method} }}");
   }
 
   /// <summary>
@@ -40,6 +40,6 @@ public class DispatchedMessages
 
     Messages.Add(action);
 
-    _logger.LogInformation($"registering connection '{connectionId}' to group '{groupName}'");
+    _logger.LogInformation($"EnqueueAddConnectionToGroupAction '{connectionId}' -> '{groupName}'");
   }
 }

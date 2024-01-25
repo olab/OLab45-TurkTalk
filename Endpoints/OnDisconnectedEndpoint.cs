@@ -1,10 +1,7 @@
 ﻿using Dawn;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using OLab.Access;
 using OLab.Common.Interfaces;
+using OLab.Common.Utils;
 using OLab.TurkTalk.Data.Contracts;
-using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;
@@ -18,7 +15,7 @@ public partial class TurkTalkEndpoint
     Guard.Argument(configuration, nameof(configuration)).NotNull();
     Guard.Argument(payload, nameof(payload)).NotNull();
 
-    var physParticipant = 
+    var physParticipant =
       TopicHelper.ParticipantHelper.GetByConnectionId(payload.ConnectionId);
 
     if (physParticipant == null)
@@ -47,16 +44,16 @@ public partial class TurkTalkEndpoint
       // if is in room, and is a learner, signal room learner disconnected
       if (physParticipant.IsRoomLearner())
         RoomHelper.DisconnectLearner(
-          MessageQueue,
           physRoom,
-          physParticipant);
+          physParticipant,
+          MessageQueue);
 
       // if is in room, and is a moderator, signal room moderator disconnected
       else if (physParticipant.IsModerator())
         RoomHelper.DisconnectModerator(
-          MessageQueue,
           physRoom,
-          physParticipant);
+          physParticipant,
+          MessageQueue);
     }
 
     return MessageQueue;
