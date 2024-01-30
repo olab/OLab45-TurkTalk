@@ -3,14 +3,14 @@ using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
+using OLab.Api.Common.Contracts;
+using OLab.Api.TurkTalk.BusinessObjects;
+using OLab.Api.TurkTalk.Commands;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace OLabWebAPI.Services.TurkTalk
+namespace OLab.Api.Services.TurkTalk
 {
   /// <summary>
   /// 

@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
-namespace OLabWebAPI.Services
+namespace OLab.Api.Services
 {
   public class MoodleJWTService : JwtMiddlewareService
   {

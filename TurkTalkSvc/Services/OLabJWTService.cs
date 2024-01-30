@@ -7,7 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 
-namespace OLabWebAPI.Services
+namespace OLab.Api.Services
 {
   public class OLabJWTService : JwtMiddlewareService
   {

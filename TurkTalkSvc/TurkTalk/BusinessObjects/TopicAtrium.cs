@@ -1,16 +1,16 @@
 using Common.Utils;
 using Microsoft.Extensions.Logging;
 using OLab.TurkTalk.ParticipantSimulator;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.TurkTalk.Commands;
-using OLabWebAPI.Utils;
+using OLab.Api.Common.Contracts;
+using OLab.Api.TurkTalk.Commands;
+using OLab.Api.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace OLabWebAPI.TurkTalk.BusinessObjects
+namespace OLab.Api.TurkTalk.BusinessObjects
 {
   public class TopicAtrium
   {

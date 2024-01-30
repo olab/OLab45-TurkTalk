@@ -5,14 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Packaging.Signing;
-using OLabWebAPI.Utils;
+using OLab.Api.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OLabWebAPI.Services
+namespace OLab.Api.Services
 {
   public abstract class JwtMiddlewareService
   {

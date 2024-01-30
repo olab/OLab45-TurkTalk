@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using OLabWebAPI.Model;
-using OLabWebAPI.Utils;
+using OLab.Api.Model;
+using OLab.Api.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,7 +11,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace OLabWebAPI.Services
+namespace OLab.Api.Services
 {
   public class OLabUserService : IUserService
   {

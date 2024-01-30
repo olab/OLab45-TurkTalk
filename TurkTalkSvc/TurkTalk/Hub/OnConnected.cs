@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
 
-namespace OLabWebAPI.Services.TurkTalk
+namespace OLab.Api.Services.TurkTalk
 {
   /// <summary>
   /// 

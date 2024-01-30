@@ -1,10 +1,10 @@
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.Commands;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.Utils;
+using OLab.Api.Model;
+using OLab.Api.TurkTalk.Commands;
+using OLab.Api.Common.Contracts;
+using OLab.Api.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,14 +13,15 @@ using System;
 using Humanizer;
 using static Humanizer.On;
 using Microsoft.EntityFrameworkCore;
-using OLabWebAPI.Endpoints.Player;
-using OLabWebAPI.Dto;
-using OLabWebAPI.Services;
-using OLabWebAPI.Data;
+using OLab.Api.Endpoints.Player;
+using OLab.Api.Dto;
+using OLab.Api.Services;
+using OLab.Api.Data;
 using Microsoft.AspNetCore.Http;
-using OLabWebAPI.Data.Interface;
+using OLab.Api.Data.Interface;
+using OLab.Access;
 
-namespace OLabWebAPI.TurkTalk.BusinessObjects
+namespace OLab.Api.TurkTalk.BusinessObjects
 {
   /// <summary>
   /// A instance of a topic (to handle when there are
@@ -172,7 +173,7 @@ namespace OLabWebAPI.TurkTalk.BusinessObjects
         using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
         {
           OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
-          var auth = new OLabWebApiAuthorization(Logger, dbContext, httpContext);
+          var auth = new OLabAuthorization(Logger, dbContext);
           var endpoint = new MapsEndpoint(Logger, dbContext);
           endpoint.SetUserContext(userContext);
 

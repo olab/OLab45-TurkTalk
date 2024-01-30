@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using OLabWebAPI.Data;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.Utils;
+using OLab.Api.Data;
+using OLab.Api.Model;
+using OLab.Api.TurkTalk.BusinessObjects;
+using OLab.Api.Utils;
 using System;
 using System.Net;
 
-namespace OLabWebAPI.Services.TurkTalk
+namespace OLab.Api.Services.TurkTalk
 {
   // [Route("olab/api/v3/turktalk")]
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

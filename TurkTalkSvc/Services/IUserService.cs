@@ -1,7 +1,7 @@
-using OLabWebAPI.Model;
+using OLab.Api.Model;
 using System.Collections.Generic;
 
-namespace OLabWebAPI.Services
+namespace OLab.Api.Services
 {
     public interface IUserService
     {
