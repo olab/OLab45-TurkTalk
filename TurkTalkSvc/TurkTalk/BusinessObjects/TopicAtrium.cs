@@ -9,17 +9,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using OLab.Common.Interfaces;
 
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
   public class TopicAtrium
   {
     public IDictionary<string, Learner> AtriumLearners;
-    private readonly OLabLogger _logger;
+    private readonly IOLabLogger _logger;
     public readonly Topic Topic;
     private Thread _contentScannerThread;
 
-    public TopicAtrium(OLabLogger logger, Topic topic)
+    public TopicAtrium(IOLabLogger logger, Topic topic)
     {
       _logger = logger;
       Topic = topic;

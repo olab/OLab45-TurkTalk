@@ -20,6 +20,7 @@ using OLab.Api.Data;
 using Microsoft.AspNetCore.Http;
 using OLab.Api.Data.Interface;
 using OLab.Access;
+using OLab.Common.Interfaces;
 
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
@@ -44,7 +45,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     public Moderator Moderator { get { return _moderator; } }
     public string Name { get { return $"{_topic.Name}/{Index}"; } }
     public bool IsModerated { get { return _moderator != null; } }
-    protected OLabLogger Logger { get { return _topic.Logger; } }
+    protected IOLabLogger Logger { get { return _topic.Logger; } }
     public Topic Topic { get { return _topic; } }
 
 

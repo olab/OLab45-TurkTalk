@@ -19,6 +19,10 @@ using IOLabSession = OLab.Api.Data.Interface.IOLabSession;
 using IUserService = OLab.Api.Services.IUserService;
 using System.Net;
 using System;
+using OLab.Common.Interfaces;
+using OLab.Access.Interfaces;
+using OLab.Access;
+using OLab.Common.Utils;
 
 namespace TurkTalkSvc
 {
@@ -118,6 +122,7 @@ namespace TurkTalkSvc
       OLabJWTService.Setup(Configuration, services);
 
       services.AddTransient<IUserContext, UserContext>();
+      services.AddSingleton<IOLabLogger, OLabLogger>();
 
       // define instances of application services
       services.AddScoped<IUserService, OLabUserService>();

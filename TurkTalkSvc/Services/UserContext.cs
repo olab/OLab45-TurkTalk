@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Http;
+using OLab.Access;
 using OLab.Api.Data;
 using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,7 +25,7 @@ namespace OLab.Api.Services
     private readonly HttpRequest _httpRequest;
     private IEnumerable<Claim> _claims;
     private readonly OLabDBContext _dbContext;
-    private readonly OLabLogger _logger;
+    private readonly IOLabLogger _logger;
     protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
     protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
 
@@ -79,7 +81,11 @@ namespace OLab.Api.Services
       set => _issuer = value;
     }
 
-    public string SessionId { get { return Session.GetSessionId(); } }
+    public string SessionId 
+    { 
+      get { return Session.GetSessionId(); } 
+      set { Session.SetSessionId(value); }
+    }
 
     //public string CourseName { get { return _courseName; } }
     public string CourseName { get { return null; } }
@@ -92,14 +98,14 @@ namespace OLab.Api.Services
 
     }
 
-    public UserContext(OLabLogger logger, OLabDBContext dbContext)
+    public UserContext(IOLabLogger logger, OLabDBContext dbContext)
     {
       _dbContext = dbContext;
       _logger = logger;
       Session = new OLabSession(_logger, dbContext, this);
     }
 
-    public UserContext(OLabLogger logger, OLabDBContext context, HttpRequest request)
+    public UserContext(IOLabLogger logger, OLabDBContext context, HttpRequest request)
     {
       _dbContext = context;
       _logger = logger;
@@ -146,7 +152,7 @@ namespace OLab.Api.Services
         // request based requests need to get th eIPAddress using the context
         IPAddress = _httpRequest.HttpContext.Connection.RemoteIpAddress.ToString();
 
-      _accessToken = AccessTokenUtils.ExtractAccessToken(_httpRequest);
+      _accessToken = OLabAuthentication.ExtractAccessToken(_httpRequest);
       _claims = ExtractTokenClaims(_accessToken);
 
       UserName = _claims.FirstOrDefault(c => c.Type == "name")?.Value;

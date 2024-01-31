@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Packaging.Signing;
+using OLab.Access;
 using OLab.Api.Utils;
 using System;
 using System.Collections.Generic;
@@ -47,8 +48,10 @@ namespace OLab.Api.Services
       foreach (var issuerPart in issuerParts)
         validIssuers.Add(issuerPart.Trim());
 
+      var secretBytes = Encoding.Default.GetBytes(_signingSecret[..40]);
+
       var securityKey =
-        new SymmetricSecurityKey(Encoding.Default.GetBytes(_signingSecret[..16]));
+        new SymmetricSecurityKey(secretBytes);
 
       _tokenParameters = new TokenValidationParameters
       {
@@ -96,7 +99,7 @@ namespace OLab.Api.Services
             // SignalR has it's own
             PathString path = context.HttpContext.Request.Path;
 
-            var accessToken = AccessTokenUtils.ExtractAccessToken(
+            var accessToken = OLabAuthentication.ExtractAccessToken(
               context.Request,
               path.Value.Contains("/login"));
 
@@ -114,7 +117,7 @@ namespace OLab.Api.Services
 
     public async Task InvokeAsync(HttpContext context, IUserService userService)
     {
-      var token = AccessTokenUtils.ExtractAccessToken(context.Request, true);
+      var token = OLabAuthentication.ExtractAccessToken(context.Request, true);
 
       if (token != null)
         AttachUserToContext(context,

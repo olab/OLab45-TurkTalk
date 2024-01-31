@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OLab.Api.Common.Contracts;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     private TopicAtrium _atrium;
 
     private static readonly Mutex atriumMutex = new Mutex();
-    public OLabLogger Logger { get { return _conference.logger; } }
+    public IOLabLogger Logger { get { return _conference.Logger; } }
 
     public Conference Conference
     {

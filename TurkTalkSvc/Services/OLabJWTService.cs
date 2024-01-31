@@ -19,8 +19,9 @@ namespace OLab.Api.Services
 
     public static void Setup(IConfiguration config, IServiceCollection services)
     {
+      var secretBytes = Encoding.Default.GetBytes(config["AppSettings:Secret"][..40]);
       _securityKey =
-        new SymmetricSecurityKey(Encoding.Default.GetBytes(config["AppSettings:Secret"][..16]));
+        new SymmetricSecurityKey(secretBytes);
       SetupConfiguration(config);
 
       SetupServices(services, GetValidationParameters());

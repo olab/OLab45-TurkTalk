@@ -7,6 +7,7 @@ using OLab.Api.Services.TurkTalk;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Methods;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,17 +18,16 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 {
   public class Conference
   {
-    private readonly ILogger _logger;
     private readonly IDictionary<string, Topic> _topics;
     //public ILogger Logger { get { return _logger; } }
-    public OLabLogger logger;
+    public IOLabLogger Logger;
 
     public readonly IHubContext<TurkTalkHub> HubContext;
 
     public readonly IServiceScopeFactory ScopeFactory;
     private static readonly Mutex topicMutex = new Mutex();
 
-    public Conference(ILogger logger, IHubContext<TurkTalkHub> hubContext, IServiceScopeFactory scopeFactory)
+    public Conference(IOLabLogger logger, IHubContext<TurkTalkHub> hubContext, IServiceScopeFactory scopeFactory)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(hubContext).NotNull(nameof(hubContext));
@@ -35,9 +35,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
       ScopeFactory = scopeFactory;
 
-      this.logger = new OLabLogger(logger);
+      Logger = logger;
 
-      _logger = logger;
       HubContext = hubContext;
       _topics = new ConcurrentDictionary<string, Topic>();
 
@@ -56,13 +55,13 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     public async Task AddConnectionToGroupAsync(string groupName, string connectionId)
     {
-      logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
+      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
       await HubContext.Groups.AddToGroupAsync(connectionId, groupName);
     }
 
     public async Task RemoveConnectionToGroupAsync(string groupName, string connectionId)
     {
-      logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
+      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
       await HubContext.Groups.RemoveFromGroupAsync(connectionId, groupName);
     }
 
@@ -78,10 +77,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Client(connectionId).SendAsync(method.MethodName, method);
     }
@@ -99,10 +98,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
+        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Group(groupName).SendAsync(method.MethodName, method);
 
@@ -142,7 +141,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // test if topic doesn't exist yet
         if (!_topics.TryGetValue(topicId, out Topic topic))
         {
-          logger.LogDebug($"Topic '{topicId}' does not already exist");
+          Logger.LogDebug($"Topic '{topicId}' does not already exist");
 
           if (create)
           {
@@ -153,7 +152,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
             topic = null;
         }
         else
-          logger.LogDebug($"Topic {topicId} already exists");
+          Logger.LogDebug($"Topic {topicId} already exists");
 
         return topic;
       }

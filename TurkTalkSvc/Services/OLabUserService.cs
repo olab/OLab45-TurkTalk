@@ -3,6 +3,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OLab.Api.Model;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
+using OLab.Common.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,10 +26,11 @@ namespace OLab.Api.Services
 
     public OLabUserService(ILogger logger, IOptions<AppSettings> appSettings, OLabDBContext context)
     {
-      defaultTokenExpiryMinutes = OLabConfiguration.DefaultTokenExpiryMins;
       _appSettings = appSettings.Value;
       _context = context;
       _logger = logger;
+
+      defaultTokenExpiryMinutes = _appSettings.TokenExpiryMinutes;
 
       _users = _context.Users.OrderBy(x => x.Id).ToList();
 
@@ -48,8 +51,10 @@ namespace OLab.Api.Services
       var jwtAudience = appSettings.Audience;
       var signingSecret = appSettings.Secret;
 
+      var secretBytes = Encoding.Default.GetBytes(signingSecret[..40]);
+
       var securityKey =
-        new SymmetricSecurityKey(Encoding.Default.GetBytes(signingSecret[..16]));
+        new SymmetricSecurityKey(secretBytes);
 
       var tokenParameters = new TokenValidationParameters
       {
@@ -231,8 +236,10 @@ namespace OLab.Api.Services
     /// <remarks>https://duyhale.medium.com/generate-short-lived-symmetric-jwt-using-microsoft-identitymodel-d9c2478d2d5a</remarks>
     private AuthenticateResponse GenerateJwtToken(Users user, string issuedBy = "olab" )
     {
+      var secretBytes = Encoding.Default.GetBytes(_appSettings.Secret[..40]);
+
       var securityKey =
-        new SymmetricSecurityKey(Encoding.Default.GetBytes(_appSettings.Secret[..16]));
+        new SymmetricSecurityKey(secretBytes);
 
       var tokenDescriptor = new SecurityTokenDescriptor
       {

@@ -10,15 +10,16 @@ using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
 using System.Threading;
 using OLab.Api.TurkTalk.Commands;
+using OLab.Common.Interfaces;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
   public partial class TopicAtriumThread
   {
     private TopicAtrium _atrium;
-    private OLabLogger _logger;
+    private IOLabLogger _logger;
 
-    public TopicAtriumThread(OLabLogger logger)
+    public TopicAtriumThread(IOLabLogger logger)
     {
       _logger = logger;
     }

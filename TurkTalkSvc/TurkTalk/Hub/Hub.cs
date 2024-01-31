@@ -8,6 +8,7 @@ using OLab.Api.Data;
 using OLab.Api.Model;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
 using System;
 using System.Net;
 
@@ -17,7 +18,7 @@ namespace OLab.Api.Services.TurkTalk
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
   public partial class TurkTalkHub : Hub
   {
-    private readonly OLabLogger _logger;
+    private readonly IOLabLogger _logger;
     private readonly Conference _conference;
     protected readonly OLabDBContext DbContext;
 
@@ -30,14 +31,14 @@ namespace OLab.Api.Services.TurkTalk
     /// TurkTalkHub constructor
     /// </summary>
     /// <param name="logger">Dependancy-injected logger</param>
-    public TurkTalkHub(ILogger<TurkTalkHub> logger, OLabDBContext dbContext, Conference conference)
+    public TurkTalkHub(IOLabLogger logger, OLabDBContext dbContext, Conference conference)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(dbContext).NotNull(nameof(dbContext));
       Guard.Argument(conference).NotNull(nameof(conference));
 
       _conference = conference ?? throw new ArgumentNullException(nameof(conference));
-      _logger = new OLabLogger(logger);
+      _logger = logger;
 
       DbContext = dbContext;
 
