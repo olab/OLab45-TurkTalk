@@ -81,9 +81,9 @@ namespace OLab.Api.Services
       set => _issuer = value;
     }
 
-    public string SessionId 
-    { 
-      get { return Session.GetSessionId(); } 
+    public string SessionId
+    {
+      get { return Session.GetSessionId(); }
       set { Session.SetSessionId(value); }
     }
 
@@ -140,12 +140,16 @@ namespace OLab.Api.Services
     protected virtual void LoadHttpRequest()
     {
       var sessionId = _httpRequest.Headers["OLabSessionId"].FirstOrDefault();
-      if (!string.IsNullOrEmpty(sessionId) && (sessionId != "null"))
+      if (string.IsNullOrEmpty(sessionId))
+        sessionId = _httpRequest.Query["contextId"];
+
+      if (!string.IsNullOrWhiteSpace(sessionId))
       {
         Session.SetSessionId(sessionId);
-        if (!string.IsNullOrWhiteSpace(Session.GetSessionId()))
-          _logger.LogInformation($"Found ContextId {Session.GetSessionId()}.");
+        _logger.LogInformation($"Found ContextId {Session.GetSessionId()}.");
       }
+      else
+        _logger.LogError($"ContextId missing.");
 
       IPAddress = _httpRequest.Headers["X-Forwarded-Client-Ip"];
       if (string.IsNullOrEmpty(IPAddress))

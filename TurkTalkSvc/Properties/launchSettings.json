@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "enableStepFiltering": false,
-      "applicationUrl": "https://localhost:5002"
+      "applicationUrl": "https://localhost:5004"
     }
   }
 }

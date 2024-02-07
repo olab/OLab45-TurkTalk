@@ -178,7 +178,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
           var endpoint = new MapsEndpoint(Logger, dbContext);
           endpoint.SetUserContext(userContext);
 
-          var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false);
+          var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false, false);
 
           if (dto.MapNodeLinks.Count > 0)
             Logger.LogDebug($"Exit nodes from map {mapId}, node {nodeId}, user {userContext.UserId}:");
