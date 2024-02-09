@@ -36,8 +36,7 @@ namespace OLab.Api.Services.TurkTalk
         topic.Conference.SendMessage(
           new MessageMethod(payload));
 
-        UserContext userContext = GetUserContext();
-        userContext.Session.SetSessionId(payload.Session.ContextId);
+        var userContext = GetUserContext();
 
         // add the sender name to the message so we 
         // know who sent it in the log

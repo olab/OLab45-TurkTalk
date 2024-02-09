@@ -64,7 +64,7 @@ namespace OLab.Api.Services.TurkTalk
 
     private UserContext GetUserContext()
     {
-      HttpRequest request = Context.GetHttpContext().Request;
+      var request = Context.GetHttpContext().Request;
       return new UserContext(_logger, DbContext, request);
     }
 
