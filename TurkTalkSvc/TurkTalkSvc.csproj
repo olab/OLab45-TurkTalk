@@ -19,6 +19,11 @@
     <ProjectReference Include="..\..\Common\Data\OLab.Data.csproj" />
     <ProjectReference Include="..\..\Common\Endpoints\OLab.Endpoints.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>

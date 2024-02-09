@@ -105,14 +105,13 @@ namespace OLab.Api.Services
       Session = new OLabSession(_logger, dbContext, this);
     }
 
-    public UserContext(IOLabLogger logger, OLabDBContext context, HttpRequest request)
+    public UserContext(IOLabLogger logger, OLabDBContext olabDbContext, HttpRequest request)
     {
-      _dbContext = context;
+      _dbContext = olabDbContext;
       _logger = logger;
       _httpRequest = request;
 
-      Session = new OLabSession(_logger, context, this);
-
+      Session = new OLabSession(_logger, olabDbContext, this);
       LoadHttpRequest();
     }
 

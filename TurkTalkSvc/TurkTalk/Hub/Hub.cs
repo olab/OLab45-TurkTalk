@@ -65,10 +65,6 @@ namespace OLab.Api.Services.TurkTalk
     private UserContext GetUserContext()
     {
       HttpRequest request = Context.GetHttpContext().Request;
-
-      //var accessToken = $"Bearer {Convert.ToString(Context.GetHttpContext().Request.Query["access_token"])}";
-      //request.Headers.Add("Authorization", accessToken);
-
       return new UserContext(_logger, DbContext, request);
     }
 

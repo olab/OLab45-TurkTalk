@@ -97,7 +97,9 @@ namespace TurkTalkSvc
       // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
       services.AddSingleton(typeof(ILogger), typeof(Logger<Startup>));
 
-      var serverVersion = ServerVersion.AutoDetect(Configuration.GetConnectionString(Constants.DefaultConnectionStringName));
+      var connectionString = Configuration.GetConnectionString(Constants.DefaultConnectionStringName);
+      var serverVersion = ServerVersion.AutoDetect(connectionString);
+
       services.AddDbContext<OLabDBContext>(
           dbContextOptions => dbContextOptions
               .UseMySql(Configuration.GetConnectionString(Constants.DefaultConnectionStringName), serverVersion)
