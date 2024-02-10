@@ -57,7 +57,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     public bool Contains(Participant participant)
     {
       var found = AtriumLearners.ContainsKey(participant.GetUniqueKey());
-      _logger.LogDebug($"{participant.UserId}: in '{Topic.Name}' atrium? {found}");
+      _logger.LogInformation($"{participant.UserId}: in '{Topic.Name}' atrium? {found}");
       return found;
     }
 
@@ -86,10 +86,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (foundInAtrium)
       {
         AtriumLearners.Remove(participant.GetUniqueKey());
-        _logger.LogDebug($"{participant.GetUniqueKey()}: remove from '{Topic.Name}' atrium");
+        _logger.LogInformation($"{participant.GetUniqueKey()}: remove from '{Topic.Name}' atrium");
       }
       else
-        _logger.LogDebug($"{participant.GetUniqueKey()}: remove: not found in '{Topic.Name}' atrium");
+        _logger.LogInformation($"{participant.GetUniqueKey()}: remove: not found in '{Topic.Name}' atrium");
 
       Dump();
 
@@ -120,12 +120,12 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     {
       var replaced = false;
 
-      _logger.LogDebug($"{participant.GetUniqueKey()}: upsert to '{Topic.Name}' atrium");
+      _logger.LogInformation($"{participant.GetUniqueKey()}: upsert to '{Topic.Name}' atrium");
 
       // remove if already exists
       if (Contains(participant))
       {
-        _logger.LogDebug($"{participant.GetUniqueKey()}: remove from '{Topic.Name}' atrium");
+        _logger.LogInformation($"{participant.GetUniqueKey()}: remove from '{Topic.Name}' atrium");
         AtriumLearners.Remove(participant.GetUniqueKey());
         replaced = true;
       }
@@ -142,7 +142,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     /// <param name="participant">Participant to add</param>
     internal void Add(Learner participant)
     {
-      _logger.LogDebug($"{participant.GetUniqueKey()}: add to '{Topic.Name}' atrium");
+      _logger.LogInformation($"{participant.GetUniqueKey()}: add to '{Topic.Name}' atrium");
 
       // used for chronological order querying/sorting
       participant.ReferenceDate = DateTime.Now;
@@ -152,13 +152,13 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     private void Dump()
     {
-      _logger.LogDebug($"'{Topic.Name}': atrium contents. Count: {AtriumLearners.Values.Count} ");
+      _logger.LogInformation($"'{Topic.Name}': atrium contents. Count: {AtriumLearners.Values.Count} ");
       if (AtriumLearners.Values.Count == 0)
-        _logger.LogDebug($"  none");
+        _logger.LogInformation($"  none");
       else
       {
         foreach (Learner item in AtriumLearners.Values.OrderBy(x => x.UserId))
-          _logger.LogDebug($"  {item.CommandChannel} ({ConnectionIdUtils.Shorten(item.ConnectionId)})");
+          _logger.LogInformation($"  {item.CommandChannel} ({ConnectionIdUtils.Shorten(item.ConnectionId)})");
       }
     }
 

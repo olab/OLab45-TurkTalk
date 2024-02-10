@@ -34,8 +34,8 @@ namespace OLab.Api.Services.TurkTalk
 
         learner = new Learner(payload, Context);
 
-        _logger.LogDebug($"{learner.GetUniqueKey()}: reregisterAttendee: {payload.ToJson()}");
-        _logger.LogDebug($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
+        _logger.LogInformation($"{learner.GetUniqueKey()}: reregisterAttendee: {payload.ToJson()}");
+        _logger.LogInformation($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);

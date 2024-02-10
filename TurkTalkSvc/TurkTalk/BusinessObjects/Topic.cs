@@ -62,7 +62,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       // set common moderators channel
       TopicModeratorsChannel = $"{Name}/moderators";
 
-      Logger.LogDebug($"New topic '{Name}'");
+      Logger.LogInformation($"New topic '{Name}'");
     }
 
     /// <summary>
@@ -81,21 +81,21 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // look if moderator was already assigned to newRoom
         room = Rooms.FirstOrDefault(x => x.Moderator != null && x.Moderator.UserId == moderator.UserId);
         if (room != null)
-          Logger.LogDebug($"Returning existing moderated room '{room.Name}' by {moderator.UserId}");
+          Logger.LogInformation($"Returning existing moderated room '{room.Name}' by {moderator.UserId}");
 
         else
         {
           // look for unmoderated, existing room
           room = Rooms.FirstOrDefault(x => x.Moderator == null);
           if (room != null)
-            Logger.LogDebug($"Returning existing unmoderated room '{room.Name}'");
+            Logger.LogInformation($"Returning existing unmoderated room '{room.Name}'");
 
           else
           {
             var newRoom = new Room(this, _rooms.Count + 1);
             int index = _rooms.Add(newRoom);
 
-            Logger.LogDebug($"Created new room '{_rooms[index].Name}'");
+            Logger.LogInformation($"Created new room '{_rooms[index].Name}'");
 
             room = _rooms[index];
           }
@@ -145,7 +145,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         var room = Rooms.FirstOrDefault(x => x.Name == roomName);
         if (room != null)
-          Logger.LogDebug($"Found existing newRoom '{roomName}'");
+          Logger.LogInformation($"Found existing newRoom '{roomName}'");
         else
           Logger.LogError($"Room {roomName} does not exist");
 
@@ -349,7 +349,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // we need to reject the request.
         if (_atrium.IsDuplicateLearner(learner))
         {
-          Logger.LogDebug($"Learner '{learner.NickName}' already exists in atrium '{Name}'.  Not added");
+          Logger.LogInformation($"Learner '{learner.NickName}' already exists in atrium '{Name}'.  Not added");
           return false;
         }
 
@@ -359,7 +359,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // if replaced a atrium contents, remove it from group
         if (learnerReplaced)
         {
-          Logger.LogDebug($"Replacing existing '{Name}' atrium learner '{learner.CommandChannel}'");
+          Logger.LogInformation($"Replacing existing '{Name}' atrium learner '{learner.CommandChannel}'");
           await Conference.RemoveConnectionToGroupAsync(
             learner.CommandChannel,
             learner.ConnectionId);
@@ -390,7 +390,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     {
       try
       {
-        Logger.LogDebug($"Removing newRoom '{roomId}'");
+        Logger.LogInformation($"Removing newRoom '{roomId}'");
 
         _rooms.Lock();
 

@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using OLab.Api.Utils;
+using OLab.Api.Data;
 
 namespace OLab.Api.Services.TurkTalk
 {
@@ -35,6 +36,8 @@ namespace OLab.Api.Services.TurkTalk
         _logger.LogInformation(
           $"{learner.GetUniqueKey()}: assignAttendeeAsync: '{learner.ToJson()}', {roomName}");
 
+        var auth = GetAuthorization(Context.GetHttpContext());
+
         Topic topic = _conference.GetCreateTopic(learner.TopicName, false);
         if (topic == null)
           return;
@@ -57,10 +60,9 @@ namespace OLab.Api.Services.TurkTalk
         Room room = topic.GetRoom(roomName);
         if (room != null)
         {
-          var userContext = GetUserContext();
           var jumpNodes = await room.GetExitMapNodes(
             Context.GetHttpContext(), 
-            userContext, 
+            auth.UserContext, 
             learner.Session.MapId, 
             learner.Session.NodeId);
 

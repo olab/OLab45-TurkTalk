@@ -7,13 +7,12 @@ using OLab.Api.Common.Contracts;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using System;
-
 namespace OLab.Api.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Message is received
@@ -27,6 +26,9 @@ namespace OLab.Api.Services.TurkTalk
       {
         _logger.LogInformation($"Message: from '{payload.Envelope.From}', {payload.Session.ContextId}, '{payload.Data}' ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
+        var auth = GetAuthorization(Context.GetHttpContext());
+        auth.UserContext.SessionId = payload.Session.ContextId;
+
         // get or create a topic
         Topic topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
         if (topic == null)
@@ -36,15 +38,14 @@ namespace OLab.Api.Services.TurkTalk
         topic.Conference.SendMessage(
           new MessageMethod(payload));
 
-        var userContext = GetUserContext();
-
         // add the sender name to the message so we 
         // know who sent it in the log
         var message = $"{payload.Envelope.From.UserId}: {payload.Data}";
 
         // add message event session activity
-        userContext.Session.OnQuestionResponse(
-          payload.Session.MapId,
+        var session = GetSession(Context.GetHttpContext(), auth);
+
+        session.OnQuestionResponse(
           payload.Session.NodeId,
           payload.Session.QuestionId,
           message);

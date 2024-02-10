@@ -2,9 +2,14 @@ using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol.Plugins;
+using OLab.Access;
 using OLab.Api.Data;
+using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
@@ -31,7 +36,10 @@ namespace OLab.Api.Services.TurkTalk
     /// TurkTalkHub constructor
     /// </summary>
     /// <param name="logger">Dependancy-injected logger</param>
-    public TurkTalkHub(IOLabLogger logger, OLabDBContext dbContext, Conference conference)
+    public TurkTalkHub(
+      IOLabLogger logger,
+      OLabDBContext dbContext,
+      Conference conference)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(dbContext).NotNull(nameof(dbContext));
@@ -42,7 +50,7 @@ namespace OLab.Api.Services.TurkTalk
 
       DbContext = dbContext;
 
-      _logger.LogDebug($"TurkTalkHub ctor");
+      _logger.LogInformation($"TurkTalkHub ctor");
     }
 
     /// <summary>
@@ -54,7 +62,7 @@ namespace OLab.Api.Services.TurkTalk
     {
       try
       {
-        _logger.LogDebug($"Broadcast message received from '{sender}': '{message}'");
+        _logger.LogInformation($"Broadcast message received from '{sender}': '{message}'");
       }
       catch (Exception ex)
       {
@@ -62,13 +70,52 @@ namespace OLab.Api.Services.TurkTalk
       }
     }
 
-    private UserContext GetUserContext()
+    /// <summary>
+    /// Builds an authorization context from the host context
+    /// </summary>
+    /// <param name="hostContext">Function context</param>
+    /// <returns>IOLabAuthentication</returns>
+    /// <exception cref="Exception"></exception>
+    [NonAction]
+    private IOLabAuthorization GetAuthorization(HttpContext hostContext)
     {
-      var request = Context.GetHttpContext().Request;
-      return new UserContext(_logger, DbContext, request);
+      var request = hostContext.Request;
+
+      var userContext = new UserContext(_logger, DbContext, request);
+
+      if (!request.Query.TryGetValue("contextId", out var contextId))
+        throw new Exception("signalr hub missing contextId");
+      userContext.SessionId = contextId;
+
+      var auth = new OLabAuthorization(_logger, DbContext);
+      auth.UserContext = userContext;
+
+      return auth;
+    }
+
+    /// <summary>
+    /// Get the session from the host context
+    /// </summary>
+    /// <param name="hostContext">Function context</param>
+    /// <param name="auth">IOLabAuthorization</param>
+    /// <returns>IOLabSession</returns>
+    /// <exception cref="Exception"></exception>
+    [NonAction]
+    private IOLabSession GetSession(HttpContext hostContext, IOLabAuthorization auth)
+    {
+      var request = hostContext.Request;
+
+      var session = new OLabSession(_logger, DbContext, auth.UserContext);
+
+      if (!request.Query.TryGetValue("mapId", out var mapId))
+        throw new Exception("signalr hub missing mapId");
+      session.SetMapId(Convert.ToUInt32(mapId));
+
+      return session;
     }
 
     // Extract user IP
+    [NonAction]
     public IPAddress GetIp(HubCallerContext context)
     {
       // Return the Context IP address

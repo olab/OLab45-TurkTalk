@@ -34,8 +34,8 @@ namespace OLab.Api.Services.TurkTalk
 
         learner = new Learner(payload, Context);
 
-        _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: {payload.ToJson()}");
-        _logger.LogDebug($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
+        _logger.LogInformation($"{learner.GetUniqueKey()}: registerAttendee: {payload.ToJson()}");
+        _logger.LogInformation($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
 
         // get or create a conference topic
         Topic topic = _conference.GetCreateTopic(learner.TopicName);
@@ -59,22 +59,6 @@ namespace OLab.Api.Services.TurkTalk
           _conference.SendMessage(
               Context.ConnectionId,
               new ServerErrorCommand(Context.ConnectionId, $"Session already exists for '{learner.NickName}'. Unable to connect."));
-
-          //// if room has no moderator (i.e. moderator may have
-          //// disconnected) add the attendee to the topic atrium
-          //if (room.Moderator == null)
-          //{
-          //  _logger.LogDebug($"{learner.GetUniqueKey()}: registerAttendee: room '{payload.RoomName}' has no moderator.  Assigning to atrium.");
-          //  await topic.AddToAtriumAsync(learner);
-          //}
-
-          //// user already 'known' to a room AND room is moderated, so
-          //// signal room assignment to re-attach the learner to the room
-          //else
-          //{
-          //  _logger.LogInformation($"{learner.GetUniqueKey()}: registerAttendee: assigning to existing room '{payload.RoomName}'");
-          //  await AssignAttendee(learner, room.Name);
-          //}
         }
 
       }

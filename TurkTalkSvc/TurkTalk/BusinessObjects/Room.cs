@@ -56,7 +56,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       _index = index;
       _learners = new ConcurrentList<Learner>(Logger);
 
-      Logger.LogDebug($"New room '{Name}'");
+      Logger.LogInformation($"New room '{Name}'");
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         _learners.Add(learner);
 
-        Logger.LogDebug($"{learner.GetUniqueKey()} added to room '{Name}'");
+        Logger.LogInformation($"{learner.GetUniqueKey()} added to room '{Name}'");
 
         // if have moderator, notify that the participant has been
         // assigned to their room
@@ -161,7 +161,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     public async Task<IList<MapNodeListItem>> GetExitMapNodes(
       HttpContext httpContext,
-      UserContext userContext,
+      IUserContext userContext,
       uint mapId,
       uint nodeId)
     {
@@ -169,7 +169,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
       try
       {
-        Logger.LogDebug($"Querying exit nodes for map {mapId}, node {nodeId}, user {userContext.UserId}");
+        Logger.LogInformation($"Querying exit nodes for map {mapId}, node {nodeId}, user {userContext.UserId}");
 
         using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
         {
@@ -181,13 +181,13 @@ namespace OLab.Api.TurkTalk.BusinessObjects
           var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false, false);
 
           if (dto.MapNodeLinks.Count > 0)
-            Logger.LogDebug($"Exit nodes from map {mapId}, node {nodeId}, user {userContext.UserId}:");
+            Logger.LogInformation($"Exit nodes from map {mapId}, node {nodeId}, user {userContext.UserId}:");
           else
             Logger.LogWarning($"no exist nodes from map {mapId}, node {nodeId} user {userContext.UserId}");
 
           foreach (var item in dto.MapNodeLinks)
           {
-            Logger.LogDebug($"  {item.LinkText}({item.Id})");
+            Logger.LogInformation($"  {item.LinkText}({item.Id})");
             mapNodeList.Add(new MapNodeListItem { Id = item.DestinationId.Value, Name = item.DestinationTitle });
           }
         }
@@ -208,7 +208,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     /// <param name="connectionId"></param>
     internal async Task RemoveParticipantAsync(Participant participant)
     {
-      //Logger.LogDebug($"{participant.GetUniqueKey()} removing from room '{Name}'");
+      //Logger.LogInformation($"{participant.GetUniqueKey()} removing from room '{Name}'");
 
       // not a moderated room, return since there's 
       // nothing more to do
@@ -236,11 +236,11 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     {
       if (participant.ConnectionId != _moderator.ConnectionId)
       {
-        Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the connectionId does not match.");
+        Logger.LogInformation($"{participant.GetUniqueKey()} is a moderator for room '{Name}' but the connectionId does not match.");
         return;
       }
 
-      Logger.LogDebug($"{participant.GetUniqueKey()} is a moderator for room '{Name}'. removing all learners.");
+      Logger.LogInformation($"{participant.GetUniqueKey()} is a moderator for room '{Name}'. removing all learners.");
 
       // notify all known learners in room of moderator disconnection
       // and add them back into the atrium
@@ -262,7 +262,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       Learner serverParticipant = _learners.Items.FirstOrDefault(x => (x.UserId == participant.UserId) && (x.ConnectionId == participant.ConnectionId));
       if (serverParticipant != null)
       {
-        Logger.LogDebug($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
+        Logger.LogInformation($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
 
         // build/set assumed command channel for participant
         var commandChannel = $"{_topic.Name}/{Learner.Prefix}/{serverParticipant.UserId}";
@@ -316,7 +316,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
       if (_moderator.UserId == testModerator.UserId)
       {
-        Logger.LogDebug($"");
+        Logger.LogInformation($"");
         return true;
       }
 

@@ -29,7 +29,7 @@ namespace OLab.Api.Services
     protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
     protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
 
-    private IOLabSession _session;
+    protected string _sessionId;
     private string _role;
     private IList<string> _roles;
     private uint _userId;
@@ -38,12 +38,6 @@ namespace OLab.Api.Services
     private string _issuer;
     //private readonly string _courseName;
     private string _accessToken;
-
-    public IOLabSession Session
-    {
-      get => _session;
-      set => _session = value;
-    }
 
     public string ReferringCourse
     {
@@ -83,8 +77,8 @@ namespace OLab.Api.Services
 
     public string SessionId
     {
-      get { return Session.GetSessionId(); }
-      set { Session.SetSessionId(value); }
+      get { return _sessionId; }
+      set { _sessionId = value; }
     }
 
     //public string CourseName { get { return _courseName; } }
@@ -102,7 +96,6 @@ namespace OLab.Api.Services
     {
       _dbContext = dbContext;
       _logger = logger;
-      Session = new OLabSession(_logger, dbContext, this);
     }
 
     public UserContext(IOLabLogger logger, OLabDBContext olabDbContext, HttpRequest request)
@@ -111,7 +104,6 @@ namespace OLab.Api.Services
       _logger = logger;
       _httpRequest = request;
 
-      Session = new OLabSession(_logger, olabDbContext, this);
       LoadHttpRequest();
     }
 
@@ -120,7 +112,6 @@ namespace OLab.Api.Services
       _dbContext = dbContext;
       _logger = logger;
       _httpContext = httpContext;
-      Session = new OLabSession(_logger, dbContext, this);
 
       LoadHttpContext();
     }
@@ -138,18 +129,6 @@ namespace OLab.Api.Services
 
     protected virtual void LoadHttpRequest()
     {
-      var sessionId = _httpRequest.Headers["OLabSessionId"].FirstOrDefault();
-      if (string.IsNullOrEmpty(sessionId))
-        sessionId = _httpRequest.Query["contextId"];
-
-      if (!string.IsNullOrWhiteSpace(sessionId))
-      {
-        Session.SetSessionId(sessionId);
-        _logger.LogInformation($"Found ContextId {Session.GetSessionId()}.");
-      }
-      else
-        _logger.LogError($"ContextId missing.");
-
       IPAddress = _httpRequest.Headers["X-Forwarded-Client-Ip"];
       if (string.IsNullOrEmpty(IPAddress))
         // request based requests need to get th eIPAddress using the context
@@ -178,14 +157,6 @@ namespace OLab.Api.Services
 
     protected virtual void LoadHttpContext()
     {
-      var sessionId = _httpContext.Request.Headers["OLabSessionId"].FirstOrDefault();
-      if (!string.IsNullOrEmpty(sessionId) && (sessionId != "null"))
-      {
-        Session.SetSessionId(sessionId);
-        if (!string.IsNullOrWhiteSpace(Session.GetSessionId()))
-          _logger.LogInformation($"Found ContextId {Session.GetSessionId()}.");
-      }
-
       IPAddress = _httpContext.Connection.RemoteIpAddress.ToString();
 
       var identity = (ClaimsIdentity)_httpContext.User.Identity;
@@ -258,7 +229,7 @@ namespace OLab.Api.Services
     {
       var grantedCount = 0;
 
-      //_logger.LogDebug($"ACL request: '{requestedPerm}' on '{objectType}({objectId})'");
+      //_logger.LogInformation($"ACL request: '{requestedPerm}' on '{objectType}({objectId})'");
 
       if (!objectId.HasValue)
         objectId = WildCardObjectId;
@@ -307,7 +278,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -319,7 +290,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -331,7 +302,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -343,7 +314,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -368,7 +339,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? false");
+        _logger.LogInformation($"{acl} ? false");
         return false;
       }
 
@@ -380,7 +351,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -392,7 +363,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -404,7 +375,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 
@@ -416,7 +387,7 @@ namespace OLab.Api.Services
 
       if (acl != null)
       {
-        _logger.LogDebug($"{acl} ? true");
+        _logger.LogInformation($"{acl} ? true");
         return true;
       }
 

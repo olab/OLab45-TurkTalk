@@ -20,7 +20,7 @@ namespace OLab.Api.Services.TurkTalk
     {
       try
       {
-        _logger.LogDebug($"OnConnectedAsync: '{ConnectionIdUtils.Shorten(Context.ConnectionId)}'.");
+        _logger.LogInformation($"OnConnectedAsync: '{ConnectionIdUtils.Shorten(Context.ConnectionId)}'.");
 
         HttpRequest request = Context.GetHttpContext().Request;
 

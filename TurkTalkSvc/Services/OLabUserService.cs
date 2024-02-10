@@ -34,7 +34,7 @@ namespace OLab.Api.Services
 
       _users = _context.Users.OrderBy(x => x.Id).ToList();
 
-      _logger.LogDebug($"appSetting aud: '{_appSettings.Audience}', secret: '{_appSettings.Secret[..4]}...'");
+      _logger.LogInformation($"appSetting aud: '{_appSettings.Audience}', secret: '{_appSettings.Secret[..4]}...'");
 
       _tokenParameters = SetupConfiguration(_appSettings);
     }
@@ -207,9 +207,9 @@ namespace OLab.Api.Services
 
       JwtSecurityToken readToken = handler.ReadJwtToken(model.ExternalToken);
 
-      _logger.LogDebug($"External JWT Incoming token claims:");
+      _logger.LogInformation($"External JWT Incoming token claims:");
       foreach (Claim claim in readToken.Claims)
-        _logger.LogDebug($" {claim}");
+        _logger.LogInformation($" {claim}");
 
       handler.ValidateToken(model.ExternalToken,
                             tokenParameters,

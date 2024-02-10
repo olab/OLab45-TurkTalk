@@ -33,7 +33,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         _atrium.Topic.Conference.SendMessage(
           new AtriumUpdateCommand(_atrium.Topic.TopicModeratorsChannel, _atrium.GetContents()));
 
-        _logger.LogDebug($"transmitting atrium update: {_atrium.AtriumLearners.Count}");
+        _logger.LogInformation($"transmitting atrium update: {_atrium.AtriumLearners.Count}");
 
         Thread.Sleep(7500);
       }

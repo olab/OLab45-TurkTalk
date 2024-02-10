@@ -40,7 +40,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       HubContext = hubContext;
       _topics = new ConcurrentDictionary<string, Topic>();
 
-      logger.LogDebug($"New Conference");
+      logger.LogInformation($"New Conference");
     }
 
     public IList<Topic> Topics
@@ -55,13 +55,13 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     public async Task AddConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
+      Logger.LogInformation($"{ConnectionIdUtils.Shorten(connectionId)}: adding connection to group '{groupName}'");
       await HubContext.Groups.AddToGroupAsync(connectionId, groupName);
     }
 
     public async Task RemoveConnectionToGroupAsync(string groupName, string connectionId)
     {
-      Logger.LogDebug($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
+      Logger.LogInformation($"{ConnectionIdUtils.Shorten(connectionId)}: removing connection from group '{groupName}'");
       await HubContext.Groups.RemoveFromGroupAsync(connectionId, groupName);
     }
 
@@ -77,10 +77,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        Logger.LogInformation($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        Logger.LogDebug($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
+        Logger.LogInformation($"Send message to '{ConnectionIdUtils.Shorten(connectionId)}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Client(connectionId).SendAsync(method.MethodName, method);
     }
@@ -98,10 +98,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (method is CommandMethod)
       {
         var commandMethod = method as CommandMethod;
-        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
+        Logger.LogInformation($"Send message to '{groupName}' ({method.MethodName}/{commandMethod.Command}): '{method.ToJson()}'");
       }
       else
-        Logger.LogDebug($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
+        Logger.LogInformation($"Send message to '{groupName}' ({method.MethodName}): '{method.ToJson()}'");
 
       HubContext.Clients.Group(groupName).SendAsync(method.MethodName, method);
 
@@ -141,7 +141,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // test if topic doesn't exist yet
         if (!_topics.TryGetValue(topicId, out Topic topic))
         {
-          Logger.LogDebug($"Topic '{topicId}' does not already exist");
+          Logger.LogInformation($"Topic '{topicId}' does not already exist");
 
           if (create)
           {
@@ -152,7 +152,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
             topic = null;
         }
         else
-          Logger.LogDebug($"Topic {topicId} already exists");
+          Logger.LogInformation($"Topic {topicId} already exists");
 
         return topic;
       }
