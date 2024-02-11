@@ -1,6 +1,6 @@
 ﻿using Dawn;
+using OLab.Api.Model;
 using OLab.Common.Interfaces;
-using OLab.Data.Models;
 using OLab.TurkTalk.Data.Models;
 
 namespace OLab.TurkTalk.Data.Repositories;

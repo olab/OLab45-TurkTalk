@@ -2,13 +2,6 @@ using OLab.TurkTalk.Endpoints.BusinessObjects;
 
 namespace OLab.Api.Common.Contracts;
 
-public class TargetNode
-{
-  public uint MapId { get; set; }
-  public uint NodeId { get; set; }
-  public string NodeName { get; set; }
-}
-
 public class JumpNodePayload
 {
   public Envelope Envelope { get; set; }

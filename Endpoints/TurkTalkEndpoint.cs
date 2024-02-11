@@ -1,7 +1,7 @@
 ﻿using Dawn;
 using Newtonsoft.Json;
 using OLab.Common.Interfaces;
-using OLab.Data.Models;
+using OLab.Api.Model;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.BusinessObjects;

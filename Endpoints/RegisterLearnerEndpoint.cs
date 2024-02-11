@@ -1,10 +1,5 @@
 ﻿using Dawn;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Extensions.Primitives;
 using OLab.Access;
-using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Contracts;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using System.Security.Claims;
