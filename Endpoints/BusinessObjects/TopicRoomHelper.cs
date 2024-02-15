@@ -134,7 +134,7 @@ public class TopicRoomHelper : OLabHelper
   }
 
   /// <summary>
-  /// Get room
+  /// Get topic room
   /// </summary>
   /// <param name="id">Room id</param>
   /// <param name="allowNull">throw exception if not found</param>
@@ -173,7 +173,8 @@ public class TopicRoomHelper : OLabHelper
     DispatchedMessages messageQueue,
     string learnerSessionId,
     string moderatorSessionId,
-    uint? seatNumber)
+    uint? seatNumber,
+    CancellationToken cancellation)
   {
     var physModerator = DbUnitOfWork
       .TopicParticipantRepository
@@ -212,7 +213,8 @@ public class TopicRoomHelper : OLabHelper
     // notify moderators of atrium change
     await _topicHelper.SignalAtriumChangeAsync(
       physRoom.Topic,
-      messageQueue);
+      messageQueue,
+      cancellation);
   }
 
   /// <summary>

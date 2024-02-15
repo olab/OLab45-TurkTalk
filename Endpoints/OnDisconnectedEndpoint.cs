@@ -10,7 +10,8 @@ public partial class TurkTalkEndpoint
 {
   public async Task<DispatchedMessages> OnDisconnectedAsync(
     IOLabConfiguration configuration,
-    OnDisconnectedRequest payload)
+    OnDisconnectedRequest payload,
+    CancellationToken cancellation)
   {
     Guard.Argument(configuration, nameof(configuration)).NotNull();
     Guard.Argument(payload, nameof(payload)).NotNull();
@@ -34,7 +35,8 @@ public partial class TurkTalkEndpoint
       // notify moderators of atrium change
       await TopicHelper.SignalAtriumChangeAsync(
         physTopic,
-        MessageQueue);
+        MessageQueue, 
+        cancellation);
     }
     else
     {

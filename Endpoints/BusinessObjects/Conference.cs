@@ -3,9 +3,11 @@ using Microsoft.Extensions.Logging;
 using OLab.Api.Model;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
+using OLab.Common.Utils;
 using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
+using System.Collections.Concurrent;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 
@@ -20,10 +22,11 @@ public class Conference : IConference
   private OLabDBContext _dbContextOLab { get; }
   private TTalkDBContext _dbContextTtalk { get; }
   private ConferenceTopicHelper _topicHelper;
+  private SemaphoreManager _semaphores;
 
-  public ConferenceTopicHelper TopicHelper 
-  { 
-    get { return _topicHelper; } 
+  public ConferenceTopicHelper TopicHelper
+  {
+    get { return _topicHelper; }
   }
 
   private IOLabLogger _logger { get; }
@@ -35,6 +38,12 @@ public class Conference : IConference
   public IOLabLogger Logger { get { return _logger; } }
   public TTalkDBContext DbContextTtalk { get { return _dbContextTtalk; } }
   public OLabDBContext DbContextOLab { get { return _dbContextOLab; } }
+
+  public SemaphoreManager Semaphores 
+  { 
+    get { return _semaphores; } 
+    private set { _semaphores = value; } 
+  }
 
   public Conference()
   {
@@ -56,6 +65,8 @@ public class Conference : IConference
     _configuration = configuration;
     _dbContextOLab = dbContextOLab;
     _dbContextTtalk = dbContextTtalk;
+
+    Semaphores = new SemaphoreManager(_logger);
 
     // load the initial conference (for now, it's assumed to
     // only be one of, for now)

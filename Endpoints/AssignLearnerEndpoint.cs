@@ -8,7 +8,8 @@ namespace OLab.TurkTalk.Endpoints;
 public partial class TurkTalkEndpoint
 {
   public async Task<DispatchedMessages> AssignLearnerAsync(
-    AssignLearnerRequest payload)
+    AssignLearnerRequest payload,
+    CancellationToken cancellation)
   {
     try
     {
@@ -19,7 +20,8 @@ public partial class TurkTalkEndpoint
         MessageQueue,
         payload.LearnerSessionId,
         payload.ModeratorSessionId,
-        payload.SeatNumber);
+        payload.SeatNumber,
+        cancellation);
 
       return MessageQueue;
     }

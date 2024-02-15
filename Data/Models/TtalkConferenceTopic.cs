@@ -20,8 +20,8 @@ public partial class TtalkConferenceTopic
   [Column("conference_id", TypeName = "int(11) unsigned")]
   public uint ConferenceId { get; set; }
 
-  [Column("node_id", TypeName = "int(11) unsigned")]
-  public uint NodeId { get; set; }
+  [Column("map_id", TypeName = "int(11) unsigned")]
+  public uint MapId { get; set; }
 
   [Column("created_at", TypeName = "datetime")]
   public DateTime CreatedAt { get; set; }

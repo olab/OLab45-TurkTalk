@@ -1,4 +1,5 @@
 ﻿using Dawn;
+using DocumentFormat.OpenXml.EMMA;
 using Newtonsoft.Json;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
@@ -14,8 +15,8 @@ public class ConferenceTopicHelper : OLabHelper
 
   public readonly TopicRoomHelper RoomHelper;
   public readonly TopicParticipantHelper ParticipantHelper;
-  private readonly SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
-  private readonly SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
+  //private readonly SemaphoreSlim _topicSemaphore = new SemaphoreSlim(1, 1);
+  //private readonly SemaphoreSlim _atriumSemaphore = new SemaphoreSlim(1, 1);
 
   public ConferenceTopicHelper()
   {
@@ -44,45 +45,47 @@ public class ConferenceTopicHelper : OLabHelper
   /// Get/create topic
   /// </summary>
   /// <param name="conference">Owning conference</param>
-  /// <param name="nodeId">Node id containing ttalk question (0 = root node)</param>
+  /// <param name="mapId">Node id containing ttalk question (0 = root node)</param>
   /// <param name="questionId">Turktalk question id</param>
   /// <returns>Conference topic</returns>
   internal async Task<TtalkConferenceTopic> GetCreateTopicAsync(
     IConference conference,
-    uint nodeId,
-    uint questionId)
+    uint mapId,
+    uint questionId,
+    CancellationToken cancellation)
   {
     Guard.Argument(conference, nameof(conference)).NotNull();
     Guard.Argument(questionId, nameof(questionId)).Positive();
-    Guard.Argument(nodeId, nameof(nodeId)).Positive();
+    Guard.Argument(mapId, nameof(mapId)).Positive();
+
+    string topicName = string.Empty;
 
     try
     {
-      var topicName =
+      topicName =
         GetTopicNameFromQuestion(questionId);
 
-      await SemaphoreLogger.WaitAsync(
-        Logger,
-        $"topic '{nodeId}:{questionId}' creation",
-        _topicSemaphore);
+      await Conference
+        .Semaphores
+        .WaitAsync(
+          $"topic '{mapId}:{topicName}' creation",
+          cancellation);
 
-      var phys =
+      var physTopic =
         await DbUnitOfWork
           .ConferenceTopicRepository
-          .GetCreateTopicAsync(conference.Id, nodeId, topicName);
+          .GetCreateTopicAsync(conference.Id, mapId, topicName);
 
       // topic any topic participants into participant helper
-      ParticipantHelper.LoadFromTopic(phys);
+      ParticipantHelper.LoadFromTopic(physTopic);
 
-      return phys;
-
+      return physTopic;
     }
     finally
     {
-      SemaphoreLogger.Release(
-        Logger,
-        $"topic '{nodeId}:{questionId}' creation",
-        _topicSemaphore);
+      Conference
+       .Semaphores
+       .Release($"topic '{mapId}:{topicName}' creation");
     }
   }
 
@@ -92,30 +95,31 @@ public class ConferenceTopicHelper : OLabHelper
   /// <param name="topicId">Topic id</param>
   /// <param name="allowNull">throw exception if not found</param>
   /// <returns>Conference topic</returns>
-  internal async Task<TtalkConferenceTopic> GetAsync(uint? id, bool allowNull = true)
+  internal async Task<TtalkConferenceTopic> GetAsync(uint? topicId, bool allowNull = true)
   {
-    TtalkConferenceTopic phys = null;
+    TtalkConferenceTopic physTopic = null;
 
-    if (id.HasValue)
-      phys =
+    if (topicId.HasValue)
+      physTopic =
         await DbUnitOfWork
           .ConferenceTopicRepository
-          .GetByIdAsync(id.Value);
+          .GetByIdAsync(topicId.Value);
 
-    if (phys == null)
-      Logger.LogWarning($"topic {id} does not exist");
+    if (physTopic == null)
+      Logger.LogWarning($"topic {topicId} does not exist");
 
-    if ((phys == null) && !allowNull)
-      throw new Exception($"unable to find topic for id '{id}'");
+    if ((physTopic == null) && !allowNull)
+      throw new Exception($"unable to find topic for id '{topicId}'");
 
-    return phys;
+    return physTopic;
 
   }
 
   internal async Task RegisterModeratorAsync(
     DispatchedMessages messageQueue,
     TtalkConferenceTopic physTopic,
-    TtalkTopicParticipant physModerator)
+    TtalkTopicParticipant physModerator,
+    CancellationToken cancellation)
   {
     Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
     Guard.Argument(physTopic, nameof(physTopic)).NotNull();
@@ -129,22 +133,25 @@ public class ConferenceTopicHelper : OLabHelper
     // send current atrium contents
     await SignalAtriumChangeAsync(
       physTopic,
-      messageQueue);
+      messageQueue,
+      cancellation);
   }
 
   internal async Task SignalAtriumChangeAsync(
     TtalkConferenceTopic physTopic,
-    DispatchedMessages messageQueue)
+    DispatchedMessages messageQueue,
+    CancellationToken cancellation)
   {
     Guard.Argument(physTopic, nameof(physTopic)).NotNull();
     Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
 
     try
     {
-      await SemaphoreLogger.WaitAsync(
-        Logger,
+      await Conference
+      .Semaphores
+      .WaitAsync(
         $"atrium {physTopic.Id}",
-        _atriumSemaphore);
+        cancellation);
 
       // load atrium users for topic
       var atriumLearners = DbUnitOfWork
@@ -160,10 +167,9 @@ public class ConferenceTopicHelper : OLabHelper
     }
     finally
     {
-      SemaphoreLogger.Release(
-        Logger,
-        $"atrium {physTopic.Id}",
-        _atriumSemaphore);
+      Conference
+       .Semaphores
+       .Release($"atrium {physTopic.Id}");
     }
 
   }
@@ -172,7 +178,8 @@ public class ConferenceTopicHelper : OLabHelper
     TtalkConferenceTopic physTopic,
     TtalkTopicParticipant physLearner,
     int numberOfModerators,
-    DispatchedMessages messageQueue)
+    DispatchedMessages messageQueue,
+    CancellationToken cancellation)
   {
     Guard.Argument(physLearner, nameof(physLearner)).NotNull();
     Guard.Argument(messageQueue, nameof(messageQueue)).NotNull();
@@ -192,7 +199,8 @@ public class ConferenceTopicHelper : OLabHelper
     // signal atrium change to topic
     await SignalAtriumChangeAsync(
       physTopic,
-      messageQueue);
+      messageQueue,
+      cancellation);
   }
 
   /// <summary>
@@ -248,7 +256,7 @@ public class ConferenceTopicHelper : OLabHelper
       JsonConvert.DeserializeObject<QuestionSetting>(question.Settings);
 
     if (string.IsNullOrEmpty(questionSetting.RoomName))
-      throw new Exception($"unable to get room name from question id {questionId}");
+      throw new ArgumentException($"unable to get topic/room name from question id {questionId}");
 
     return questionSetting.RoomName;
   }

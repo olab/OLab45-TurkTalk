@@ -46,7 +46,8 @@ public partial class TurkTalkEndpoint
   }
 
   public async Task<DispatchedMessages> RegisterLearnerAsync(
-    RegisterParticipantRequest payload)
+    RegisterParticipantRequest payload,
+    CancellationToken cancellation)
   {
     try
     {
@@ -56,8 +57,9 @@ public partial class TurkTalkEndpoint
       var physTopic =
         await TopicHelper.GetCreateTopicAsync(
           _conference,
-          payload.NodeId,
-          payload.QuestionId);
+          payload.MapId,
+          payload.QuestionId,
+          cancellation);
 
       // get learner by session id
       var physLearner =
@@ -90,7 +92,8 @@ public partial class TurkTalkEndpoint
           physTopic,
           physLearner,
           physModeratorList.Count,
-          MessageQueue);
+          MessageQueue,
+          cancellation);
 
       else
       {

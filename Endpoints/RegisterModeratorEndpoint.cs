@@ -7,14 +7,22 @@ namespace OLab.TurkTalk.Endpoints;
 public partial class TurkTalkEndpoint
 {
   public async Task<DispatchedMessages> RegisterModeratorAsync(
-    RegisterParticipantRequest payload)
+    RegisterParticipantRequest payload,
+    CancellationToken cancellation)
   {
     try
     {
       Guard.Argument(payload).NotNull(nameof(payload));
 
-      TtalkConferenceTopic physTopic = null;
       TtalkTopicRoom physRoom = null;
+
+      // get existing, or create new topic
+      var physTopic =
+        await TopicHelper.GetCreateTopicAsync(
+          _conference,
+          payload.MapId,
+          payload.QuestionId,
+          cancellation);
 
       // check if moderator is already known
       var physModerator =
@@ -53,7 +61,8 @@ public partial class TurkTalkEndpoint
           await TopicHelper.GetCreateTopicAsync(
             _conference, 
             payload.NodeId,
-            payload.QuestionId);
+            payload.QuestionId,
+            cancellation);
 
         physRoom =
           await RoomHelper.CreateRoomAsync(
@@ -67,7 +76,8 @@ public partial class TurkTalkEndpoint
       await TopicHelper.RegisterModeratorAsync(
         MessageQueue,
         physTopic,
-        physModerator);
+        physModerator,
+        cancellation);
 
       RoomHelper.RegisterModerator(
         MessageQueue,
