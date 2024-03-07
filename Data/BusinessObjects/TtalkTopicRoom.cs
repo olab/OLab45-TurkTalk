@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OLab.TurkTalk.Data.Models;
+namespace OLab.TurkTalk.Data.BusinessObjects;
 
 [Table("ttalk_topic_room")]
 [Index("TopicId", Name = "fk_tr_t_idx")]

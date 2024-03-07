@@ -2,11 +2,11 @@
 using Newtonsoft.Json;
 using OLab.Common.Interfaces;
 using OLab.Api.Model;
-using OLab.TurkTalk.Data.Models;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 using OLab.TurkTalk.Endpoints.Interface;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
+using OLab.TurkTalk.Data;
 
 namespace OLab.TurkTalk.Endpoints;
 

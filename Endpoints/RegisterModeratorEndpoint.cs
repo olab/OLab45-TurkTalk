@@ -1,5 +1,5 @@
 ﻿using Dawn;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;

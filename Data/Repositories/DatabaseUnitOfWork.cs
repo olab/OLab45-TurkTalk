@@ -1,7 +1,7 @@
 ﻿using Dawn;
 using OLab.Api.Model;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 
 namespace OLab.TurkTalk.Data.Repositories;
 public class DatabaseUnitOfWork : IDisposable

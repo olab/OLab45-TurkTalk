@@ -1,7 +1,7 @@
 ﻿using Dawn;
 using OLab.Common.Interfaces;
 using OLab.FunctionApp.Functions.SignalR;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using System.Diagnostics.CodeAnalysis;

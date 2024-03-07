@@ -1,7 +1,6 @@
 ﻿using Dawn;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
 using System.Linq.Expressions;
 
 namespace OLab.TurkTalk.Data.Repositories;

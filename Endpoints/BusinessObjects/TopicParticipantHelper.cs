@@ -1,5 +1,5 @@
 ﻿using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Data.Repositories;
 using System;
 using System.Collections.Generic;

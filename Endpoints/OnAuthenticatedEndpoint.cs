@@ -2,7 +2,7 @@
 using Microsoft.Azure.Functions.Worker;
 using OLab.Access;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints;

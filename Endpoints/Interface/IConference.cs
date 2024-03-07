@@ -1,6 +1,6 @@
 ﻿using OLab.Common.Interfaces;
 using OLab.Common.Utils;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 
 namespace OLab.TurkTalk.Endpoints.Interface;

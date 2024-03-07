@@ -1,7 +1,7 @@
 ﻿using Dawn;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 
 namespace OLab.TurkTalk.Data.Repositories;
 

@@ -2,7 +2,7 @@
 using OLab.Api.ObjectMapper;
 using OLab.Common.Interfaces;
 using OLab.Data.Mappers;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.BusinessObjects;
 
 namespace OLab.TurkTalk.Endpoints.Mappers;

@@ -1,6 +1,6 @@
 ﻿using Dawn;
 using OLab.Access;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 using System.Security.Claims;
 

@@ -4,7 +4,7 @@ using OLab.Api.Model;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data;
 using OLab.TurkTalk.Data.Repositories;
 using OLab.TurkTalk.Endpoints.Interface;
 using System.Collections.Concurrent;

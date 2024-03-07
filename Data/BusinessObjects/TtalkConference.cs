@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OLab.TurkTalk.Data.Models;
+namespace OLab.TurkTalk.Data.BusinessObjects;
 
 [Table("ttalk_conference")]
 public partial class TtalkConference

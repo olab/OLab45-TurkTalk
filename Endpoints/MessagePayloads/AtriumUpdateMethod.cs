@@ -1,5 +1,5 @@
 ﻿using OLab.Common.Interfaces;
-using OLab.TurkTalk.Data.Models;
+using OLab.TurkTalk.Data.BusinessObjects;
 using System.Text;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;

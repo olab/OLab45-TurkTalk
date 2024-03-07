@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.Repositories;
 
-namespace OLab.TurkTalk.Data.Models;
+namespace OLab.TurkTalk.Data.BusinessObjects;
 
 public partial class TtalkTopicParticipantRepository : GenericRepository<TtalkTopicParticipant>
 {
