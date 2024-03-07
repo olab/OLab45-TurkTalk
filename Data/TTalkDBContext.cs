@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using OLab.TurkTalk.Data.BusinessObjects;
 
 namespace OLab.TurkTalk.Data;
@@ -9,6 +10,17 @@ public partial class TTalkDBContext : DbContext
         : base(options)
     {
     }
+
+  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+  {
+    if (!optionsBuilder.IsConfigured)
+    {
+      var connectionString = Environment.GetEnvironmentVariable("DefaultDatabase");
+      var serverVersion = ServerVersion.AutoDetect(connectionString);
+
+      optionsBuilder.UseMySql(connectionString, serverVersion);
+    }
+  }
 
     public virtual DbSet<TtalkConference> TtalkConferences { get; set; }
 
