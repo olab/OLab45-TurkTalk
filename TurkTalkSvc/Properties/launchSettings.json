@@ -9,6 +9,15 @@
       },
       "enableStepFiltering": false,
       "applicationUrl": "https://localhost:5004"
+    },
+    "local": {
+      "commandName": "Project",
+      "launchUrl": "weatherforecast",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "enableStepFiltering": false,
+      "applicationUrl": "https://localhost:7072"
     }
   }
 }

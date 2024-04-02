@@ -70,28 +70,29 @@ namespace OLab.Api.Services.TurkTalk
       }
     }
 
-    /// <summary>
-    /// Builds an authorization context from the host context
-    /// </summary>
-    /// <param name="hostContext">Function context</param>
-    /// <returns>IOLabAuthentication</returns>
-    /// <exception cref="Exception"></exception>
-    [NonAction]
-    private IOLabAuthorization GetAuthorization(HttpContext hostContext)
+  /// <summary>
+  /// ReadAsync the _authentication context from the host context
+  /// </summary>
+  /// <param name="hostContext">Function context</param>
+  /// <returns>IOLabAuthentication</returns>
+  /// <exception cref="Exception"></exception>
+  [NonAction]
+  protected IOLabAuthorization GetAuthorization(HttpContext hostContext)
+  {
+    // ReadAsync the item set by the middleware
+    if (hostContext.Items.TryGetValue("usercontext", out var value) && value is IUserContext userContext)
     {
-      var request = hostContext.Request;
-
-      var userContext = new UserContext(_logger, DbContext, request);
-
-      if (!request.Query.TryGetValue("contextId", out var contextId))
-        throw new Exception("signalr hub missing contextId");
-      userContext.SessionId = contextId;
+      _logger.LogInformation($"User context: {userContext}");
 
       var auth = new OLabAuthorization(_logger, DbContext);
-      auth.UserContext = userContext;
+      auth.ApplyUserContext(userContext);
 
       return auth;
     }
+
+    throw new Exception("unable to get auth RequestContext");
+
+  }
 
     /// <summary>
     /// Get the session from the host context

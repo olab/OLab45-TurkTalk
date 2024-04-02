@@ -16,13 +16,15 @@ using OLab.Api.Services.TurkTalk;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
 using IOLabSession = OLab.Api.Data.Interface.IOLabSession;
-using IUserService = OLab.Api.Services.IUserService;
 using System.Net;
 using System;
 using OLab.Common.Interfaces;
 using OLab.Access.Interfaces;
 using OLab.Access;
 using OLab.Common.Utils;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using OLab.Data.Interface;
 
 namespace TurkTalkSvc
 {
@@ -50,7 +52,8 @@ namespace TurkTalkSvc
         options.AddPolicy("CorsPolicy",
            builder => builder
             // .AllowAnyOrigin()
-            .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://dev.olab.ca", "https://demo.olab.ca")
+            .SetIsOriginAllowed(origin => true) // allow any origin
+            // .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://dev.olab.ca", "https://demo.olab.ca")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
@@ -108,8 +111,7 @@ namespace TurkTalkSvc
               // .LogTo(Console.WriteLine, LogLevel.Information)
               // .EnableSensitiveDataLogging()
               .EnableDetailedErrors()
-        );
-
+      );
       // Everything from this point on is optional but helps with debugging.
       // .UseLoggerFactory(
       //     LoggerFactory.Create(
@@ -120,16 +122,21 @@ namespace TurkTalkSvc
       // .EnableDetailedErrors()
       // );
 
-      // MoodleJWTService.Setup(Configuration, services);
-      OLabJWTService.Setup(Configuration, services);
-
-      services.AddTransient<IUserContext, UserContext>();
-      services.AddSingleton<IOLabLogger, OLabLogger>();
+      services.AddScoped<IUserContext, UserContextService>();
+      services.AddScoped<IUserService, UserService>();
+      services.AddScoped<IOLabAuthentication, OLabAuthentication>();
+      services.AddScoped<IOLabAuthorization, OLabAuthorization>();
 
       // define instances of application services
-      services.AddScoped<IUserService, OLabUserService>();
+      services.AddSingleton<IOLabLogger, OLabLogger>();
+      services.AddSingleton<IOLabConfiguration, OLabConfiguration>();
+
+      // define instances of application services
       services.AddScoped<IOLabSession, OLabSession>();
       services.AddSingleton<Conference>();
+
+      OLabAuthMiddleware.SetupServices(services);
+
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -150,8 +157,7 @@ namespace TurkTalkSvc
       app.UseForwardedHeaders();
       app.UseHttpLogging();
 
-      // custom jwt auth middleware
-      app.UseMiddleware<OLabJWTService>();
+      app.UseMiddleware<OLabAuthMiddleware>();
 
       // get signalR endpoint
       var signalREndpoint = Configuration["AppSettings:SignalREndpoint"];
