@@ -1,108 +1,32 @@
 using Dawn;
-using DocumentFormat.OpenXml.EMMA;
-using DocumentFormat.OpenXml.Office2016.Excel;
-using DocumentFormat.OpenXml.Vml.Office;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OLab.Access;
-using OLab.Api.Data.Interface;
+using OLab.Api.Data.Exceptions;
 using OLab.Api.Model;
 using OLab.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Claims;
 
 #nullable disable
 
 namespace OLab.Api.Services;
 
-public class UserContextService : IUserContext
+public class UserContextService : UserContextBase
 {
-  public const string WildCardObjectType = "*";
-  public const uint WildCardObjectId = 0;
-  public const string NonAccessAcl = "-";
-  public Users OLabUser;
-
-  protected IDictionary<string, string> _claims;
-  private readonly OLabDBContext dbContext;
-  private readonly IOLabLogger _logger;
-  protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
-  protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
-
-  protected string _sessionId;
-  private string _role;
-  public IList<UserGroups> UserRoles { get; set; }
-  private uint _userId;
-  private string _userName;
-  private string _ipAddress;
-  private string _issuer;
-
-  public string SessionId
+  public UserContextService(IOLabLogger logger, OLabDBContext dbContext) : base(logger, dbContext)
   {
-    get => _sessionId;
-    set => _sessionId = value;
-  }
-
-  public string ReferringCourse
-  {
-    get => _role;
-    set => _role = value;
-  }
-
-  public string Role
-  {
-    get => _role;
-    set => _role = value;
-  }
-
-  public uint UserId
-  {
-    get => _userId;
-    set => _userId = value;
-  }
-
-  public string UserName
-  {
-    get => _userName;
-    set => _userName = value;
-  }
-
-  public string IPAddress
-  {
-    get => _ipAddress;
-    set => _ipAddress = value;
-  }
-
-  public string Issuer
-  {
-    get => _issuer;
-    set => _issuer = value;
-  }
-  string IUserContext.SessionId
-  {
-    get => _sessionId;
-    set => _sessionId = value;
-  }
-
-  public UserContextService(IOLabLogger logger, OLabDBContext dbContext)
-  {
-    this.dbContext = dbContext;
-    _logger = logger;
   }
 
   public UserContextService(
     OLabDBContext dbContext,
     IOLabLogger logger,
-    HttpContext httpContext)
+    HttpContext httpContext) : base(logger, dbContext)
   {
-    Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(httpContext).NotNull(nameof(httpContext));
-    Guard.Argument(dbContext).NotNull(nameof(dbContext));
 
-    this.dbContext = dbContext;
-    _logger = logger;
 
     LoadHttpContext(httpContext);
   }
@@ -151,12 +75,24 @@ public class UserContextService : IUserContext
       throw new Exception("unable to retrieve role from token claims");
     Role = roleValue;
 
-    UserRoles = dbContext.UserGroups.Where(x => x.UserId == UserId).ToList();
+    if ((Issuer == "olab") && (UserId != 0))
+    {
+      var userPhys = dbContext.Users
+        .Include("UserGroups")
+        .Include("UserGroups.Group")
+        .Include("UserGroups.Role")
+        .FirstOrDefault(x => x.Id == UserId);
+
+      if (userPhys == null)
+        throw new OLabObjectNotFoundException("Users", UserId);
+
+      UserRoles = userPhys.UserGroups.ToList();
+    }
+    else
+      // separate out multiple roles, make lower case, remove spaces, and sort
+      UserRoles = UserGroups.FromString(dbContext, roleValue);
 
   }
-  public override string ToString()
-  {
-    return $"{UserId} {Issuer} {UserName} {Role} {IPAddress} {ReferringCourse}";
-  }
+
 }
 
