@@ -28,7 +28,6 @@ namespace OLab.Api.Services;
 
 public class OLabAuthMiddleware
 {
-  //private readonly IUserService _userService;
   private readonly RequestDelegate _next;
   private readonly IOLabConfiguration _config;
   private readonly IOLabLogger _logger;

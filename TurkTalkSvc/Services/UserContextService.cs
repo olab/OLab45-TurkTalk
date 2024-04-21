@@ -86,6 +86,8 @@ public class UserContextService : IUserContext
     set => _sessionId = value;
   }
 
+  IList<string> IUserContext.UserRoles => throw new NotImplementedException();
+
   public UserContextService(IOLabLogger logger, OLabDBContext dbContext)
   {
     this.dbContext = dbContext;
