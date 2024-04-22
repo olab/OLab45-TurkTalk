@@ -1,15 +1,20 @@
 using Dawn;
 using DocumentFormat.OpenXml.EMMA;
 using DocumentFormat.OpenXml.Office2016.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Vml.Office;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NuGet.Common;
 using OLab.Access;
 using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Common.Interfaces;
+using OLab.Data.Interface;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
@@ -23,11 +28,15 @@ public class UserContextService : IUserContext
   public const string WildCardObjectType = "*";
   public const uint WildCardObjectId = 0;
   public const string NonAccessAcl = "-";
-  public Users OLabUser;
+  public Model.Users OLabUser;
 
   protected IDictionary<string, string> _claims;
+  private readonly IOLabConfiguration configuration;
   private readonly OLabDBContext dbContext;
   private readonly IOLabLogger _logger;
+  private readonly HttpContext httpContext;
+  private readonly IUserService userService;
+  private readonly string token;
   protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
   protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
 
@@ -95,65 +104,81 @@ public class UserContextService : IUserContext
   }
 
   public UserContextService(
+    IOLabConfiguration configuration,
     OLabDBContext dbContext,
     IOLabLogger logger,
-    HttpContext httpContext)
+    HttpContext httpContext,
+    IUserService userService,
+    string token)
   {
     Guard.Argument(logger).NotNull(nameof(logger));
     Guard.Argument(httpContext).NotNull(nameof(httpContext));
     Guard.Argument(dbContext).NotNull(nameof(dbContext));
+    this.configuration = configuration;
 
     this.dbContext = dbContext;
     _logger = logger;
+    this.httpContext = httpContext;
+    this.userService = userService;
+    this.token = token;
 
-    LoadHttpContext(httpContext);
+    LoadHttpContext();
   }
 
-  protected virtual void LoadHttpContext(HttpContext hostContext)
+  protected virtual void LoadHttpContext()
   {
-    if (!hostContext.Items.TryGetValue("headers", out var headersObjects))
-      throw new Exception("unable to retrieve headers from host context");
-
-    var headers = (Dictionary<string, string>)headersObjects;
-
-    if (headers.TryGetValue("OLabSessionId".ToLower(), out var sessionId))
+    try
     {
-      if (!string.IsNullOrEmpty(sessionId) && sessionId != "null")
+      var tokenHandler = new JwtSecurityTokenHandler();
+      tokenHandler.ValidateToken(token,
+                                 OLabAuthentication.BuildTokenValidationObject(configuration),
+                                 out SecurityToken validatedToken);
+
+      var jwtToken = (JwtSecurityToken)validatedToken;
+      var issuedBy = jwtToken.Claims.FirstOrDefault(x => x.Type == "iss").Value;
+      var userName = jwtToken.Claims.FirstOrDefault(x => x.Type == "unique_name").Value;
+      var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role").Value;
+
+      var nickName = "";
+      if (jwtToken.Claims.Any(x => x.Type == "name"))
+        nickName = jwtToken.Claims.FirstOrDefault(x => x.Type == "name").Value;
+      else
+        nickName = userName;
+      httpContext.Items["UserId"] = nickName;
+
+      var course = "olabinternal";
+      if (jwtToken.Claims.Any(x => x.Type == "course"))
       {
-        SessionId = sessionId;
-        if (!string.IsNullOrWhiteSpace(SessionId))
-          _logger.LogInformation($"Found sessionId {SessionId}.");
+        course = jwtToken.Claims.FirstOrDefault(x => x.Type == "course").Value;
+        httpContext.Items["Course"] = course;
+        ReferringCourse = course;
       }
+
+      Issuer = issuedBy;
+
+      // if no role passed in, then we assume it's a local user
+      if (string.IsNullOrEmpty(role))
+      {
+        var user = userService.GetByUserName(userName);
+        httpContext.Items["User"] = user.Username;
+        httpContext.Items["Role"] = $"{string.Join(",", user.UserGroups.Select(x => x.Group.Name).ToList())}";
+        UserRoles = user.UserGroups.Select(x => x.Group.Name).ToList();
+      }
+      else
+      {
+        httpContext.Items["Role"] = role;
+        httpContext.Items["User"] = userName;
+      }
+
+      UserName = httpContext.Items["User"].ToString();
+      Role = httpContext.Items["Role"].ToString();
+
     }
-
-    if (!hostContext.Items.TryGetValue("claims", out var claimsObject))
-      throw new Exception("unable to retrieve claims from host context");
-
-    _claims = (IDictionary<string, string>)claimsObject;
-
-    if (!_claims.TryGetValue(ClaimTypes.Name, out var nameValue))
-      throw new Exception("unable to retrieve user name from token claims");
-
-
-    IPAddress = hostContext.Connection.RemoteIpAddress.ToString();
-
-    UserName = nameValue;
-
-    ReferringCourse = _claims[ClaimTypes.UserData];
-
-    if (!_claims.TryGetValue("iss", out var issValue))
-      throw new Exception("unable to retrieve iss from token claims");
-    Issuer = issValue;
-
-    if (!_claims.TryGetValue("id", out var idValue))
-      throw new Exception("unable to retrieve user id from token claims");
-    UserId = (uint)Convert.ToInt32(idValue);
-
-    if (!_claims.TryGetValue(ClaimTypes.Role, out var roleValue))
-      throw new Exception("unable to retrieve role from token claims");
-    Role = roleValue;
-
-    UserRoles = dbContext.UserGroups.Where(x => x.UserId == UserId).ToList();
+    catch
+    {
+      // do nothing if jwt validation fails
+      // user is not attached to DbContext so request won't have access to secure routes
+    }
 
   }
   public override string ToString()
