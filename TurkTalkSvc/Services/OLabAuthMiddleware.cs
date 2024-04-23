@@ -152,18 +152,31 @@ public class OLabAuthMiddleware
   }
 
   public async Task InvokeAsync(
-    HttpContext context,
+    HttpContext httpContext,
+    OLabDBContext dbContext,
+    IOLabConfiguration configuration,
     IUserService userService)
   {
     var token = OLabAuthentication.ExtractAccessToken(
-      context.Request,
+      httpContext.Request,
       true);
 
     if (token != null)
-      AttachUserToContext(context,
-                          userService,
-                          token);
+    {
+      // build and inject the host context into the authorixation object
+      var userContext = new UserContextService(
+        configuration,
+        dbContext,
+        _logger,
+        httpContext,
+        userService,
+        token);
+      httpContext.Items.Add("usercontext", userContext);
+    }
+      //AttachUserToContext(context,
+      //                    userService,
+      //                    token);
 
-    await _next(context);
+    await _next(httpContext);
   }
 }
