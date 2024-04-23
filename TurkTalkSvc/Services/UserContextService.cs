@@ -95,7 +95,7 @@ public class UserContextService : IUserContext
     set => _sessionId = value;
   }
 
-  IList<string> IUserContext.UserRoles => throw new NotImplementedException();
+  IList<string> IUserContext.UserRoles => new List<string> { Role };
 
   public UserContextService(IOLabLogger logger, OLabDBContext dbContext)
   {
@@ -138,13 +138,15 @@ public class UserContextService : IUserContext
       var issuedBy = jwtToken.Claims.FirstOrDefault(x => x.Type == "iss").Value;
       var userName = jwtToken.Claims.FirstOrDefault(x => x.Type == "unique_name").Value;
       var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role").Value;
+      var userId = jwtToken.Claims.FirstOrDefault(x => x.Type == "id").Value;
 
       var nickName = "";
       if (jwtToken.Claims.Any(x => x.Type == "name"))
         nickName = jwtToken.Claims.FirstOrDefault(x => x.Type == "name").Value;
       else
         nickName = userName;
-      httpContext.Items["UserId"] = nickName;
+      httpContext.Items["UserId"] =
+        jwtToken.Claims.FirstOrDefault(x => x.Type == "id").Value;
 
       var course = "olabinternal";
       if (jwtToken.Claims.Any(x => x.Type == "course"))
@@ -162,7 +164,6 @@ public class UserContextService : IUserContext
         var user = userService.GetByUserName(userName);
         httpContext.Items["User"] = user.Username;
         httpContext.Items["Role"] = $"{string.Join(",", user.UserGroups.Select(x => x.Group.Name).ToList())}";
-        UserRoles = user.UserGroups.Select(x => x.Group.Name).ToList();
       }
       else
       {
@@ -172,6 +173,7 @@ public class UserContextService : IUserContext
 
       UserName = httpContext.Items["User"].ToString();
       Role = httpContext.Items["Role"].ToString();
+      UserId = Convert.ToUInt32(userId);
 
     }
     catch
