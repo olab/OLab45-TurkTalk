@@ -5,12 +5,14 @@ find . -type d -name obj -ls -exec rm -Rf {} \; > /dev/null
 git pull
 cd ../TurkTalkSvc
 git pull
-service olab46ttalk stop
+service olab46ttalk.$1 stop
 find . -type d -name bin -ls -exec rm -Rf {} \;
 find . -type d -name obj -ls -exec rm -Rf {} \;
 cd TurkTalkSvc
-ln -s /opt/olab46/ttalk bin
+if ! test -d ./bin; then
+  ln -s /opt/olab46/$1/ttalk bin
+fi
 dotnet clean TurkTalkSvc.sln
-dotnet build -c Release TurkTalkSvc.sln
-service olab46ttalk start
-service olab46ttalk status
+dotnet build -c $1 TurkTalkSvc.sln
+service olab46ttalk.$1 start
+service olab46ttalk.$1 status
