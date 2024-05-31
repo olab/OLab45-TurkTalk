@@ -1,5 +1,4 @@
 using Dawn;
-using Microsoft.Extensions.Logging;
 
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.Utils;
@@ -22,7 +21,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     private string _name;
     public string TopicModeratorsChannel;
-    private TopicAtrium _atrium;
+    private readonly TopicAtrium _atrium;
 
     private static readonly Mutex atriumMutex = new Mutex();
     public IOLabLogger Logger { get { return _conference.Logger; } }
@@ -93,7 +92,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
           else
           {
             var newRoom = new Room(this, _rooms.Count + 1);
-            int index = _rooms.Add(newRoom);
+            var index = _rooms.Add(newRoom);
 
             Logger.LogInformation($"Created new room '{_rooms[index].Name}'");
 
@@ -174,7 +173,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         if (index >= Rooms.Count)
           throw new ArgumentOutOfRangeException("Invalid topic newRoom instance argument");
 
-        Room room = _rooms[index];
+        var room = _rooms[index];
         return room;
       }
       finally
@@ -196,7 +195,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         // go thru each newRoom and remove a (potential)
         // Participant
-        foreach (Room room in Rooms)
+        foreach (var room in Rooms)
         {
           if (room.ParticipantExists(participant))
             return room;
@@ -226,7 +225,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         // go thru each newRoom and remove a (potential)
         // Participant
-        foreach (Room room in Rooms)
+        foreach (var room in Rooms)
           await room.RemoveParticipantAsync(participant);
       }
       finally
@@ -315,7 +314,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         // save so we can return the entire Participant
         // (which contains the contextId)
-        Learner learner = _atrium.Get(participant);
+        var learner = _atrium.Get(participant);
 
         // try and remove Participant.  if removed, notify all topic
         // moderators of atrium content change
@@ -394,7 +393,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
         _rooms.Lock();
 
-        Room room = Rooms.FirstOrDefault(x => x.Name == roomId);
+        var room = Rooms.FirstOrDefault(x => x.Name == roomId);
         if (room == null)
           return;
 

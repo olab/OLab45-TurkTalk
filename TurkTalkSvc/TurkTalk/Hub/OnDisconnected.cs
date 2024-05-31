@@ -27,7 +27,7 @@ namespace OLab.Api.Services.TurkTalk
 
         // we don't know which user disconnected, so we have to search
         // the known topics by SignalR DbContext
-        foreach (Topic topic in _conference.Topics)
+        foreach (var topic in _conference.Topics)
           await topic.RemoveParticipantAsync(participant);
       }
       catch (Exception ex)

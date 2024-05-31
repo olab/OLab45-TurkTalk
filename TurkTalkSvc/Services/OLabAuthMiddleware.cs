@@ -1,27 +1,15 @@
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.IdentityModel.Tokens;
 using OLab.Access;
-using OLab.Access.Interfaces;
-using OLab.Api.Common.Exceptions;
-using OLab.Api.Extensions;
 using OLab.Api.Model;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
-using OLab.Common.Utils;
 using OLab.Data.Interface;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace OLab.Api.Services;
@@ -79,7 +67,7 @@ public class OLabAuthMiddleware
           // If the request is for our SignalR hub based on
           // the URL requested then don't bother adding olab issued token.
           // SignalR has it's own
-          PathString path = context.HttpContext.Request.Path;
+          var path = context.HttpContext.Request.Path;
 
           var accessToken = OLabAuthentication.ExtractAccessToken(
             context.Request,
@@ -107,7 +95,7 @@ public class OLabAuthMiddleware
       var tokenHandler = new JwtSecurityTokenHandler();
       tokenHandler.ValidateToken(token,
                                  OLabAuthentication.BuildTokenValidationObject(_config),
-                                 out SecurityToken validatedToken);
+                                 out var validatedToken);
 
       var jwtToken = (JwtSecurityToken)validatedToken;
       var issuedBy = jwtToken.Claims.FirstOrDefault(x => x.Type == "iss").Value;
@@ -133,7 +121,7 @@ public class OLabAuthMiddleware
       // if no role passed in, then we assume it's a local user
       if (string.IsNullOrEmpty(role))
       {
-        Users user = userService.GetByUserName(userName);
+        var user = userService.GetByUserName(userName);
         httpContext.Items["User"] = user.Username;
         httpContext.Items["Role"] = UserGrouproles.ListToString(user.UserGrouproles.ToList());
       }
@@ -173,9 +161,9 @@ public class OLabAuthMiddleware
         token);
       httpContext.Items.Add("usercontext", userContext);
     }
-      //AttachUserToContext(context,
-      //                    userService,
-      //                    token);
+    //AttachUserToContext(context,
+    //                    userService,
+    //                    token);
 
     await _next(httpContext);
   }

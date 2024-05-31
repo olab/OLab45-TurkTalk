@@ -1,5 +1,3 @@
-using OLab.Api.TurkTalk.BusinessObjects;
-
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
   public class AtriumParticipant

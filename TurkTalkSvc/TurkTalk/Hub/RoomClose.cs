@@ -3,16 +3,15 @@ using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLab.Api.TurkTalk.BusinessObjects;
 using System;
 using System.Threading.Tasks;
 
 namespace OLab.Api.Services.TurkTalk
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public partial class TurkTalkHub : Hub
+  /// <summary>
+  /// 
+  /// </summary>
+  public partial class TurkTalkHub : Hub
   {
     /// <summary>
     /// Register moderator to atrium
@@ -31,7 +30,7 @@ namespace OLab.Api.Services.TurkTalk
         _logger.LogInformation($"RoomClose: '{roomName}', ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
         // get or create a conference topic
-        Topic topic = _conference.GetCreateTopic(roomName, false);
+        var topic = _conference.GetCreateTopic(roomName, false);
 
         if (topic != null)
           await topic.RemoveRoomAsync(roomName);

@@ -1,4 +1,3 @@
-using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +7,6 @@ using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Contracts;
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OLab.Api.Services.TurkTalk
@@ -39,7 +37,7 @@ namespace OLab.Api.Services.TurkTalk
         _logger.LogInformation($"{learner.GetUniqueKey()}: channel: {learner.CommandChannel} IP Address: {this.Context.GetHttpContext().Connection.RemoteIpAddress} node: {learner.ReferringNodeName}");
 
         // get or create a conference topic
-        Topic topic = _conference.GetCreateTopic(learner.TopicName);
+        var topic = _conference.GetCreateTopic(learner.TopicName);
 
         // test if participant already in room
         room = topic.GetParticipantRoom(learner);

@@ -4,15 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using Microsoft.Extensions.Logging;
-using NuGet.Protocol.Plugins;
 using OLab.Access;
 using OLab.Api.Data;
 using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Api.TurkTalk.BusinessObjects;
-using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using System;
 using System.Net;
@@ -70,29 +66,29 @@ namespace OLab.Api.Services.TurkTalk
       }
     }
 
-  /// <summary>
-  /// ReadAsync the _authentication context from the host context
-  /// </summary>
-  /// <param name="hostContext">Function context</param>
-  /// <returns>IOLabAuthentication</returns>
-  /// <exception cref="Exception"></exception>
-  [NonAction]
-  protected IOLabAuthorization GetAuthorization(HttpContext hostContext)
-  {
-    // ReadAsync the item set by the middleware
-    if (hostContext.Items.TryGetValue("usercontext", out var value) && value is IUserContext userContext)
+    /// <summary>
+    /// ReadAsync the _authentication context from the host context
+    /// </summary>
+    /// <param name="hostContext">Function context</param>
+    /// <returns>IOLabAuthentication</returns>
+    /// <exception cref="Exception"></exception>
+    [NonAction]
+    protected IOLabAuthorization GetAuthorization(HttpContext hostContext)
     {
-      _logger.LogInformation($"User context: {userContext}");
+      // ReadAsync the item set by the middleware
+      if (hostContext.Items.TryGetValue("usercontext", out var value) && value is IUserContext userContext)
+      {
+        _logger.LogInformation($"User context: {userContext}");
 
-      var auth = new OLabAuthorization(_logger, DbContext);
-      auth.ApplyUserContext(userContext);
+        var auth = new OLabAuthorization(_logger, DbContext);
+        auth.ApplyUserContext(userContext);
 
-      return auth;
+        return auth;
+      }
+
+      throw new Exception("unable to get auth RequestContext");
+
     }
-
-    throw new Exception("unable to get auth RequestContext");
-
-  }
 
     /// <summary>
     /// Get the session from the host context
@@ -122,7 +118,7 @@ namespace OLab.Api.Services.TurkTalk
       // Return the Context IP address
       if (context != null)
       {
-        HttpContext httpContext = context.GetHttpContext();
+        var httpContext = context.GetHttpContext();
         if (httpContext != null)
         {
           IPAddress clientIp;

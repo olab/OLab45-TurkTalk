@@ -1,13 +1,15 @@
-using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using OLab.Access;
+using OLab.Access.Interfaces;
 using OLab.Api.Data;
 using OLab.Api.Data.Interface;
 using OLab.Api.Model;
@@ -15,16 +17,12 @@ using OLab.Api.Services;
 using OLab.Api.Services.TurkTalk;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
-using IOLabSession = OLab.Api.Data.Interface.IOLabSession;
-using System.Net;
-using System;
 using OLab.Common.Interfaces;
-using OLab.Access.Interfaces;
-using OLab.Access;
 using OLab.Common.Utils;
-using DocumentFormat.OpenXml.InkML;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using OLab.Data.Interface;
+using System;
+using System.Net;
+using IOLabSession = OLab.Api.Data.Interface.IOLabSession;
 
 namespace TurkTalkSvc
 {
@@ -53,7 +51,7 @@ namespace TurkTalkSvc
            builder => builder
             // .AllowAnyOrigin()
             .SetIsOriginAllowed(origin => true) // allow any origin
-            // .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://dev.olab.ca", "https://demo.olab.ca")
+                                                // .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://dev.olab.ca", "https://demo.olab.ca")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
@@ -63,7 +61,7 @@ namespace TurkTalkSvc
       services.AddControllers().AddNewtonsoftJson();
       services.AddLogging(builder =>
       {
-        IConfigurationSection config = Configuration.GetSection("Logging");
+        var config = Configuration.GetSection("Logging");
         builder.ClearProviders();
         builder.AddConsole(configure =>
         {

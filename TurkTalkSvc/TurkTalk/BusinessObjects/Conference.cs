@@ -2,11 +2,8 @@ using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using OLab.Api.Services.TurkTalk;
-using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Methods;
-using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,7 +67,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     /// </summary>
     /// <param name="connectionId">connection id to transmit payload to</param>
     /// <param name="method">message payload</param>
-    public void SendMessage(string connectionId, Method method )
+    public void SendMessage(string connectionId, Method method)
     {
       Guard.Argument(connectionId).NotEmpty(connectionId);
 
@@ -114,7 +111,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     /// <returns>First unmoderated room</returns>
     public Room GetCreateTopicRoom(Moderator moderator)
     {
-      Topic topic = GetCreateTopic(moderator.TopicName);
+      var topic = GetCreateTopic(moderator.TopicName);
       return topic.GetCreateRoom(moderator);
     }
 
@@ -139,7 +136,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         var topicId = roomParts[0];
 
         // test if topic doesn't exist yet
-        if (!_topics.TryGetValue(topicId, out Topic topic))
+        if (!_topics.TryGetValue(topicId, out var topic))
         {
           Logger.LogInformation($"Topic '{topicId}' does not already exist");
 

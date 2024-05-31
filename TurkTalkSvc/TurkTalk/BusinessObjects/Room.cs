@@ -1,18 +1,18 @@
 using Dawn;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using OLab.Access;
+using OLab.Api.Data.Interface;
+using OLab.Api.Endpoints.Player;
 using OLab.Api.Model;
 using OLab.Api.TurkTalk.Commands;
+using OLab.Api.TurkTalk.Contracts;
 using OLab.Api.Utils;
+using OLab.Common.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System;
-using OLab.Api.Endpoints.Player;
-using Microsoft.AspNetCore.Http;
-using OLab.Api.Data.Interface;
-using OLab.Access;
-using OLab.Common.Interfaces;
-using OLab.Api.TurkTalk.Contracts;
 
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
@@ -146,7 +146,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
       // notify all learners in room of
       // moderator (re)connection
-      foreach (Learner learner in learners)
+      foreach (var learner in learners)
         _topic.Conference.SendMessage(
             new RoomAssignmentCommand(learner));
     }
@@ -163,9 +163,9 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       {
         Logger.LogInformation($"Querying exit nodes for map {mapId}, node {nodeId}, user {userContext.UserId}");
 
-        using (IServiceScope scope = _topic.Conference.ScopeFactory.CreateScope())
+        using (var scope = _topic.Conference.ScopeFactory.CreateScope())
         {
-          OLabDBContext dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
+          var dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
           var auth = new OLabAuthorization(Logger, dbContext);
           var endpoint = new MapsEndpoint(Logger, dbContext);
           endpoint.SetUserContext(userContext);
@@ -236,7 +236,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
       // notify all known learners in room of moderator disconnection
       // and add them back into the atrium
-      foreach (Learner learner in _learners.Items)
+      foreach (var learner in _learners.Items)
       {
         RemoveLearner(learner, false);
         await _topic.AddToAtriumAsync(learner);
@@ -251,7 +251,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     private void RemoveLearner(Participant participant, bool instantRemove = true)
     {
 
-      Learner serverParticipant = _learners.Items.FirstOrDefault(x => (x.UserId == participant.UserId) && (x.ConnectionId == participant.ConnectionId));
+      var serverParticipant = _learners.Items.FirstOrDefault(x => (x.UserId == participant.UserId) && (x.ConnectionId == participant.ConnectionId));
       if (serverParticipant != null)
       {
         Logger.LogInformation($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");

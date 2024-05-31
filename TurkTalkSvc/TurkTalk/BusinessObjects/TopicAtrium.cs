@@ -1,15 +1,11 @@
 using Common.Utils;
-using Microsoft.Extensions.Logging;
+using OLab.Common.Interfaces;
 using OLab.TurkTalk.ParticipantSimulator;
-
-using OLab.Api.TurkTalk.Commands;
-using OLab.Api.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using OLab.Common.Interfaces;
 
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
@@ -102,7 +98,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     /// <param name="connectionId">Connection id to search for</param>
     internal bool Remove(string connectionId)
     {
-      foreach (Learner item in AtriumLearners.Values)
+      foreach (var item in AtriumLearners.Values)
       {
         if (item.ConnectionId == connectionId)
           return Remove(item);
@@ -157,7 +153,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         _logger.LogInformation($"  none");
       else
       {
-        foreach (Learner item in AtriumLearners.Values.OrderBy(x => x.UserId))
+        foreach (var item in AtriumLearners.Values.OrderBy(x => x.UserId))
           _logger.LogInformation($"  {item.CommandChannel} ({ConnectionIdUtils.Shorten(item.ConnectionId)})");
       }
     }

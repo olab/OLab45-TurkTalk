@@ -1,19 +1,12 @@
-using Common.Utils;
 using Dawn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
-
+using OLab.Api.TurkTalk.Contracts;
 using System;
 using System.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using OLab.Api.Utils;
-using OLab.Api.Data;
-using OLab.Api.TurkTalk.Contracts;
 
 namespace OLab.Api.Services.TurkTalk
 {
@@ -39,7 +32,7 @@ namespace OLab.Api.Services.TurkTalk
 
         var auth = GetAuthorization(Context.GetHttpContext());
 
-        Topic topic = _conference.GetCreateTopic(learner.TopicName, false);
+        var topic = _conference.GetCreateTopic(learner.TopicName, false);
         if (topic == null)
           return;
 
@@ -58,13 +51,13 @@ namespace OLab.Api.Services.TurkTalk
         // remove from topic atrium
         topic.RemoveFromAtrium(learner);
 
-        Room room = topic.GetRoom(roomName);
+        var room = topic.GetRoom(roomName);
         if (room != null)
         {
           var jumpNodes = await room.GetExitMapNodes(
-            Context.GetHttpContext(), 
-            auth.UserContext, 
-            learner.Session.MapId, 
+            Context.GetHttpContext(),
+            auth.UserContext,
+            learner.Session.MapId,
             learner.Session.NodeId);
 
           if (!(await room.AddLearnerAsync(learner, jumpNodes)))

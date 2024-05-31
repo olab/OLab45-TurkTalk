@@ -1,12 +1,5 @@
 using Dawn;
-using DocumentFormat.OpenXml.EMMA;
-using DocumentFormat.OpenXml.Office2016.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Vml.Office;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using NuGet.Common;
 using OLab.Access;
 using OLab.Api.Data.Interface;
 using OLab.Api.Model;
@@ -16,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net.Http;
-using System.Security.Claims;
 
 #nullable disable
 
@@ -136,7 +127,7 @@ public class UserContextService : IUserContext
       var tokenHandler = new JwtSecurityTokenHandler();
       tokenHandler.ValidateToken(token,
                                  OLabAuthentication.BuildTokenValidationObject(configuration),
-                                 out SecurityToken validatedToken);
+                                 out var validatedToken);
 
       var jwtToken = (JwtSecurityToken)validatedToken;
       var issuedBy = jwtToken.Claims.FirstOrDefault(x => x.Type == "iss").Value;

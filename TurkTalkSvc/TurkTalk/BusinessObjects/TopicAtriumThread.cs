@@ -1,23 +1,14 @@
-using Microsoft.Build.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OLab.Api.Dto;
-using OLab.Api.Model;
 using OLab.Api.TurkTalk.BusinessObjects;
-using OLab.Api.Utils;
-using System.Threading;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Common.Interfaces;
+using System.Threading;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
   public partial class TopicAtriumThread
   {
     private TopicAtrium _atrium;
-    private IOLabLogger _logger;
+    private readonly IOLabLogger _logger;
 
     public TopicAtriumThread(IOLabLogger logger)
     {

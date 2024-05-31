@@ -152,9 +152,9 @@ public class UserService : IUserService
 
       Logger.LogDebug($"DeleteUserAsync(items count '{items.Count}')");
 
-      foreach (AddUserRequest item in items)
+      foreach (var item in items)
       {
-        AddUserResponse response = await DeleteUserAsync(item);
+        var response = await DeleteUserAsync(item);
         responses.Add(response);
       }
 
@@ -169,7 +169,7 @@ public class UserService : IUserService
 
   public async Task<AddUserResponse> DeleteUserAsync(AddUserRequest userRequest)
   {
-    Users user = GetByUserName(userRequest.Username);
+    var user = GetByUserName(userRequest.Username);
     if (user == null)
     {
       return new AddUserResponse
@@ -202,9 +202,9 @@ public class UserService : IUserService
 
       Logger.LogDebug($"AddUserAsync(items count '{items.Count}')");
 
-      foreach (AddUserRequest item in items)
+      foreach (var item in items)
       {
-        AddUserResponse response = await AddUserAsync(item);
+        var response = await AddUserAsync(item);
         responses.Add(response);
       }
 
@@ -219,7 +219,7 @@ public class UserService : IUserService
 
   public async Task<AddUserResponse> AddUserAsync(AddUserRequest userRequest)
   {
-    Users user = GetByUserName(userRequest.Username);
+    var user = GetByUserName(userRequest.Username);
     if (user != null)
     {
       return new AddUserResponse

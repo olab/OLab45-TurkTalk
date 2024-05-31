@@ -2,9 +2,6 @@ using Common.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OLab.Api.Data;
-
-using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Contracts;
 using System;
@@ -32,7 +29,7 @@ namespace OLab.Api.Services.TurkTalk
         auth.UserContext.SessionId = payload.Session.ContextId;
 
         // get or create a topic
-        Topic topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
+        var topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
         if (topic == null)
           return;
 
@@ -54,7 +51,7 @@ namespace OLab.Api.Services.TurkTalk
             Value = message,
             NodeId = payload.Session.NodeId
           },
-          DbContext.SystemQuestions.FirstOrDefault( x => x.Id == payload.Session.QuestionId));
+          DbContext.SystemQuestions.FirstOrDefault(x => x.Id == payload.Session.QuestionId));
 
       }
       catch (Exception ex)
