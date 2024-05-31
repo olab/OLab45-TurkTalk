@@ -135,7 +135,7 @@ public class OLabAuthMiddleware
       {
         Users user = userService.GetByUserName(userName);
         httpContext.Items["User"] = user.Username;
-        httpContext.Items["Role"] = $"{string.Join( ",", user.UserGroups.Select(x => x.Group.Name).ToList())}";
+        httpContext.Items["Role"] = UserGrouproles.ListToString(user.UserGrouproles.ToList());
       }
       else
       {

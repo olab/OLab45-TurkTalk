@@ -1,7 +1,7 @@
 using Common.Utils;
 using Microsoft.Extensions.Logging;
 using OLab.TurkTalk.ParticipantSimulator;
-using OLab.Api.Common.Contracts;
+
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.Utils;
 using System;

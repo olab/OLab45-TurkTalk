@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
-using OLab.Api.Common.Contracts;
+
 using System;
 using System.Threading.Tasks;
 using System.Collections;
@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using OLab.Api.Utils;
 using OLab.Api.Data;
+using OLab.Api.TurkTalk.Contracts;
 
 namespace OLab.Api.Services.TurkTalk
 {

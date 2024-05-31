@@ -37,12 +37,12 @@ public class UserContextService : IUserContext
   private readonly HttpContext httpContext;
   private readonly IUserService userService;
   private readonly string token;
-  protected IList<SecurityRoles> _roleAcls = new List<SecurityRoles>();
-  protected IList<SecurityUsers> _userAcls = new List<SecurityUsers>();
+  protected IList<GrouproleAcls> _roleAcls = new List<GrouproleAcls>();
+  protected IList<UserAcls> _userAcls = new List<UserAcls>();
 
   protected string _sessionId;
   private string _role;
-  public IList<UserGroups> UserRoles { get; set; }
+  private IList<UserGrouproles> _groupRoles;
   private uint _userId;
   private string _userName;
   private string _ipAddress;
@@ -58,6 +58,12 @@ public class UserContextService : IUserContext
   {
     get => _role;
     set => _role = value;
+  }
+
+  public IList<UserGrouproles> GroupRoles
+  {
+    get => _groupRoles;
+    set => _groupRoles = value;
   }
 
   public string Role
@@ -94,8 +100,6 @@ public class UserContextService : IUserContext
     get => _sessionId;
     set => _sessionId = value;
   }
-
-  IList<string> IUserContext.UserRoles => new List<string> { Role };
 
   public UserContextService(IOLabLogger logger, OLabDBContext dbContext)
   {
@@ -163,7 +167,7 @@ public class UserContextService : IUserContext
       {
         var user = userService.GetByUserName(userName);
         httpContext.Items["User"] = user.Username;
-        httpContext.Items["Role"] = $"{string.Join(",", user.UserGroups.Select(x => x.Group.Name).ToList())}";
+        httpContext.Items["Role"] = UserGrouproles.ListToString(user.UserGrouproles.ToList());
       }
       else
       {

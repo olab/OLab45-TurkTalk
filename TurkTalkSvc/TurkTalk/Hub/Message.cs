@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OLab.Api.Data;
-using OLab.Api.Common.Contracts;
+
 using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
+using OLab.Api.TurkTalk.Contracts;
 using System;
+using System.Linq;
 namespace OLab.Api.Services.TurkTalk
 {
   /// <summary>
@@ -46,9 +48,13 @@ namespace OLab.Api.Services.TurkTalk
         var session = GetSession(Context.GetHttpContext(), auth);
 
         session.OnQuestionResponse(
-          payload.Session.NodeId,
-          payload.Session.QuestionId,
-          message);
+          new Dto.QuestionResponsePostDataDto
+          {
+            QuestionId = payload.Session.QuestionId,
+            Value = message,
+            NodeId = payload.Session.NodeId
+          },
+          DbContext.SystemQuestions.FirstOrDefault( x => x.Id == payload.Session.QuestionId));
 
       }
       catch (Exception ex)

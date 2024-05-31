@@ -1,26 +1,18 @@
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using OLab.Api.Model;
 using OLab.Api.TurkTalk.Commands;
-using OLab.Api.Common.Contracts;
 using OLab.Api.Utils;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System;
-using Humanizer;
-using static Humanizer.On;
-using Microsoft.EntityFrameworkCore;
 using OLab.Api.Endpoints.Player;
-using OLab.Api.Dto;
-using OLab.Api.Services;
-using OLab.Api.Data;
 using Microsoft.AspNetCore.Http;
 using OLab.Api.Data.Interface;
 using OLab.Access;
 using OLab.Common.Interfaces;
+using OLab.Api.TurkTalk.Contracts;
 
 namespace OLab.Api.TurkTalk.BusinessObjects
 {
