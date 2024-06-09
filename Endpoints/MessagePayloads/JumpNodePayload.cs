@@ -5,7 +5,7 @@ namespace OLab.Api.Common.Contracts;
 
 public class JumpNodePayload
 {
-  public Envelope Envelope { get; set; }
+  public TurkTalk.Contracts.Envelope Envelope { get; set; }
   public TargetNode Data { get; set; }
   //public SessionInfo Session { get; set; }
 
