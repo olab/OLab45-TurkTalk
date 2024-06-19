@@ -120,7 +120,7 @@ namespace TurkTalkSvc
       // .EnableDetailedErrors()
       // );
 
-      services.AddScoped<IUserContext, UserContextService>();
+      services.AddScoped<IUserContext, OLab.Api.Services.TurkTalkUserContextService>();
       services.AddScoped<IUserService, UserService>();
       services.AddScoped<IOLabAuthentication, OLabAuthentication>();
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();

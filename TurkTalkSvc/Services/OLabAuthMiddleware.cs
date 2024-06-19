@@ -152,7 +152,7 @@ public class OLabAuthMiddleware
     if (token != null)
     {
       // build and inject the host context into the authorixation object
-      var userContext = new UserContextService(
+      var userContext = new TurkTalkUserContextService(
         configuration,
         dbContext,
         _logger,
