@@ -52,6 +52,10 @@ public class TurkTalkUserContextService : UserContextService
   {
     IPAddress = hostContext.Connection.RemoteIpAddress.ToString();
 
+    GetLogger().LogInformation($"HttpContext items:");
+    foreach (var item in hostContext.Items)
+      GetLogger().LogInformation($" '{item.Key}'");
+
     if (!hostContext.Items.TryGetValue("headers", out var headersObjects))
       throw new Exception("unable to retrieve headers from host context");
     Headers = (Dictionary<string, string>)headersObjects;
