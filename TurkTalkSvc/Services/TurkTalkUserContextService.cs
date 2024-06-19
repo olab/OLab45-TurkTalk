@@ -1,4 +1,5 @@
 using Dawn;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using OLab.Access;
@@ -58,28 +59,10 @@ public class TurkTalkUserContextService : UserContextService
 
     var jwtToken = (JwtSecurityToken)validatedToken;
 
-    GetLogger().LogInformation($"Claims:");
-    foreach (var item in jwtToken.Claims)
-      GetLogger().LogInformation($" '{item.Type}'");
-
-    GetLogger().LogInformation($"Headers:");
-    foreach (var item in jwtToken.Header.Keys)
-      GetLogger().LogInformation($" '{item}'");
-
-
-    IPAddress = hostContext.Connection.RemoteIpAddress.ToString();
-
-    GetLogger().LogInformation($"HttpContext items:");
-    foreach (var item in hostContext.Items)
-      GetLogger().LogInformation($" '{item.Key}'");
-
-    if (!hostContext.Items.TryGetValue("headers", out var headersObjects))
-      throw new Exception("unable to retrieve headers from host context");
-    Headers = (Dictionary<string, string>)headersObjects;
-
-    if (!hostContext.Items.TryGetValue("claims", out var claimsObject))
-      throw new Exception("unable to retrieve claims from host context");
-    Claims = (IDictionary<string, string>)claimsObject;
+    var dict = new Dictionary<string, string>();
+    foreach (var claim in jwtToken.Claims)
+      dict.TryAdd(claim.Type, claim.Value);
+    SetClaims(dict);
 
     LoadContext();
   }
