@@ -1,5 +1,6 @@
 using Dawn;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 using OLab.Access;
 using OLab.Api.Data;
 using OLab.Api.Data.Interface;
@@ -50,6 +51,22 @@ public class TurkTalkUserContextService : UserContextService
 
   protected virtual void LoadHttpContext(HttpContext hostContext)
   {
+    var tokenHandler = new JwtSecurityTokenHandler();
+    tokenHandler.ValidateToken(token,
+                               OLabAuthentication.BuildTokenValidationObject(configuration),
+                               out SecurityToken validatedToken);
+
+    var jwtToken = (JwtSecurityToken)validatedToken;
+
+    GetLogger().LogInformation($"Claims:");
+    foreach (var item in jwtToken.Claims)
+      GetLogger().LogInformation($" '{item.Type}'");
+
+    GetLogger().LogInformation($"Headers:");
+    foreach (var item in jwtToken.Header.Keys)
+      GetLogger().LogInformation($" '{item}'");
+
+
     IPAddress = hostContext.Connection.RemoteIpAddress.ToString();
 
     GetLogger().LogInformation($"HttpContext items:");
