@@ -1,4 +1,4 @@
-﻿namespace OLab.TurkTalk.Data.BusinessObjects;
+namespace OLab.TurkTalk.Data.BusinessObjects;
 
 public partial class TtalkTopicRoom
 {

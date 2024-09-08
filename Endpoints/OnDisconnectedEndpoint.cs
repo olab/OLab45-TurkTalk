@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
 using OLab.TurkTalk.Data.Contracts;

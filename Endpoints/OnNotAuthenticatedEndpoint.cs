@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using OLab.Access;

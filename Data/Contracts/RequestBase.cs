@@ -1,4 +1,4 @@
-﻿using OLab.TurkTalk.Data.Utils;
+using OLab.TurkTalk.Data.Utils;
 
 namespace OLab.TurkTalk.Data.Contracts;
 public class RequestBase

@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using OLab.Common.Interfaces;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;

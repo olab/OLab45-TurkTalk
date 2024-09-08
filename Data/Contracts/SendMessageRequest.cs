@@ -1,4 +1,4 @@
-﻿using OLab.TurkTalk.Data.Contracts;
+using OLab.TurkTalk.Data.Contracts;
 
 namespace OLab.FunctionApp.Functions.SignalR;
 

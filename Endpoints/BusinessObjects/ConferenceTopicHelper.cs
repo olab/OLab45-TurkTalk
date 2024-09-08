@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using DocumentFormat.OpenXml.EMMA;
 using Newtonsoft.Json;
 using OLab.Common.Interfaces;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker;
 using OLab.Common.Interfaces;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;

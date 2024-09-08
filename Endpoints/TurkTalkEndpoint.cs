@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using Newtonsoft.Json;
 using OLab.Common.Interfaces;
 using OLab.Api.Model;

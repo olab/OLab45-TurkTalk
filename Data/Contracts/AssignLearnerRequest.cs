@@ -1,4 +1,4 @@
-﻿namespace OLab.TurkTalk.Data.Contracts;
+namespace OLab.TurkTalk.Data.Contracts;
 public class AssignLearnerRequest : RequestBase
 {
   public string LearnerSessionId { get; set; }

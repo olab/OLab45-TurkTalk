@@ -1,4 +1,4 @@
-﻿using OLab.Common.Interfaces;
+using OLab.Common.Interfaces;
 using OLab.Common.Utils;
 using OLab.TurkTalk.Data;
 using OLab.TurkTalk.Endpoints.BusinessObjects;

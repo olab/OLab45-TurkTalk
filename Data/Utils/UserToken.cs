@@ -1,4 +1,4 @@
-﻿using OLab.Api.Utils;
+using OLab.Api.Utils;
 
 namespace OLab.TurkTalk.Data.Utils;
 

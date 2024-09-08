@@ -1,4 +1,4 @@
-﻿using OLab.FunctionApp.Functions.SignalR;
+using OLab.FunctionApp.Functions.SignalR;
 
 namespace OLab.TurkTalk.Endpoints;
 

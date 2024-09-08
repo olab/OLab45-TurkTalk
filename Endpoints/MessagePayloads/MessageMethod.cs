@@ -1,4 +1,4 @@
-﻿using OLab.Common.Interfaces;
+using OLab.Common.Interfaces;
 using OLab.FunctionApp.Functions.SignalR;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;

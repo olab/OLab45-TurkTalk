@@ -1,4 +1,4 @@
-﻿using OLab.Common.Interfaces;
+using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.BusinessObjects;
 
 namespace OLab.TurkTalk.Data.Repositories;

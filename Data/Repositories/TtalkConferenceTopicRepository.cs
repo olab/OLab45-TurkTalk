@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using Microsoft.EntityFrameworkCore;
 using OLab.Common.Interfaces;
 using OLab.TurkTalk.Data.BusinessObjects;

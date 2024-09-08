@@ -1,4 +1,4 @@
-﻿using OLab.TurkTalk.Data.BusinessObjects;
+using OLab.TurkTalk.Data.BusinessObjects;
 
 namespace OLab.TurkTalk.Endpoints.MessagePayloads;
 

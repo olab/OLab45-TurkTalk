@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using OLab.Common.Interfaces;
 using OLab.FunctionApp.Functions.SignalR;
 using OLab.TurkTalk.Data.BusinessObjects;

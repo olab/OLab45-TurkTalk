@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using Microsoft.Extensions.Logging;
 using OLab.Api.Model;
 using OLab.Api.Utils;

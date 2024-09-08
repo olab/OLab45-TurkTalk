@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using OLab.TurkTalk.Data.BusinessObjects;
 using OLab.TurkTalk.Endpoints.MessagePayloads;
 

@@ -1,4 +1,4 @@
-﻿using OLab.TurkTalk.Endpoints.MessagePayloads;
+using OLab.TurkTalk.Endpoints.MessagePayloads;
 
 namespace OLab.TurkTalk.Endpoints.BusinessObjects;
 public class TopicParticipant

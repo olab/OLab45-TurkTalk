@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using OLab.Api.ObjectMapper;
 using OLab.Common.Interfaces;
 using OLab.Data.Mappers;
