@@ -7,7 +7,6 @@ using OLab.Api.TurkTalk.Methods;
 using OLab.Common.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +26,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     private static readonly Mutex topicMutex = new Mutex();
 
     public Conference(
-      IOLabLogger logger, 
-      IHubContext<TurkTalkHub> hubContext, 
+      IOLabLogger logger,
+      IHubContext<TurkTalkHub> hubContext,
       IOLabConfiguration configuration,
       IServiceScopeFactory scopeFactory)
     {

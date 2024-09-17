@@ -1,14 +1,10 @@
 using Dawn;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
 using OLab.Access;
 using OLab.Api.Data;
-using OLab.Api.Data.Interface;
 using OLab.Api.Model;
 using OLab.Common.Interfaces;
 using OLab.Data.Interface;
-using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -56,7 +52,7 @@ public class TurkTalkUserContextService : UserContextService
     var tokenHandler = new JwtSecurityTokenHandler();
     tokenHandler.ValidateToken(token,
                                OLabAuthentication.BuildTokenValidationObject(configuration),
-                               out SecurityToken validatedToken);
+                               out var validatedToken);
 
     var jwtToken = (JwtSecurityToken)validatedToken;
 
@@ -69,7 +65,7 @@ public class TurkTalkUserContextService : UserContextService
     LoadContext();
 
     // if no role passed in, then we assume it's a local user
-    if (GroupRoles.Count() == 0 )
+    if (GroupRoles.Count() == 0)
     {
       var user = userService.GetByUserName(UserName);
       httpContext.Items["User"] = user.Username;

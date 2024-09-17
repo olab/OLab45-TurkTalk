@@ -24,12 +24,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
-      <WikiTagFiles Include="..\..\Common\bin\$(Configuration)\$(TargetFramework)\PlugIns\**\*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(WikiTagFiles)" DestinationFolder="$(OutDir)PlugIns" SkipUnchangedFiles="true" />
-  </Target> -->
-
 </Project>
