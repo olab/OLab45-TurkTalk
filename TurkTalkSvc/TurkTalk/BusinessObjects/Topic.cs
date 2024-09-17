@@ -91,7 +91,10 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
           else
           {
-            var newRoom = new Room(this, _rooms.Count + 1);
+            var newRoom = new Room(
+              Conference.Configuration, 
+              this, 
+              _rooms.Count + 1);
             var index = _rooms.Add(newRoom);
 
             Logger.LogInformation($"Created new room '{_rooms[index].Name}'");

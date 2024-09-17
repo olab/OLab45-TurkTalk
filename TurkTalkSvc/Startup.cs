@@ -49,9 +49,7 @@ namespace TurkTalkSvc
       {
         options.AddPolicy("CorsPolicy",
            builder => builder
-            // .AllowAnyOrigin()
             .SetIsOriginAllowed(origin => true) // allow any origin
-                                                // .WithOrigins("http://localhost:4000", "http://localhost:3000", "https://dev.olab.ca", "https://demo.olab.ca")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
@@ -120,7 +118,7 @@ namespace TurkTalkSvc
       // .EnableDetailedErrors()
       // );
 
-      services.AddScoped<IUserContext, OLab.Api.Services.TurkTalkUserContextService>();
+      services.AddScoped<IUserContext, TurkTalkUserContextService>();
       services.AddScoped<IUserService, UserService>();
       services.AddScoped<IOLabAuthentication, OLabAuthentication>();
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();

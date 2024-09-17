@@ -22,6 +22,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
   /// </summary>
   public class Room
   {
+    private readonly IOLabConfiguration _configuration;
     private readonly Topic _topic;
     private int _index;
     private readonly ConcurrentList<Learner> _learners;
@@ -41,9 +42,12 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     public Topic Topic { get { return _topic; } }
 
 
-    public Room(Topic topic, int index)
+    public Room(IOLabConfiguration configuration, Topic topic, int index)
     {
       Guard.Argument(topic).NotNull(nameof(topic));
+      Guard.Argument(configuration).NotNull(nameof(configuration));
+
+      _configuration = configuration;
       _topic = topic;
       _index = index;
       _learners = new ConcurrentList<Learner>(Logger);
@@ -166,8 +170,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         using (var scope = _topic.Conference.ScopeFactory.CreateScope())
         {
           var dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
-          var auth = new OLabAuthorization(Logger, dbContext);
-          var endpoint = new MapsEndpoint(Logger, dbContext);
+          var auth = new OLabAuthorization(Logger, dbContext, _configuration);
+          var endpoint = new MapsEndpoint(Logger, _configuration, dbContext, null, null);
           endpoint.SetUserContext(userContext);
 
           var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false, false);

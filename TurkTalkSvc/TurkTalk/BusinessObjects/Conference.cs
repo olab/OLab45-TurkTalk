@@ -7,6 +7,7 @@ using OLab.Api.TurkTalk.Methods;
 using OLab.Common.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,23 +19,30 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     private readonly IDictionary<string, Topic> _topics;
     //public ILogger Logger { get { return _logger; } }
     public IOLabLogger Logger;
+    public IOLabConfiguration Configuration;
 
     public readonly IHubContext<TurkTalkHub> HubContext;
 
     public readonly IServiceScopeFactory ScopeFactory;
     private static readonly Mutex topicMutex = new Mutex();
 
-    public Conference(IOLabLogger logger, IHubContext<TurkTalkHub> hubContext, IServiceScopeFactory scopeFactory)
+    public Conference(
+      IOLabLogger logger, 
+      IHubContext<TurkTalkHub> hubContext, 
+      IOLabConfiguration configuration,
+      IServiceScopeFactory scopeFactory)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(hubContext).NotNull(nameof(hubContext));
+      Guard.Argument(configuration).NotNull(nameof(configuration));
       Guard.Argument(scopeFactory).NotNull(nameof(scopeFactory));
 
       ScopeFactory = scopeFactory;
 
       Logger = logger;
-
+      Configuration = configuration;
       HubContext = hubContext;
+
       _topics = new ConcurrentDictionary<string, Topic>();
 
       logger.LogInformation($"New Conference");

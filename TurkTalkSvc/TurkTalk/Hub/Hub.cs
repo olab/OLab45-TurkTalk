@@ -20,6 +20,7 @@ namespace OLab.Api.Services.TurkTalk
   public partial class TurkTalkHub : Hub
   {
     private readonly IOLabLogger _logger;
+    private readonly IOLabConfiguration _configuration;
     private readonly Conference _conference;
     protected readonly OLabDBContext DbContext;
 
@@ -35,14 +36,17 @@ namespace OLab.Api.Services.TurkTalk
     public TurkTalkHub(
       IOLabLogger logger,
       OLabDBContext dbContext,
+      IOLabConfiguration configuration,
       Conference conference)
     {
       Guard.Argument(logger).NotNull(nameof(logger));
       Guard.Argument(dbContext).NotNull(nameof(dbContext));
+      Guard.Argument(configuration).NotNull(nameof(configuration));
       Guard.Argument(conference).NotNull(nameof(conference));
 
       _conference = conference ?? throw new ArgumentNullException(nameof(conference));
       _logger = logger;
+      _configuration = configuration;
 
       DbContext = dbContext;
 
@@ -80,7 +84,7 @@ namespace OLab.Api.Services.TurkTalk
       {
         _logger.LogInformation($"User context: {userContext}");
 
-        var auth = new OLabAuthorization(_logger, DbContext);
+        var auth = new OLabAuthorization(_logger, DbContext, _configuration);
         auth.ApplyUserContext(userContext);
 
         return auth;

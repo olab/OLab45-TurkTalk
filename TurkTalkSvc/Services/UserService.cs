@@ -4,9 +4,11 @@ using Microsoft.Extensions.Logging;
 using OLab.Api.Model;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
+using OLab.Data.Dtos;
 using OLab.Data.Interface;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -175,7 +177,7 @@ public class UserService : IUserService
       return new AddUserResponse
       {
         Username = userRequest.Username.ToLower(),
-        Message = $"User does not exist"
+        Error = $"User does not exist"
       };
     }
 
@@ -188,7 +190,7 @@ public class UserService : IUserService
     var response = new AddUserResponse
     {
       Username = physUser.Username,
-      Message = "Deleted"
+      Error = "Deleted"
     };
 
     return response;
@@ -225,11 +227,11 @@ public class UserService : IUserService
       return new AddUserResponse
       {
         Username = userRequest.Username.ToLower(),
-        Message = $"Already exists"
+        Error = $"Already exists"
       };
     }
 
-    var newUser = Users.CreateDefault(userRequest);
+    var newUser = Users.CreateDefault();
     var newPassword = newUser.Password;
 
     ChangePassword(newUser, new ChangePasswordRequest
@@ -249,4 +251,38 @@ public class UserService : IUserService
     return response;
   }
 
+  Task<List<UsersDto>> IUserService.AddUsersAsync(List<AddUserRequest> items)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<List<AddUserResponse>> DeleteUsersAsync(List<DeleteUsersRequest> items)
+  {
+    throw new NotImplementedException();
+  }
+
+  Task<UsersDto> IUserService.AddUserAsync(AddUserRequest item)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<UsersDto> EditUserAsync(AddUserRequest item)
+  {
+    throw new NotImplementedException();
+  }
+
+  public IList<UsersDto> GetUsers(string userName)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Users GetById(uint? id)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<List<UsersImportDto>> ImportUsersAsync(Stream fileStream)
+  {
+    throw new NotImplementedException();
+  }
 }
