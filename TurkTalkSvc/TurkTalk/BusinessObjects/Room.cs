@@ -171,7 +171,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         {
           var dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
           var auth = new OLabAuthorization(Logger, dbContext, _configuration);
-          var endpoint = new MapsEndpoint(Logger, _configuration, dbContext, null, null);
+          var endpoint = new MapsEndpoint(Logger, _configuration, dbContext);
           endpoint.SetUserContext(userContext);
 
           var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false, false);
