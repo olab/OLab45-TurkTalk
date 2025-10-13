@@ -3,6 +3,7 @@ using Dawn;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using OLab.Api.Services.TurkTalk;
+using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Methods;
 using OLab.Common.Interfaces;
 using System.Collections.Concurrent;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OLab.Api.TurkTalk.BusinessObjects
+namespace TurkTalkSvc.TurkTalk.BusinessObjects
 {
   public class Conference
   {

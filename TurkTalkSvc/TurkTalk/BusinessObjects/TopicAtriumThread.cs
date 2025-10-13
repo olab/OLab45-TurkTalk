@@ -1,9 +1,8 @@
-using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Common.Interfaces;
 using System.Threading;
 
-namespace OLab.TurkTalk.ParticipantSimulator
+namespace TurkTalkSvc.TurkTalk.BusinessObjects
 {
   public partial class TopicAtriumThread
   {

@@ -6,6 +6,7 @@ using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using System;
 using System.Threading.Tasks;
+using TurkTalkSvc.TurkTalk.BusinessObjects;
 
 namespace OLab.Api.Services.TurkTalk
 {

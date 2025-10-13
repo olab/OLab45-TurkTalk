@@ -1,13 +1,13 @@
 using Common.Utils;
+using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Common.Interfaces;
-using OLab.TurkTalk.ParticipantSimulator;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace OLab.Api.TurkTalk.BusinessObjects
+namespace TurkTalkSvc.TurkTalk.BusinessObjects
 {
   public class TopicAtrium
   {
@@ -99,10 +99,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     internal bool Remove(string connectionId)
     {
       foreach (var item in AtriumLearners.Values)
-      {
         if (item.ConnectionId == connectionId)
           return Remove(item);
-      }
 
       return false;
     }
@@ -152,15 +150,13 @@ namespace OLab.Api.TurkTalk.BusinessObjects
       if (AtriumLearners.Values.Count == 0)
         _logger.LogInformation($"  none");
       else
-      {
         foreach (var item in AtriumLearners.Values.OrderBy(x => x.UserId))
           _logger.LogInformation($"  {item.CommandChannel} ({ConnectionIdUtils.Shorten(item.ConnectionId)})");
-      }
     }
 
     internal bool IsDuplicateLearner(Participant participant)
     {
-      return (AtriumLearners.Values.Any(x => (x.UserId == participant.UserId)));
+      return AtriumLearners.Values.Any(x => x.UserId == participant.UserId);
     }
   }
 }

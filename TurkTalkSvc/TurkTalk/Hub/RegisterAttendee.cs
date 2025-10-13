@@ -8,6 +8,7 @@ using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Contracts;
 using System;
 using System.Threading.Tasks;
+using TurkTalkSvc.TurkTalk.BusinessObjects;
 
 namespace OLab.Api.Services.TurkTalk
 {

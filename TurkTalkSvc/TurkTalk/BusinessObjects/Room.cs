@@ -2,9 +2,10 @@ using Dawn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using OLab.Access;
-using OLab.Api.Data.Interface;
+using OLab.Access.Interfaces;
 using OLab.Api.Endpoints.Player;
 using OLab.Api.Model;
+using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Contracts;
 using OLab.Api.Utils;
@@ -13,8 +14,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TurkTalkSvc.Interface;
 
-namespace OLab.Api.TurkTalk.BusinessObjects
+namespace TurkTalkSvc.TurkTalk.BusinessObjects
 {
   /// <summary>
   /// A instance of a topic (to handle when there are
@@ -157,7 +159,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
 
     public async Task<IList<MapNodeListItem>> GetExitMapNodes(
       HttpContext httpContext,
-      IUserContext userContext,
+      IAuthenticatedContext userContext,
       uint mapId,
       uint nodeId)
     {
@@ -255,7 +257,7 @@ namespace OLab.Api.TurkTalk.BusinessObjects
     private void RemoveLearner(Participant participant, bool instantRemove = true)
     {
 
-      var serverParticipant = _learners.Items.FirstOrDefault(x => (x.UserId == participant.UserId) && (x.ConnectionId == participant.ConnectionId));
+      var serverParticipant = _learners.Items.FirstOrDefault(x => x.UserId == participant.UserId && x.ConnectionId == participant.ConnectionId);
       if (serverParticipant != null)
       {
         Logger.LogInformation($"{participant.GetUniqueKey()} is a participant for room '{Name}'. removing.");
@@ -331,8 +333,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         _learners.Lock();
         return _learners.Items.Any(
           x =>
-            (x.UserId == learner.UserId) &&
-            (x.RemoteIpAddress != learner.RemoteIpAddress)
+            x.UserId == learner.UserId &&
+            x.RemoteIpAddress != learner.RemoteIpAddress
         );
       }
       finally

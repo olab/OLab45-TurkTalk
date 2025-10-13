@@ -1,5 +1,5 @@
 using Dawn;
-
+using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.TurkTalk.Commands;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OLab.Api.TurkTalk.BusinessObjects
+namespace TurkTalkSvc.TurkTalk.BusinessObjects
 {
   /// <summary>
   /// Chat topic
@@ -199,10 +199,8 @@ namespace OLab.Api.TurkTalk.BusinessObjects
         // go thru each newRoom and remove a (potential)
         // Participant
         foreach (var room in Rooms)
-        {
           if (room.ParticipantExists(participant))
             return room;
-        }
 
         return null;
       }

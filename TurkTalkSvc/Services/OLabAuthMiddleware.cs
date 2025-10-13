@@ -5,14 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OLab.Access;
 using OLab.Api.Model;
+using OLab.Api.Services;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Data.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
+using TurkTalkSvc.Interface;
 
-namespace OLab.Api.Services;
+namespace TurkTalkSvc.Services;
 
 public class OLabAuthMiddleware
 {
@@ -74,11 +76,9 @@ public class OLabAuthMiddleware
             path.Value.Contains("/login"));
 
           if (!string.IsNullOrEmpty(accessToken) &&
-            (path.StartsWithSegments("/turktalk")))
-          {
+            path.StartsWithSegments("/turktalk"))
             // Read the token out of the query string
             context.Token = accessToken;
-          }
           return Task.CompletedTask;
         }
       };
@@ -152,14 +152,11 @@ public class OLabAuthMiddleware
     if (token != null)
     {
       // build and inject the host context into the authorixation object
-      var userContext = new TurkTalkUserContextService(
-        configuration,
-        dbContext,
+      var authorization = new OLabAuthorization(
         _logger,
-        httpContext,
-        userService,
-        token);
-      httpContext.Items.Add("usercontext", userContext);
+        dbContext,
+        configuration);
+      httpContext.Items.Add("authorization", authorization);
     }
     //AttachUserToContext(context,
     //                    userService,

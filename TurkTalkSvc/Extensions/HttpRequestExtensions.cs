@@ -4,13 +4,13 @@ using Newtonsoft.Json;
 using OLab.Api.Common;
 using System.Net;
 
-namespace OLab.Api.Extensions;
+namespace TurkTalkSvc.Extensions;
 
 public static class HttpRequestExtensions
 {
   public static ContentResult CreateResponse<T>(
     this HttpRequest request,
-    OLabAPIResponse<T> apiResponse)
+    OLabApiResult<T> apiResponse)
   {
     var content = new ContentResult
     {

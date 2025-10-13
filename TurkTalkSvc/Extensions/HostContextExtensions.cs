@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace OLab.Api.Extensions;
+namespace TurkTalkSvc.Extensions;
 
 /// <summary>
 /// Helper Function for HttpContext.

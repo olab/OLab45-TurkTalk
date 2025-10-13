@@ -11,18 +11,18 @@ using Microsoft.Extensions.Logging.Console;
 using OLab.Access;
 using OLab.Access.Interfaces;
 using OLab.Api.Data;
-using OLab.Api.Data.Interface;
+
 using OLab.Api.Model;
-using OLab.Api.Services;
 using OLab.Api.Services.TurkTalk;
-using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
 using OLab.Common.Utils;
 using OLab.Data.Interface;
 using System;
 using System.Net;
-using IOLabSession = OLab.Api.Data.Interface.IOLabSession;
+using TurkTalkSvc.Interface;
+using TurkTalkSvc.Services;
+using TurkTalkSvc.TurkTalk.BusinessObjects;
 
 namespace TurkTalkSvc
 {
@@ -118,7 +118,6 @@ namespace TurkTalkSvc
       // .EnableDetailedErrors()
       // );
 
-      services.AddScoped<IUserContext, TurkTalkUserContextService>();
       services.AddScoped<IUserService, UserService>();
       services.AddScoped<IOLabAuthentication, OLabAuthentication>();
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();

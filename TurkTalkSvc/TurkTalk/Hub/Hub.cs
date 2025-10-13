@@ -5,13 +5,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using OLab.Access;
+using OLab.Access.Interfaces;
 using OLab.Api.Data;
-using OLab.Api.Data.Interface;
+
 using OLab.Api.Model;
-using OLab.Api.TurkTalk.BusinessObjects;
 using OLab.Common.Interfaces;
 using System;
 using System.Net;
+using System.Threading.Tasks;
+using TurkTalkSvc.Interface;
+using TurkTalkSvc.Services;
+using TurkTalkSvc.TurkTalk.BusinessObjects;
 
 namespace OLab.Api.Services.TurkTalk
 {
@@ -77,16 +81,14 @@ namespace OLab.Api.Services.TurkTalk
     /// <returns>IOLabAuthentication</returns>
     /// <exception cref="Exception"></exception>
     [NonAction]
-    protected IOLabAuthorization GetAuthorization(HttpContext hostContext)
+    protected async Task<IOLabAuthorization> GetAuthorization(HttpContext hostContext)
     {
       // ReadAsync the item set by the middleware
-      if (hostContext.Items.TryGetValue("usercontext", out var value) && value is IUserContext userContext)
+      if (hostContext.Items.TryGetValue( "authorization", out var value) && value is OLabAuthorization auth )
       {
-        _logger.LogInformation($"User context: {userContext}");
+        _logger.LogInformation($"User context: {auth}");
 
-        var auth = new OLabAuthorization(_logger, DbContext, _configuration);
-        auth.ApplyUserContext(userContext);
-
+        await auth.ApplyUserContextAsync(auth.AuthenticatedContext);
         return auth;
       }
 
@@ -106,7 +108,7 @@ namespace OLab.Api.Services.TurkTalk
     {
       var request = hostContext.Request;
 
-      var session = new OLabSession(_logger, DbContext, auth.UserContext);
+      var session = new OLabSession(_logger, DbContext, auth.AuthenticatedContext);
 
       if (!request.Query.TryGetValue("mapId", out var mapId))
         throw new Exception("signalr hub missing mapId");

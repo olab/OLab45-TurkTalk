@@ -30,7 +30,7 @@ namespace OLab.Api.Services.TurkTalk
         _logger.LogInformation(
           $"{learner.GetUniqueKey()}: assignAttendeeAsync: '{learner.ToJson()}', {roomName}");
 
-        var auth = GetAuthorization(Context.GetHttpContext());
+        var auth = await GetAuthorization(Context.GetHttpContext());
 
         var topic = _conference.GetCreateTopic(learner.TopicName, false);
         if (topic == null)
@@ -56,7 +56,7 @@ namespace OLab.Api.Services.TurkTalk
         {
           var jumpNodes = await room.GetExitMapNodes(
             Context.GetHttpContext(),
-            auth.UserContext,
+            auth.AuthenticatedContext,
             learner.Session.MapId,
             learner.Session.NodeId);
 

@@ -13,8 +13,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using TurkTalkSvc.Interface;
 
-namespace OLab.Api.Services;
+namespace TurkTalkSvc.Services;
 
 public class UserService : IUserService
 {
@@ -59,10 +60,8 @@ public class UserService : IUserService
     var user = _dbContext.Users.SingleOrDefault(x => x.Username.ToLower() == model.Username.ToLower());
 
     if (user != null)
-    {
       if (!ValidatePassword(model.Password, user))
         return null;
-    }
 
     return user;
   }
@@ -173,13 +172,11 @@ public class UserService : IUserService
   {
     var user = GetByUserName(userRequest.Username);
     if (user == null)
-    {
       return new AddUserResponse
       {
         Username = userRequest.Username.ToLower(),
         Error = $"User does not exist"
       };
-    }
 
     var physUser =
       await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == userRequest.Username);
@@ -223,13 +220,11 @@ public class UserService : IUserService
   {
     var user = GetByUserName(userRequest.Username);
     if (user != null)
-    {
       return new AddUserResponse
       {
         Username = userRequest.Username.ToLower(),
         Error = $"Already exists"
       };
-    }
 
     var newUser = Users.CreateDefault();
     var newPassword = newUser.Password;
@@ -251,17 +246,7 @@ public class UserService : IUserService
     return response;
   }
 
-  Task<List<UsersDto>> IUserService.AddUsersAsync(List<AddUserRequest> items)
-  {
-    throw new NotImplementedException();
-  }
-
   public Task<List<AddUserResponse>> DeleteUsersAsync(List<DeleteUsersRequest> items)
-  {
-    throw new NotImplementedException();
-  }
-
-  Task<UsersDto> IUserService.AddUserAsync(AddUserRequest item)
   {
     throw new NotImplementedException();
   }

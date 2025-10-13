@@ -6,6 +6,7 @@ using OLab.Api.TurkTalk.Commands;
 using OLab.Api.TurkTalk.Contracts;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 namespace OLab.Api.Services.TurkTalk
 {
   /// <summary>
@@ -19,14 +20,14 @@ namespace OLab.Api.Services.TurkTalk
     /// <param name="learner">Learner to remove</param>
     /// <param name="topicName">Topic id</param>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public void Message(MessagePayload payload)
+    public async Task Message(MessagePayload payload)
     {
       try
       {
         _logger.LogInformation($"Message: from '{payload.Envelope.From}', {payload.Session.ContextId}, '{payload.Data}' ({ConnectionIdUtils.Shorten(Context.ConnectionId)})");
 
-        var auth = GetAuthorization(Context.GetHttpContext());
-        auth.UserContext.SessionId = payload.Session.ContextId;
+        var auth = await GetAuthorization(Context.GetHttpContext());
+        auth.AuthenticatedContext.SessionId = payload.Session.ContextId;
 
         // get or create a topic
         var topic = _conference.GetCreateTopic(payload.Envelope.From.TopicName, false);
