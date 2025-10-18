@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+
 //using Newtonsoft.Json;
 using NLog;
 using OLab.Api.Common;
@@ -45,13 +47,15 @@ namespace OLab.TurkTalk.ParticipantSimulator
               model );
           response.EnsureSuccessStatusCode();
 
+          string jsonString = await response.Content.ReadAsStringAsync();
           // Deserialize the updated product from the response body.
-          var loginResponse = await response.Content.ReadFromJsonAsync( typeof( OLabApiResult<AuthenticateResponse> ) );
+          var loginResponse = JsonConvert.DeserializeObject<OLabApiResult<AuthenticateResponse>>( jsonString );
 
           if ( loginResponse != null )
           {
             var authResponse = (loginResponse as OLabApiResult<AuthenticateResponse>).Data;
             _client.DefaultRequestHeaders.Add( "Authorization", $"Bearer {authResponse.AuthInfo.Token}" );
+            _client.DefaultRequestHeaders.Add( "OLabSessionId", string.Empty );
             return authResponse;
           }
         }
@@ -80,7 +84,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
           var response = await _client.GetAsync( url );
           response.EnsureSuccessStatusCode();
 
-          var apiResponse = await response.Content.ReadFromJsonAsync( typeof( OLabApiResult<MapsFullDto> ) );
+          string jsonString = await response.Content.ReadAsStringAsync();
+          var apiResponse = JsonConvert.DeserializeObject<OLabApiResult<MapsFullDto>>( jsonString );
+
           if ( apiResponse != null )
           {
             var OLabApiResult = apiResponse as OLabApiResult<MapsFullDto>;
@@ -111,7 +117,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
           var response = await _client.GetAsync( url );
           response.EnsureSuccessStatusCode();
 
-          var apiResponse = await response.Content.ReadFromJsonAsync( typeof( OLabApiResult<OLab.Api.Dto.Designer.ScopedObjectsDto> ) );
+          string jsonString = await response.Content.ReadAsStringAsync();
+          var apiResponse = JsonConvert.DeserializeObject<OLabApiResult<OLab.Api.Dto.Designer.ScopedObjectsDto>>( jsonString );
+
           if ( apiResponse != null )
           {
             var OLabApiResult = apiResponse as OLabApiResult<OLab.Api.Dto.Designer.ScopedObjectsDto>;
@@ -143,10 +151,16 @@ namespace OLab.TurkTalk.ParticipantSimulator
       {
         try
         {
-          var response = await _client.PostAsJsonAsync( url, new DynamicScopedObjectsDto() );
+          var body = new DynamicScopedObjectsDto
+          {
+            NewPlay = true
+          };
+
+          var response = await _client.PostAsJsonAsync( url, body );
           response.EnsureSuccessStatusCode();
 
-          var apiResponse = await response.Content.ReadFromJsonAsync( typeof( OLabApiResult<MapsNodesFullRelationsDto> ) );
+          string jsonString = await response.Content.ReadAsStringAsync();
+          var apiResponse = JsonConvert.DeserializeObject<OLabApiResult<MapsNodesFullRelationsDto>>( jsonString );
 
           if ( apiResponse != null )
           {
@@ -182,7 +196,8 @@ namespace OLab.TurkTalk.ParticipantSimulator
           var response = await _client.GetAsync( url );
           response.EnsureSuccessStatusCode();
 
-          var apiResponse = await response.Content.ReadFromJsonAsync( typeof( OLabApiResult<ScopedObjectsDto> ) );
+          string jsonString = await response.Content.ReadAsStringAsync();
+          var apiResponse = JsonConvert.DeserializeObject<OLabApiResult<ScopedObjectsDto>>( jsonString );
 
           if ( apiResponse != null )
           {
