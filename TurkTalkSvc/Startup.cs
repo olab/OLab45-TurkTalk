@@ -116,14 +116,17 @@ namespace TurkTalkSvc
       //             .AddFilter(level => level >= LogLevel.Information)))
       // .EnableSensitiveDataLogging()
       // .EnableDetailedErrors()
-      // );
+      // };
+
+      services.AddScoped<IAuthenticatedContext, AuthenticatedContext>();
 
       services.AddScoped<IUserService, UserService>();
       services.AddScoped<IOLabAuthentication, OLabAuthentication>();
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();
 
       // define instances of application services
-      services.AddSingleton<IOLabLogger, OLabLogger>();
+      services.AddSingleton<IOLabLogger>(sp =>
+    new OLabLogger(sp.GetRequiredService<ILoggerFactory>(), false));
       services.AddSingleton<IOLabConfiguration, OLabConfiguration>();
 
       // define instances of application services

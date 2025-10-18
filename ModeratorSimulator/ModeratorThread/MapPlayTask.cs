@@ -1,16 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
-using NLog;
-using OLabWebAPI.Dto;
-using OLabWebAPI.Model;
+using OLab.Api.Dto;
 
 namespace OLab.TurkTalk.ModeratorSimulator
 {
@@ -18,41 +6,41 @@ namespace OLab.TurkTalk.ModeratorSimulator
   {
     private MapsFullDto _map;
     private MapsNodesFullRelationsDto _node;
-    private OLabWebAPI.Dto.Designer.ScopedObjectsDto _mapScoped;
-    private OLabWebAPI.Dto.Designer.ScopedObjectsDto _nodeScoped;
+    private OLab.Api.Dto.Designer.ScopedObjectsDto _mapScoped;
+    private OLab.Api.Dto.Designer.ScopedObjectsDto _nodeScoped;
 
     public async Task<bool> MapPlayTaskAsync()
     {
-      MapTrail mapTrail = _param.Moderator.GetMapTrail(_param.Settings);
+      var mapTrail = _param.Moderator.GetMapTrail( _param.Settings );
 
-      var olabClient = new OLabHttpClient(_param, _authInfo);
+      var olabClient = new OLabHttpClient( _param, _authInfo );
 
-      _map = await olabClient.LoadMapAsync(mapTrail.MapId);
-      _mapScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+      _map = await olabClient.LoadMapAsync( mapTrail.MapId );
+      _mapScoped = await olabClient.LoadMapScopedObjectsAsync( mapTrail.MapId );
 
       // if no node trail, load root node
-      if (mapTrail.NodeTrail == null)
+      if ( mapTrail.NodeTrail == null )
       {
-        int sleepMs = _param.Rnd.Next(0, mapTrail.GetDelayMs(_param.Settings));
-        _logger.Debug($"{_param.Moderator.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0");
-        Thread.Sleep(sleepMs);
+        var sleepMs = _param.Rnd.Next( 0, mapTrail.GetDelayMs( _param.Settings ) );
+        _logger.Debug( $"{_param.Moderator.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/0" );
+        Thread.Sleep( sleepMs );
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await olabClient.LoadMapNodeAsync( mapTrail );
+        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync( mapTrail.MapId );
 
         return true;
       }
 
-      foreach (var nodeTrail in mapTrail.NodeTrail)
+      foreach ( var nodeTrail in mapTrail.NodeTrail )
       {
-        int sleepMs = mapTrail.GetDelayMs(_param.Settings);
-        _logger.Debug($"{_param.Moderator.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}");
-        Thread.Sleep(sleepMs);
+        var sleepMs = mapTrail.GetDelayMs( _param.Settings );
+        _logger.Debug( $"{_param.Moderator.UserId}: sleeping for {sleepMs} ms to play {mapTrail.MapId}/{nodeTrail.NodeId}" );
+        Thread.Sleep( sleepMs );
 
-        _node = await olabClient.LoadMapNodeAsync(mapTrail, nodeTrail);
-        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync(mapTrail.MapId);
+        _node = await olabClient.LoadMapNodeAsync( mapTrail, nodeTrail );
+        _nodeScoped = await olabClient.LoadMapScopedObjectsAsync( mapTrail.MapId );
 
-        await SignalRTask(nodeTrail);
+        await SignalRTask( nodeTrail );
       }
 
       return true;

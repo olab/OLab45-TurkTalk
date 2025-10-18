@@ -1,23 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
 using NLog;
-using OLabWebAPI.Dto;
-using OLabWebAPI.Model;
 
 namespace OLab.TurkTalk.ModeratorSimulator.SimulationThread
 {
   public partial class SimulatorWorker
   {
-    private Settings _settings;
-    private ILogger _logger;
+    private readonly Settings _settings;
+    private readonly ILogger _logger;
 
     public SimulatorWorker(Settings settings, ILogger logger)
     {
@@ -32,15 +20,15 @@ namespace OLab.TurkTalk.ModeratorSimulator.SimulationThread
 
       try
       {
-        Random rnd = new Random();
+        var rnd = new Random();
 
         // set up a thread execution counter. Needs to be set to '1'
         // initially so it can be incremented without error
-        using (CountdownEvent cde = new CountdownEvent(1))
+        using ( var cde = new CountdownEvent( 1 ) )
         {
           // dispatch all the threads, and keep track of the number
           // created in the countdown event
-          foreach (var moderator in _settings.Moderators)
+          foreach ( var moderator in _settings.Moderators )
           {
             // increment the thread count
             cde.AddCount();
@@ -54,8 +42,8 @@ namespace OLab.TurkTalk.ModeratorSimulator.SimulationThread
               Logger = _logger
             };
 
-            var proc = new ModeratorThread(workerThreadParam);
-            ThreadPool.QueueUserWorkItem(new WaitCallback(o => proc.RunProc()), workerThreadParam);
+            var proc = new ModeratorThread( workerThreadParam );
+            ThreadPool.QueueUserWorkItem( new WaitCallback( o => proc.RunProc() ), workerThreadParam );
           }
 
           // Decrease the counter (as it was initialized with the value 1).
@@ -65,7 +53,7 @@ namespace OLab.TurkTalk.ModeratorSimulator.SimulationThread
           cde.Wait();
         }
       }
-      catch (Exception ex)
+      catch ( Exception ex )
       {
         // eat all exceptions
       }

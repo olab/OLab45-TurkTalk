@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <RootNamespace>OLab.TurkTalk.ParticipantSimulator</RootNamespace>
@@ -20,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common\Common.csproj" />
-    <ProjectReference Include="..\..\Common\Data\Data.csproj" />
-    <ProjectReference Include="..\..\Common\Endpoints\Endpoints.csproj" />
+    <ProjectReference Include="..\..\Common\Common\OLab.Common.csproj" />
+    <ProjectReference Include="..\..\Common\Data\OLab.Data.csproj" />
+    <ProjectReference Include="..\..\Common\Endpoints\OLab.Endpoints.csproj" />
   </ItemGroup>
 
   <ItemGroup>

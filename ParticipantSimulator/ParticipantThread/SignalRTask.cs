@@ -1,24 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Dawn;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using NLog;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
-using OLabWebAPI.TurkTalk.Methods;
+using OLab.Api.Model;
+using OLab.Api.TurkTalk.Contracts;
+using System.Diagnostics;
+using SessionInfo = OLab.Api.TurkTalk.Contracts.SessionInfo;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
@@ -31,34 +15,34 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     public async Task<bool> SignalRTask(NodeTrail nodeTrail)
     {
-      var tmpToken = $"{_authInfo.AuthInfo.Token.Substring(0, 5)}***";
-      _logger.Info($"{_param.Participant.UserId}: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}");
+      var tmpToken = $"{_authInfo.AuthInfo.Token.Substring( 0, 5 )}***";
+      _logger.Info( $"{_param.Participant.UserId}: TTalk Url. {_param.Settings.SignalRHubUrl}?access_token={tmpToken}" );
 
-      _logger.Info($"{_param.Participant.UserId}: TTalk question. room: {nodeTrail.TurkTalkTrail.RoomName}");
+      _logger.Info( $"{_param.Participant.UserId}: TTalk question. room: {nodeTrail.TurkTalkTrail.RoomName}" );
 
       var connection = SetupConnection();
 
       _nodeTrail = nodeTrail;
 
-      if (!await ConnectWithRetryAsync(connection))
-        throw new Exception("Cannot connect to signal");
+      if ( !await ConnectWithRetryAsync( connection ) )
+        throw new Exception( "Cannot connect to signal" );
 
-      if (!await RegisterAttendeeAsync(connection))
-        throw new Exception("Cannot register to room");
+      if ( !await RegisterAttendeeAsync( connection ) )
+        throw new Exception( "Cannot register to room" );
 
       // wait until attendee is assigned.
-      while (!_roomAssigned)
+      while ( !_roomAssigned )
       {
-        _logger.Info($"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'");        
-        Thread.Sleep(PauseMs.rnd.Next(7000, 15000));
+        _logger.Info( $"{_param.Participant.UserId}: checking for room assignment '{nodeTrail.TurkTalkTrail.RoomName}'" );
+        Thread.Sleep( PauseMs.rnd.Next( 7000, 15000 ) );
       }
 
-      _logger.Info($"{_param.Participant.UserId}: room assigned '{nodeTrail.TurkTalkTrail.RoomName}'");
+      _logger.Info( $"{_param.Participant.UserId}: room assigned '{nodeTrail.TurkTalkTrail.RoomName}'" );
 
-      if (!await SendMessagesAsync(connection, _param.Participant, nodeTrail))
-        throw new Exception("Failure sending messages");
+      if ( !await SendMessagesAsync( connection, _param.Participant, nodeTrail ) )
+        throw new Exception( "Failure sending messages" );
 
-      _logger.Info($"{_param.Participant.UserId}: signalR task completed");
+      _logger.Info( $"{_param.Participant.UserId}: signalR task completed" );
 
       await connection.StopAsync();
 
@@ -74,38 +58,38 @@ namespace OLab.TurkTalk.ParticipantSimulator
       var url = $"{_param.Settings.SignalRHubUrl}?access_token={_authInfo.AuthInfo.Token}";
       connection = new HubConnectionBuilder()
         .WithAutomaticReconnect()
-        .WithUrl(url)
+        .WithUrl( url )
         .Build();
 
-      _logger.Info($"{_param.Participant.UserId}: created TTalk connection.");
+      _logger.Info( $"{_param.Participant.UserId}: created TTalk connection." );
 
-      EventCallbacks(connection);
-      MethodCallbacks(connection);
+      EventCallbacks( connection );
+      MethodCallbacks( connection );
 
       return connection;
     }
 
     private async Task InvokeWithRetryAsync(HubConnection connection, string method, object? payload)
     {
-      int retries = _param.Settings.ApiRetryCount;
+      var retries = _param.Settings.ApiRetryCount;
 
-      for (int i = 0; i < retries; i++)
+      for ( var i = 0; i < retries; i++ )
       {
         try
         {
-          await connection.InvokeAsync(method, payload);
-          _logger.Info($"{_param.Participant.UserId}: invoked method {method} successfully.");
+          await connection.InvokeAsync( method, payload );
+          _logger.Info( $"{_param.Participant.UserId}: invoked method {method} successfully." );
           return;
         }
-        catch (Exception ex)
+        catch ( Exception ex )
         {
-          _logger.Warn($"{_param.Participant.UserId}: invoked {method} exception. {ex.Message}. try {i} of {retries}");
+          _logger.Warn( $"{_param.Participant.UserId}: invoked {method} exception. {ex.Message}. try {i} of {retries}" );
         }
 
-        Thread.Sleep(5000);
+        Thread.Sleep( 5000 );
       }
 
-      _logger.Error($"{_param.Participant.UserId}: method {method} invoke failed.");
+      _logger.Error( $"{_param.Participant.UserId}: method {method} invoke failed." );
 
     }
 
@@ -113,32 +97,32 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
 
       // Keep trying to until we can start or the token is canceled.
-      CancellationToken token = _param.Settings.GetToken();
-      while (true)
+      var token = _param.Settings.GetToken();
+      while ( true )
       {
         try
         {
-          _logger.Info($"{_param.Participant.UserId}: connecting to SignalR.");
+          _logger.Info( $"{_param.Participant.UserId}: connecting to SignalR." );
 
-          await connection.StartAsync(token);
-          Debug.Assert(connection.State == HubConnectionState.Connected);
+          await connection.StartAsync( token );
+          Debug.Assert( connection.State == HubConnectionState.Connected );
 
           _connectionId = connection.ConnectionId;
 
-          _logger.Info($"{_param.Participant.UserId}: connected to SignalR.  connectionId: {connection.ConnectionId}");
+          _logger.Info( $"{_param.Participant.UserId}: connected to SignalR.  connectionId: {connection.ConnectionId}" );
 
           return true;
         }
-        catch when (token.IsCancellationRequested)
+        catch when ( token.IsCancellationRequested )
         {
           return false;
         }
         catch
         {
-          _logger.Info($"{_param.Participant.UserId}: failed to connect, trying again in 5000 ms.");
+          _logger.Info( $"{_param.Participant.UserId}: failed to connect, trying again in 5000 ms." );
 
-          Debug.Assert(connection.State == HubConnectionState.Disconnected);
-          await Task.Delay(5000, token);
+          Debug.Assert( connection.State == HubConnectionState.Disconnected );
+          await Task.Delay( 5000, token );
         }
       }
     }
@@ -155,9 +139,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ConnectionId = _connectionId
       };
 
-      await InvokeWithRetryAsync(connection, "reregisterAttendee", payload);
+      await InvokeWithRetryAsync( connection, "reregisterAttendee", payload );
 
-      _logger.Info($"{_param.Participant.UserId}: invoked 'reregisterAttendee' for room '{payload.RoomName}'.");
+      _logger.Info( $"{_param.Participant.UserId}: invoked 'reregisterAttendee' for room '{payload.RoomName}'." );
 
       return true;
     }
@@ -173,9 +157,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
         ReferringNode = _node.Title
       };
 
-      await InvokeWithRetryAsync(connection, "registerAttendee", payload);
+      await InvokeWithRetryAsync( connection, "registerAttendee", payload );
 
-      _logger.Info($"{_param.Participant.UserId}: invoked 'registerAttendee' for room '{payload.RoomName}'.");
+      _logger.Info( $"{_param.Participant.UserId}: invoked 'registerAttendee' for room '{payload.RoomName}'." );
 
       return true;
     }
@@ -185,12 +169,12 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
     private string RandomText()
     {
-      var parts = lorenIpsum.Split(' ');
-      int start = rnd.Next(0, parts.Length - 10);
-      int end = rnd.Next(0, 10);
+      var parts = lorenIpsum.Split( ' ' );
+      var start = rnd.Next( 0, parts.Length - 10 );
+      var end = rnd.Next( 0, 10 );
 
-      var subParts = parts.Skip(start).Take(end).ToArray();
-      return string.Join(" ", subParts);
+      var subParts = parts.Skip( start ).Take( end ).ToArray();
+      return string.Join( " ", subParts );
     }
 
     private async Task<bool> SendMessagesAsync(
@@ -198,14 +182,14 @@ namespace OLab.TurkTalk.ParticipantSimulator
       Participant participant,
       NodeTrail nodeTrail)
     {
-      for (int i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++)
+      for ( var i = 0; i < nodeTrail.TurkTalkTrail.MessageCount; i++ )
       {
         var message = $"{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount}: {participant.UserId} {nodeTrail.TurkTalkTrail.RoomName} {RandomText()}";
 
-        int sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs(nodeTrail);
-        Thread.Sleep(sleepMs);
+        var sleepMs = nodeTrail.TurkTalkTrail.GetDelayMs( nodeTrail );
+        Thread.Sleep( sleepMs );
 
-        _logger.Info($"{_param.Participant.UserId}: sending message #{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'");
+        _logger.Info( $"{_param.Participant.UserId}: sending message #{i + 1}/{nodeTrail.TurkTalkTrail.MessageCount} '{message}'" );
 
         var payload = new MessagePayload
         {
@@ -224,19 +208,19 @@ namespace OLab.TurkTalk.ParticipantSimulator
           }
         };
 
-        await InvokeWithRetryAsync(connection, "Message", payload);
+        await InvokeWithRetryAsync( connection, "Message", payload );
 
 
         // test if a jump node command was received
-        if (JumpNodePayload != null)
+        if ( JumpNodePayload != null )
         {
-          _logger.Info($"{_param.Participant.UserId}: jump node received.  Messages interrupted.");
+          _logger.Info( $"{_param.Participant.UserId}: jump node received.  Messages interrupted." );
           return true;
         }
 
       }
 
-      _logger.Info($"{_param.Participant.UserId}: all messages completed");
+      _logger.Info( $"{_param.Participant.UserId}: all messages completed" );
 
       return true;
     }

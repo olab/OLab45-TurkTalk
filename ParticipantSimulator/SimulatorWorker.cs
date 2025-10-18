@@ -1,23 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
 using NLog;
-using OLabWebAPI.Dto;
-using OLabWebAPI.Model;
 
 namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
 {
   public partial class SimulatorWorker
   {
-    private Settings _settings;
-    private ILogger _logger;
+    private readonly Settings _settings;
+    private readonly ILogger _logger;
 
     public SimulatorWorker(Settings settings, ILogger logger)
     {
@@ -32,19 +20,19 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
 
       try
       {
-        Random rnd = new Random();
+        var rnd = new Random();
 
         // see if users need to be generated
-        if (_settings.ParticipantInfo != null)
+        if ( _settings.ParticipantInfo != null )
           GenerateParticipants();
 
         // set up a thread execution counter. Needs to be set to '1'
         // initially so it can be incremented without error
-        using (CountdownEvent cde = new CountdownEvent(1))
+        using ( var cde = new CountdownEvent( 1 ) )
         {
           // dispatch all the threads, and keep track of the number
           // created in the countdown event
-          foreach (var participant in _settings.Participants)
+          foreach ( var participant in _settings.Participants )
           {
             // increment the thread count
             cde.AddCount();
@@ -58,9 +46,9 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
               Logger = _logger
             };
 
-            var proc = new ParticipantThread(workerThreadParam);
+            var proc = new ParticipantThread( workerThreadParam );
 #pragma warning disable CS4014 
-            ThreadPool.QueueUserWorkItem(new WaitCallback(o => proc.RunProc()), workerThreadParam);
+            ThreadPool.QueueUserWorkItem( new WaitCallback( o => proc.RunProc() ), workerThreadParam );
 #pragma warning restore CS4014
           }
 
@@ -71,7 +59,7 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
           cde.Wait();
         }
       }
-      catch (Exception ex)
+      catch ( Exception ex )
       {
         // eat all exceptions
       }
@@ -83,28 +71,28 @@ namespace OLab.TurkTalk.ParticipantSimulator.SimulationThread
       // wipe existing participant list, if present
       _settings.Participants.Clear();
 
-      int indexWidth = _settings.ParticipantInfo.UserIdPrefix.Count(x => x == '#');
-      var userIdPrefix = _settings.ParticipantInfo.UserIdPrefix.Replace("#", "");
+      var indexWidth = _settings.ParticipantInfo.UserIdPrefix.Count( x => x == '#' );
+      var userIdPrefix = _settings.ParticipantInfo.UserIdPrefix.Replace( "#", "" );
 
-      PauseMs pauseMs = new PauseMs();
+      var pauseMs = new PauseMs();
 
-      if (_settings.ParticipantInfo.PauseMs != null)
+      if ( _settings.ParticipantInfo.PauseMs != null )
         pauseMs = _settings.ParticipantInfo.PauseMs;
       else
         pauseMs = _settings.PauseMs;
 
-      int startsAt = 1;
-      if (_settings.ParticipantInfo.StartsAt.HasValue)
+      var startsAt = 1;
+      if ( _settings.ParticipantInfo.StartsAt.HasValue )
         startsAt = _settings.ParticipantInfo.StartsAt.Value;
 
-      int endsAt = startsAt + _settings.ParticipantInfo.NumUsers - 1;
+      var endsAt = startsAt + _settings.ParticipantInfo.NumUsers - 1;
 
-      for (int i = startsAt; i <= endsAt; i++)
+      for ( var i = startsAt; i <= endsAt; i++ )
       {
-        var index = i.ToString($"D{indexWidth}");
+        var index = i.ToString( $"D{indexWidth}" );
         var userId = $"{userIdPrefix}{index}";
 
-        _logger.Info($"generating user {userId}");
+        _logger.Info( $"generating user {userId}" );
 
         _settings.Participants.Add(
           new Participant

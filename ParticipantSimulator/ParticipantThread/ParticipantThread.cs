@@ -1,13 +1,5 @@
-using Microsoft.Build.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NLog;
-using OLabWebAPI.Dto;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
+using OLab.Api.Model;
+using OLab.Api.TurkTalk.BusinessObjects;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
@@ -24,7 +16,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       _param = param;
       _logger = param.Logger;
-      _olabClient = new OLabHttpClient(_param, null);
+      _olabClient = new OLabHttpClient( _param, null );
     }
 
     public async Task RunProc()
@@ -35,18 +27,18 @@ namespace OLab.TurkTalk.ParticipantSimulator
         var loginTask = await OLabLoginStepAsync();
 
         _authInfo = loginTask;
-        if (_authInfo == null)
+        if ( _authInfo == null )
         {
-          _logger.Error($"{_param.Participant.UserId}: unable to login");
+          _logger.Error( $"{_param.Participant.UserId}: unable to login" );
           return;
         }
 
         var mapPlayTask = await MapPlayTaskAsync();
 
       }
-      catch (Exception ex)
+      catch ( Exception ex )
       {
-        _logger.Error($"{_param.Participant.UserId}: exception '{ex.Message}. {ex.StackTrace}'");
+        _logger.Error( $"{_param.Participant.UserId}: exception '{ex.Message}. {ex.StackTrace}'" );
       }
       finally
       {

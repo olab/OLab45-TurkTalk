@@ -1,24 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Dawn;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using NLog;
-using OLabWebAPI.Common.Contracts;
-using OLabWebAPI.Model;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using OLabWebAPI.TurkTalk.Commands;
-using OLabWebAPI.TurkTalk.Methods;
+using System.Diagnostics;
 
 namespace OLab.TurkTalk.ParticipantSimulator
 {
@@ -28,9 +9,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
     {
       connection.Closed += error =>
       {
-        _logger.Error($"{_param.Participant.UserId}: Connection closed State: {connection.State}");
+        _logger.Error( $"{_param.Participant.UserId}: Connection closed State: {connection.State}" );
 
-        Debug.Assert(connection.State == HubConnectionState.Disconnected);
+        Debug.Assert( connection.State == HubConnectionState.Disconnected );
 
         // Notify users the connection has been closed or manually try to restart the connection.
         return Task.CompletedTask;
@@ -38,9 +19,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnecting += error =>
       {
-        _logger.Error($"{_param.Participant.UserId}: Reconnecting State: {connection.State} {connection.ConnectionId}");
+        _logger.Error( $"{_param.Participant.UserId}: Reconnecting State: {connection.State} {connection.ConnectionId}" );
 
-        Debug.Assert(connection.State == HubConnectionState.Reconnecting);
+        Debug.Assert( connection.State == HubConnectionState.Reconnecting );
 
         // Notify users the connection was lost and the client is reconnecting.
         // Start queuing or dropping messages.
@@ -49,9 +30,9 @@ namespace OLab.TurkTalk.ParticipantSimulator
 
       connection.Reconnected += connectionId =>
       {
-        _logger.Error($"{_param.Participant.UserId}: Reconnected State: {connection.State} {connection.ConnectionId}");
+        _logger.Error( $"{_param.Participant.UserId}: Reconnected State: {connection.State} {connection.ConnectionId}" );
 
-        Debug.Assert(connection.State == HubConnectionState.Connected);
+        Debug.Assert( connection.State == HubConnectionState.Connected );
 
         ReregisterAttendeeAsync( connection ).Wait();
 

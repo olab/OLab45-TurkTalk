@@ -1,11 +1,5 @@
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NLog;
 using OLab.TurkTalk.ParticipantSimulator;
+using System.Collections.Concurrent;
 
 public class WorkerThreadParameter
 {

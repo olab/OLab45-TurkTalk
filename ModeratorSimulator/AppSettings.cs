@@ -1,30 +1,22 @@
-using Microsoft.Build.Framework;
-using NLog;
-using OLabWebAPI.TurkTalk.BusinessObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace OLab.TurkTalk.ModeratorSimulator
 {
 
   public class MapTrail
   {
-    [JsonPropertyName("MapId")]
+    [JsonPropertyName( "MapId" )]
     public uint MapId { get; set; }
 
-    [JsonPropertyName("PauseMs")]
+    [JsonPropertyName( "PauseMs" )]
     public PauseMs PauseMs { get; set; }
 
-    [JsonPropertyName("NodeTrail")]
+    [JsonPropertyName( "NodeTrail" )]
     public List<NodeTrail> NodeTrail { get; set; }
 
     public int GetDelayMs(Settings settings)
     {
-      if (PauseMs != null)
+      if ( PauseMs != null )
         return PauseMs.GetDelayMs();
 
       return settings.GetDelayMs();
@@ -33,24 +25,24 @@ namespace OLab.TurkTalk.ModeratorSimulator
 
   public class Moderator
   {
-    [JsonPropertyName("UserId")]
+    [JsonPropertyName( "UserId" )]
     public string UserId { get; set; }
 
-    [JsonPropertyName("Password")]
+    [JsonPropertyName( "Password" )]
     public string Password { get; set; }
 
-    [JsonPropertyName("PauseMs")]
+    [JsonPropertyName( "PauseMs" )]
     public PauseMs PauseMs { get; set; }
 
-    [JsonPropertyName("MapTrail")]
+    [JsonPropertyName( "MapTrail" )]
     public MapTrail MapTrail { get; set; }
 
     public int GetDelayMs(Settings settings)
     {
-      if (PauseMs != null)
+      if ( PauseMs != null )
         return PauseMs.GetDelayMs();
 
-      if (settings != null && settings.PauseMs != null)
+      if ( settings != null && settings.PauseMs != null )
         return settings.GetDelayMs();
 
       return 10000;
@@ -58,50 +50,50 @@ namespace OLab.TurkTalk.ModeratorSimulator
 
     public MapTrail GetMapTrail(Settings settings)
     {
-      if (MapTrail != null)
+      if ( MapTrail != null )
         return MapTrail;
 
-      if (settings.MapTrail != null)
+      if ( settings.MapTrail != null )
         return settings.MapTrail;
 
-      throw new Exception("Missing MapTrail setting");
+      throw new Exception( "Missing MapTrail setting" );
     }
   }
 
   public class NodeTrail
   {
-    [JsonPropertyName("NodeId")]
+    [JsonPropertyName( "NodeId" )]
     public uint NodeId { get; set; }
 
-    [JsonPropertyName("TurkTalkTrail")]
+    [JsonPropertyName( "TurkTalkTrail" )]
     public TurkTalkTrail TurkTalkTrail { get; set; }
   }
 
   public class Participant
   {
-    [JsonPropertyName("UserId")]
+    [JsonPropertyName( "UserId" )]
     public string UserId { get; set; }
 
-    [JsonPropertyName("AutoAccept")]
+    [JsonPropertyName( "AutoAccept" )]
     public bool AutoAccept { get; set; }
 
-    [JsonPropertyName("AutoRespond")]
+    [JsonPropertyName( "AutoRespond" )]
     public bool AutoRespond { get; set; }
   }
 
   public class PauseMs
   {
-    private static Random rnd = new Random();
+    private static readonly Random rnd = new Random();
 
-    [JsonPropertyName("MinTimeMs")]
+    [JsonPropertyName( "MinTimeMs" )]
     public int MinTimeMs { get; set; }
 
-    [JsonPropertyName("MaxTimeMs")]
+    [JsonPropertyName( "MaxTimeMs" )]
     public int MaxTimeMs { get; set; }
 
     public int GetDelayMs()
     {
-      int sleepMs = rnd.Next(this.MinTimeMs, this.MaxTimeMs);
+      var sleepMs = rnd.Next( this.MinTimeMs, this.MaxTimeMs );
       return sleepMs;
     }
   }
@@ -120,7 +112,7 @@ namespace OLab.TurkTalk.ModeratorSimulator
 
     public int GetDelayMs()
     {
-      if (PauseMs != null)
+      if ( PauseMs != null )
         return PauseMs.GetDelayMs();
 
       return 10000;
@@ -128,55 +120,55 @@ namespace OLab.TurkTalk.ModeratorSimulator
 
     private readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
 
-    [JsonPropertyName("LogDirectory")]
+    [JsonPropertyName( "LogDirectory" )]
     public string LogDirectory { get; set; }
 
-    [JsonPropertyName("PauseMs")]
+    [JsonPropertyName( "PauseMs" )]
     public PauseMs PauseMs { get; set; }
 
-    [JsonPropertyName("SignalRHubUrl")]
+    [JsonPropertyName( "SignalRHubUrl" )]
     public string SignalRHubUrl { get; set; }
 
-    [JsonPropertyName("OLabRestApiUrl")]
+    [JsonPropertyName( "OLabRestApiUrl" )]
     public string OLabRestApiUrl { get; set; }
 
-    [JsonPropertyName("Moderators")]
+    [JsonPropertyName( "Moderators" )]
     public List<Moderator> Moderators { get; set; }
 
-    [JsonPropertyName("MapTrail")]
+    [JsonPropertyName( "MapTrail" )]
     public MapTrail MapTrail { get; set; }
 
   }
 
   public class TurkTalkTrail
   {
-    [JsonPropertyName("QuestionId")]
+    [JsonPropertyName( "QuestionId" )]
     public int QuestionId { get; set; }
 
-    [JsonPropertyName("RoomName")]
+    [JsonPropertyName( "RoomName" )]
     public string RoomName { get; set; }
 
-    [JsonPropertyName("MessageCount")]
+    [JsonPropertyName( "MessageCount" )]
     public int MessageCount { get; set; }
 
-    [JsonPropertyName("AutoAccept")]
+    [JsonPropertyName( "AutoAccept" )]
     public bool AutoAccept { get; set; }
 
-    [JsonPropertyName("AutoRespond")]
+    [JsonPropertyName( "AutoRespond" )]
     public bool AutoRespond { get; set; }
 
-    [JsonPropertyName("PauseMs")]
+    [JsonPropertyName( "PauseMs" )]
     public PauseMs PauseMs { get; set; }
 
-    [JsonPropertyName("Participants")]
+    [JsonPropertyName( "Participants" )]
     public List<Participant> Participants { get; set; }
 
     public int GetDelayMs(Settings settings)
     {
-      if (PauseMs != null)
+      if ( PauseMs != null )
         return PauseMs.GetDelayMs();
 
-      if (settings.PauseMs != null)
+      if ( settings.PauseMs != null )
         return settings.PauseMs.GetDelayMs();
 
       return 10000;
