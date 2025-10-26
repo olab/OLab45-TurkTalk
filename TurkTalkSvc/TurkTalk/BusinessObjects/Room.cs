@@ -159,7 +159,7 @@ namespace TurkTalkSvc.TurkTalk.BusinessObjects
 
     public async Task<IList<MapNodeListItem>> GetExitMapNodes(
       HttpContext httpContext,
-      IAuthenticatedContext userContext,
+      IAuthenticatedContext authContext,
       uint mapId,
       uint nodeId)
     {
@@ -167,21 +167,21 @@ namespace TurkTalkSvc.TurkTalk.BusinessObjects
 
       try
       {
-        Logger.LogInformation($"Querying exit nodes for map {mapId}, node {nodeId}, user {userContext.UserId}");
+        Logger.LogInformation($"Querying exit nodes for map {mapId}, node {nodeId}, user {authContext.UserId}");
 
         using (var scope = _topic.Conference.ScopeFactory.CreateScope())
         {
           var dbContext = scope.ServiceProvider.GetRequiredService<OLabDBContext>();
           var auth = new OLabAuthorization(Logger, dbContext, _configuration);
           var endpoint = new MapsEndpoint(Logger, _configuration, dbContext);
-          endpoint.SetUserContext(userContext);
+          endpoint.SetUserContext(authContext);
 
           var dto = await endpoint.GetRawNodeAsync(mapId, nodeId, false, false);
 
           if (dto.MapNodeLinks.Count > 0)
-            Logger.LogInformation($"Exit nodes from map {mapId}, node {nodeId}, user {userContext.UserId}:");
+            Logger.LogInformation($"Exit nodes from map {mapId}, node {nodeId}, user {authContext.UserId}:");
           else
-            Logger.LogWarning($"no exist nodes from map {mapId}, node {nodeId} user {userContext.UserId}");
+            Logger.LogWarning($"no exist nodes from map {mapId}, node {nodeId} user {authContext.UserId}");
 
           foreach (var item in dto.MapNodeLinks)
           {

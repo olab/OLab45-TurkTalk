@@ -20,7 +20,7 @@ using TurkTalkSvc.TurkTalk.BusinessObjects;
 namespace OLab.Api.Services.TurkTalk
 {
   // [Route("olab/api/v3/turktalk")]
-  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+  [Authorize( AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme )]
   public partial class TurkTalkHub : Hub
   {
     private readonly IOLabLogger _logger;
@@ -43,18 +43,18 @@ namespace OLab.Api.Services.TurkTalk
       IOLabConfiguration configuration,
       Conference conference)
     {
-      Guard.Argument(logger).NotNull(nameof(logger));
-      Guard.Argument(dbContext).NotNull(nameof(dbContext));
-      Guard.Argument(configuration).NotNull(nameof(configuration));
-      Guard.Argument(conference).NotNull(nameof(conference));
+      Guard.Argument( logger ).NotNull( nameof( logger ) );
+      Guard.Argument( dbContext ).NotNull( nameof( dbContext ) );
+      Guard.Argument( configuration ).NotNull( nameof( configuration ) );
+      Guard.Argument( conference ).NotNull( nameof( conference ) );
 
-      _conference = conference ?? throw new ArgumentNullException(nameof(conference));
+      _conference = conference ?? throw new ArgumentNullException( nameof( conference ) );
       _logger = logger;
       _configuration = configuration;
 
       DbContext = dbContext;
 
-      _logger.LogInformation($"TurkTalkHub ctor");
+      _logger.LogInformation( $"TurkTalkHub ctor" );
     }
 
     /// <summary>
@@ -66,11 +66,11 @@ namespace OLab.Api.Services.TurkTalk
     {
       try
       {
-        _logger.LogInformation($"Broadcast message received from '{sender}': '{message}'");
+        _logger.LogInformation( $"Broadcast message received from '{sender}': '{message}'" );
       }
-      catch (Exception ex)
+      catch ( Exception ex )
       {
-        _logger.LogError($"BroadcastMessage exception: {ex.Message}");
+        _logger.LogError( $"BroadcastMessage exception: {ex.Message}" );
       }
     }
 
@@ -84,15 +84,16 @@ namespace OLab.Api.Services.TurkTalk
     protected async Task<IOLabAuthorization> GetAuthorization(HttpContext hostContext)
     {
       // ReadAsync the item set by the middleware
-      if (hostContext.Items.TryGetValue( "authorization", out var value) && value is OLabAuthorization auth )
+      if ( hostContext.Items.TryGetValue( "authorization", out var value ) && value is OLabAuthorization auth )
       {
-        _logger.LogInformation($"User context: {auth}");
+        _logger.LogInformation( $"User context: {auth}" );
 
-        await auth.ApplyUserContextAsync(auth.AuthenticatedContext);
+        var authcontext = new AuthenticatedMiddlewareContext(hostContext, _logger, DbContext);
+        await auth.ApplyUserContextAsync( authcontext );
         return auth;
       }
 
-      throw new Exception("unable to get auth RequestContext");
+      throw new Exception( "unable to get auth RequestContext" );
 
     }
 
@@ -108,11 +109,11 @@ namespace OLab.Api.Services.TurkTalk
     {
       var request = hostContext.Request;
 
-      var session = new OLabSession(_logger, DbContext, auth.AuthenticatedContext);
+      var session = new OLabSession( _logger, DbContext, auth.AuthenticatedContext );
 
-      if (!request.Query.TryGetValue("mapId", out var mapId))
-        throw new Exception("signalr hub missing mapId");
-      session.SetMapId(Convert.ToUInt32(mapId));
+      if ( !request.Query.TryGetValue( "mapId", out var mapId ) )
+        throw new Exception( "signalr hub missing mapId" );
+      session.SetMapId( Convert.ToUInt32( mapId ) );
 
       return session;
     }
@@ -122,13 +123,13 @@ namespace OLab.Api.Services.TurkTalk
     public IPAddress GetIp(HubCallerContext context)
     {
       // Return the Context IP address
-      if (context != null)
+      if ( context != null )
       {
         var httpContext = context.GetHttpContext();
-        if (httpContext != null)
+        if ( httpContext != null )
         {
           IPAddress clientIp;
-          IPAddress.TryParse(httpContext.Request.Headers["cf-connecting-ip"], out clientIp);
+          IPAddress.TryParse( httpContext.Request.Headers[ "cf-connecting-ip" ], out clientIp );
           return clientIp;
         }
       }

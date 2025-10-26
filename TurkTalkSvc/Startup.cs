@@ -21,6 +21,7 @@ using OLab.Data.Interface;
 using System;
 using System.Net;
 using TurkTalkSvc.Interface;
+using TurkTalkSvc.Middleware;
 using TurkTalkSvc.Services;
 using TurkTalkSvc.TurkTalk.BusinessObjects;
 
@@ -48,7 +49,7 @@ namespace TurkTalkSvc
       services.AddCors(options =>
       {
         options.AddPolicy("CorsPolicy",
-           builder => builder
+           corsBuilder => corsBuilder
             .SetIsOriginAllowed(origin => true) // allow any origin
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -119,7 +120,6 @@ namespace TurkTalkSvc
       // };
 
       services.AddScoped<IAuthenticatedContext, AuthenticatedContext>();
-
       services.AddScoped<IUserService, UserService>();
       services.AddScoped<IOLabAuthentication, OLabAuthentication>();
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();
@@ -155,6 +155,7 @@ namespace TurkTalkSvc
       app.UseForwardedHeaders();
       app.UseHttpLogging();
 
+      app.UseMiddleware<BootstrapMiddleware>();
       app.UseMiddleware<OLabAuthMiddleware>();
 
       // get signalR endpoint

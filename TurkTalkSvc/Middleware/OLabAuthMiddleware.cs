@@ -5,16 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OLab.Access;
 using OLab.Api.Model;
-using OLab.Api.Services;
 using OLab.Api.Utils;
 using OLab.Common.Interfaces;
-using OLab.Data.Interface;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using TurkTalkSvc.Interface;
+using TurkTalkSvc.Services;
 
-namespace TurkTalkSvc.Services;
+namespace TurkTalkSvc.Middleware;
 
 public class OLabAuthMiddleware
 {
@@ -27,11 +27,11 @@ public class OLabAuthMiddleware
     ILoggerFactory loggerFactory,
     RequestDelegate next)
   {
-    Guard.Argument(configuration).NotNull(nameof(configuration));
-    Guard.Argument(loggerFactory).NotNull(nameof(loggerFactory));
+    Guard.Argument( configuration ).NotNull( nameof( configuration ) );
+    Guard.Argument( loggerFactory ).NotNull( nameof( loggerFactory ) );
 
-    _logger = OLabLogger.CreateNew<OLabAuthMiddleware>(loggerFactory);
-    _logger.LogInformation("OLabAuthMiddleware created");
+    _logger = OLabLogger.CreateNew<OLabAuthMiddleware>( loggerFactory );
+    _logger.LogInformation( "OLabAuthMiddleware created" );
 
     _config = configuration;
     _next = next;
@@ -43,14 +43,14 @@ public class OLabAuthMiddleware
     var sp = services.BuildServiceProvider();
 #pragma warning restore ASP0000 
     var configuration = sp.GetService<IOLabConfiguration>();
-    var parameters = OLabAuthentication.BuildTokenValidationObject(configuration);
+    var parameters = OLabAuthentication.BuildTokenValidationObject( configuration );
 
-    services.AddAuthentication(x =>
+    services.AddAuthentication( x =>
     {
       x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
       x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
+    } )
+    .AddJwtBearer( options =>
     {
       options.RequireHttpsMetadata = true;
       options.SaveToken = true;
@@ -73,19 +73,19 @@ public class OLabAuthMiddleware
 
           var accessToken = OLabAuthentication.ExtractAccessToken(
             context.Request,
-            path.Value.Contains("/login"));
+            path.Value.Contains( "/login" ) );
 
-          if (!string.IsNullOrEmpty(accessToken) &&
-            path.StartsWithSegments("/turktalk"))
+          if ( !string.IsNullOrEmpty( accessToken ) &&
+            path.StartsWithSegments( "/turktalk" ) )
             // Read the token out of the query string
             context.Token = accessToken;
           return Task.CompletedTask;
         }
       };
-    });
+    } );
   }
 
-  protected void AttachUserToContext(
+  public void AttachUserToContext(
     HttpContext httpContext,
     IUserService userService,
     string token)
@@ -93,43 +93,30 @@ public class OLabAuthMiddleware
     try
     {
       var tokenHandler = new JwtSecurityTokenHandler();
-      tokenHandler.ValidateToken(token,
-                                 OLabAuthentication.BuildTokenValidationObject(_config),
-                                 out var validatedToken);
+      tokenHandler.ValidateToken( token,
+                                 OLabAuthentication.BuildTokenValidationObject( _config ),
+                                 out var validatedToken );
 
       var jwtToken = (JwtSecurityToken)validatedToken;
-      var issuedBy = jwtToken.Claims.FirstOrDefault(x => x.Type == "iss").Value;
-      var userName = jwtToken.Claims.FirstOrDefault(x => x.Type == "unique_name").Value;
-      var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role").Value;
+      var issuedBy = jwtToken.Claims.FirstOrDefault( x => x.Type == "iss" ).Value;
+      var userName = jwtToken.Claims.FirstOrDefault( x => x.Type == "unique_name" ).Value;
+      var role = jwtToken.Claims.FirstOrDefault( x => x.Type == "role" ).Value;
+
+      httpContext.Items[ "claims" ] = jwtToken.Claims;
 
       var nickName = "";
-      if (jwtToken.Claims.Any(x => x.Type == "name"))
-        nickName = jwtToken.Claims.FirstOrDefault(x => x.Type == "name").Value;
+      if ( jwtToken.Claims.Any( x => x.Type == "name" ) )
+        nickName = jwtToken.Claims.FirstOrDefault( x => x.Type == "name" ).Value;
       else
         nickName = userName;
-      httpContext.Items["UserId"] = nickName;
+      httpContext.Items[ "UserId" ] = nickName;
 
-      var course = "olabinternal";
-      if (jwtToken.Claims.Any(x => x.Type == "course"))
-      {
-        course = jwtToken.Claims.FirstOrDefault(x => x.Type == "course").Value;
-        httpContext.Items["Course"] = course;
-      }
+      var id = 0;
+      if ( jwtToken.Claims.Any( x => x.Type == "id" ) )
+        id = Convert.ToInt16( jwtToken.Claims.FirstOrDefault( x => x.Type == "id" ).Value );
+      httpContext.Items[ "Id" ] = id;
 
-      httpContext.Items["IssuedBy"] = issuedBy;
-
-      // if no role passed in, then we assume it's a local user
-      if (string.IsNullOrEmpty(role))
-      {
-        var user = userService.GetByUserName(userName);
-        httpContext.Items["User"] = user.Username;
-        httpContext.Items["Role"] = UserGrouproles.ListToString(user.UserGrouproles.ToList());
-      }
-      else
-      {
-        httpContext.Items["Role"] = role;
-        httpContext.Items["User"] = userName;
-      }
+      httpContext.Items[ "IssuedBy" ] = issuedBy;
 
     }
     catch
@@ -145,23 +132,21 @@ public class OLabAuthMiddleware
     IOLabConfiguration configuration,
     IUserService userService)
   {
-    var token = OLabAuthentication.ExtractAccessToken(
-      httpContext.Request,
-      true);
+    var token = OLabAuthentication.ExtractAccessToken( httpContext.Request );
 
-    if (token != null)
+    if ( token != null )
     {
       // build and inject the host context into the authorixation object
       var authorization = new OLabAuthorization(
         _logger,
         dbContext,
-        configuration);
-      httpContext.Items.Add("authorization", authorization);
-    }
-    //AttachUserToContext(context,
-    //                    userService,
-    //                    token);
+        configuration );
 
-    await _next(httpContext);
+      AttachUserToContext( httpContext, userService, token );
+
+      httpContext.Items.Add( "authorization", authorization );
+    }
+
+    await _next( httpContext );
   }
 }

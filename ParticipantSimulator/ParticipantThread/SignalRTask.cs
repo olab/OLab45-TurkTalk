@@ -117,7 +117,7 @@ namespace OLab.TurkTalk.ParticipantSimulator
         {
           return false;
         }
-        catch
+        catch( Exception ex )
         {
           _logger.Info( $"{_param.Participant.UserId}: failed to connect, trying again in 5000 ms." );
 
