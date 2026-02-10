@@ -144,6 +144,17 @@ namespace TurkTalkSvc
       if (env.IsDevelopment())
         app.UseDeveloperExceptionPage();
 
+      app.Use( async (context, next) =>
+      {
+        if ( context.Request.Method == HttpMethods.Options )
+        {
+          Console.WriteLine( $"Preflight: {context.Request.Path}" );
+          Console.WriteLine( $"Preflight: {context.Request.QueryString}" );
+        }
+
+        await next();
+      } );
+
       // app.UseHttpsRedirection();
       // global cors policy
       app.UseCors("CorsPolicy");
@@ -167,16 +178,6 @@ namespace TurkTalkSvc
         x.MapControllers();
         x.MapHub<TurkTalkHub>(signalREndpoint);
       });
-
-      app.Use( async (context, next) =>
-      {
-        if ( context.Request.Method == HttpMethods.Options )
-        {
-          Console.WriteLine( $"Preflight: {context.Request.Path}" );
-        }
-
-        await next();
-      } );
 
     }
   }
