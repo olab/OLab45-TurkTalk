@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -141,9 +142,7 @@ namespace TurkTalkSvc
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
       if (env.IsDevelopment())
-      {
         app.UseDeveloperExceptionPage();
-      }
 
       // app.UseHttpsRedirection();
       // global cors policy
@@ -168,6 +167,16 @@ namespace TurkTalkSvc
         x.MapControllers();
         x.MapHub<TurkTalkHub>(signalREndpoint);
       });
+
+      app.Use( async (context, next) =>
+      {
+        if ( context.Request.Method == HttpMethods.Options )
+        {
+          Console.WriteLine( $"Preflight: {context.Request.Path}" );
+        }
+
+        await next();
+      } );
 
     }
   }
