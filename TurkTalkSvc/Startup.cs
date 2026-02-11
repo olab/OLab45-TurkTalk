@@ -144,7 +144,7 @@ namespace TurkTalkSvc
       if ( env.IsDevelopment() )
         app.UseDeveloperExceptionPage();
 
-      // Log OPTIONS requests early (optional)
+      // Log OPTIONS early
       app.Use( async (context, next) =>
       {
         if ( context.Request.Method == HttpMethods.Options )
@@ -156,47 +156,38 @@ namespace TurkTalkSvc
         await next();
       } );
 
-      // Forwarded headers (before routing)
+      // Must run before routing
       app.UseForwardedHeaders();
-
-      // Logging
       app.UseHttpLogging();
 
-      // Routing MUST come before CORS
+      // 1️⃣ Routing FIRST
       app.UseRouting();
 
-      app.Use( async (ctx, next) =>
-      {
-        if ( ctx.Request.Method == "OPTIONS" )
-        {
-          Console.WriteLine( "OPTIONS reached CORS stage" );
-        }
-        await next();
-      } );
+      // 2️⃣ CORS MUST be here
+      app.UseCors( "CorsPolicy" );
 
-      // CORS MUST run after routing but before auth
-      // app.UseCors( "CorsPolicy" );
-
-      // Auth middleware
+      // 3️⃣ Auth AFTER CORS
       app.UseAuthorization();
 
-      // Custom middleware
+      // 4️⃣ Custom middleware AFTER auth
       app.UseMiddleware<BootstrapMiddleware>();
       app.UseMiddleware<OLabAuthMiddleware>();
 
-      // SignalR endpoint
+      // 5️⃣ Endpoints LAST
       var signalREndpoint = Configuration[ "AppSettings:SignalREndpoint" ];
       if ( string.IsNullOrEmpty( signalREndpoint ) )
         signalREndpoint = "/turktalk";
 
-      // Endpoints
       app.UseEndpoints( endpoints =>
       {
         endpoints.MapControllers();
+
+        // Apply CORS to SignalR
         endpoints.MapHub<TurkTalkHub>( signalREndpoint )
-           .RequireCors( "CorsPolicy" );
+                 .RequireCors( "CorsPolicy" );
       } );
     }
 
   }
+
 }
