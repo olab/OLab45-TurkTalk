@@ -40,70 +40,70 @@ namespace TurkTalkSvc
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddSignalR(hubOptions =>
+      services.AddSignalR( hubOptions =>
             {
               hubOptions.EnableDetailedErrors = true;
-              hubOptions.ClientTimeoutInterval = TimeSpan.FromSeconds(90);
+              hubOptions.ClientTimeoutInterval = TimeSpan.FromSeconds( 90 );
               hubOptions.EnableDetailedErrors = true;
-            });
+            } );
 
-      services.AddCors(options =>
+      services.AddCors( options =>
       {
-        options.AddPolicy("CorsPolicy",
+        options.AddPolicy( "CorsPolicy",
            corsBuilder => corsBuilder
-            .SetIsOriginAllowed(origin => true) // allow any origin
+            .SetIsOriginAllowed( origin => true ) // allow any origin
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
           );
-      });
+      } );
 
       services.AddControllers().AddNewtonsoftJson();
-      services.AddLogging(builder =>
+      services.AddLogging( builder =>
       {
-        var config = Configuration.GetSection("Logging");
+        var config = Configuration.GetSection( "Logging" );
         builder.ClearProviders();
-        builder.AddConsole(configure =>
+        builder.AddConsole( configure =>
         {
           //configure.FormatterName = ConsoleFormatterNames.Simple;
           configure.FormatterName = ConsoleFormatterNames.Systemd;
-        });
-        builder.AddConfiguration(config);
-      });
+        } );
+        builder.AddConfiguration( config );
+      } );
 
       // added for logging
-      services.AddHttpLogging(options =>
+      services.AddHttpLogging( options =>
       {
         options.LoggingFields = HttpLoggingFields.Request;
-      });
+      } );
 
       // configure strongly typed settings object
-      services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+      services.Configure<AppSettings>( Configuration.GetSection( "AppSettings" ) );
 
-      var ProxyServer = Configuration["AppSettings:ProxyServer"];
-      if (string.IsNullOrEmpty(ProxyServer))
-        services.Configure<ForwardedHeadersOptions>(options =>
+      var ProxyServer = Configuration[ "AppSettings:ProxyServer" ];
+      if ( string.IsNullOrEmpty( ProxyServer ) )
+        services.Configure<ForwardedHeadersOptions>( options =>
         {
           options.ForwardedHeaders =
               ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        });
+        } );
       else
-        services.Configure<ForwardedHeadersOptions>(options =>
+        services.Configure<ForwardedHeadersOptions>( options =>
         {
           options.ForwardedHeaders =
               ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-          options.KnownProxies.Add(IPAddress.Parse(ProxyServer));
-        });
+          options.KnownProxies.Add( IPAddress.Parse( ProxyServer ) );
+        } );
 
       // Additional code to register the ILogger as a ILogger<T> where T is the Startup class
-      services.AddSingleton(typeof(ILogger), typeof(Logger<Startup>));
+      services.AddSingleton( typeof( ILogger ), typeof( Logger<Startup> ) );
 
-      var connectionString = Configuration.GetConnectionString(Constants.DefaultConnectionStringName);
-      var serverVersion = ServerVersion.AutoDetect(connectionString);
+      var connectionString = Configuration.GetConnectionString( Constants.DefaultConnectionStringName );
+      var serverVersion = ServerVersion.AutoDetect( connectionString );
 
       services.AddDbContext<OLabDBContext>(
           dbContextOptions => dbContextOptions
-              .UseMySql(Configuration.GetConnectionString(Constants.DefaultConnectionStringName), serverVersion)
+              .UseMySql( Configuration.GetConnectionString( Constants.DefaultConnectionStringName ), serverVersion )
               // The following three options help with debugging, but should
               // be changed or removed for production.
               // .LogTo(Console.WriteLine, LogLevel.Information)
@@ -126,24 +126,25 @@ namespace TurkTalkSvc
       services.AddScoped<IOLabAuthorization, OLabAuthorization>();
 
       // define instances of application services
-      services.AddSingleton<IOLabLogger>(sp =>
-    new OLabLogger(sp.GetRequiredService<ILoggerFactory>(), false));
+      services.AddSingleton<IOLabLogger>( sp =>
+    new OLabLogger( sp.GetRequiredService<ILoggerFactory>(), false ) );
       services.AddSingleton<IOLabConfiguration, OLabConfiguration>();
 
       // define instances of application services
       services.AddScoped<IOLabSession, OLabSession>();
       services.AddSingleton<Conference>();
 
-      OLabAuthMiddleware.SetupServices(services);
+      OLabAuthMiddleware.SetupServices( services );
 
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      if (env.IsDevelopment())
+      if ( env.IsDevelopment() )
         app.UseDeveloperExceptionPage();
 
+      // Log OPTIONS requests early (optional)
       app.Use( async (context, next) =>
       {
         if ( context.Request.Method == HttpMethods.Options )
@@ -155,30 +156,37 @@ namespace TurkTalkSvc
         await next();
       } );
 
-      // app.UseHttpsRedirection();
-      // global cors policy
-      app.UseCors("CorsPolicy");
-      app.UseRouting();
-      app.UseAuthorization();
-
-      // added for logging
+      // Forwarded headers (before routing)
       app.UseForwardedHeaders();
+
+      // Logging
       app.UseHttpLogging();
 
+      // Routing MUST come before CORS
+      app.UseRouting();
+
+      // CORS MUST run after routing but before auth
+      app.UseCors( "CorsPolicy" );
+
+      // Auth middleware
+      app.UseAuthorization();
+
+      // Custom middleware
       app.UseMiddleware<BootstrapMiddleware>();
       app.UseMiddleware<OLabAuthMiddleware>();
 
-      // get signalR endpoint
-      var signalREndpoint = Configuration["AppSettings:SignalREndpoint"];
-      if (string.IsNullOrEmpty(signalREndpoint))
+      // SignalR endpoint
+      var signalREndpoint = Configuration[ "AppSettings:SignalREndpoint" ];
+      if ( string.IsNullOrEmpty( signalREndpoint ) )
         signalREndpoint = "/turktalk";
 
-      app.UseEndpoints(x =>
+      // Endpoints
+      app.UseEndpoints( endpoints =>
       {
-        x.MapControllers();
-        x.MapHub<TurkTalkHub>(signalREndpoint);
-      });
-
+        endpoints.MapControllers();
+        endpoints.MapHub<TurkTalkHub>( signalREndpoint );
+      } );
     }
+
   }
 }
