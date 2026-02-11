@@ -165,8 +165,17 @@ namespace TurkTalkSvc
       // Routing MUST come before CORS
       app.UseRouting();
 
+      app.Use( async (ctx, next) =>
+      {
+        if ( ctx.Request.Method == "OPTIONS" )
+        {
+          Console.WriteLine( "OPTIONS reached CORS stage" );
+        }
+        await next();
+      } );
+
       // CORS MUST run after routing but before auth
-      app.UseCors( "CorsPolicy" );
+      // app.UseCors( "CorsPolicy" );
 
       // Auth middleware
       app.UseAuthorization();
@@ -184,7 +193,8 @@ namespace TurkTalkSvc
       app.UseEndpoints( endpoints =>
       {
         endpoints.MapControllers();
-        endpoints.MapHub<TurkTalkHub>( signalREndpoint );
+        endpoints.MapHub<TurkTalkHub>( signalREndpoint )
+           .RequireCors( "CorsPolicy" );
       } );
     }
 
