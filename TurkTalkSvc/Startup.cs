@@ -160,16 +160,16 @@ namespace TurkTalkSvc
       app.UseForwardedHeaders();
       app.UseHttpLogging();
 
-      // 1️⃣ Routing FIRST
+      // 1️ Routing FIRST
       app.UseRouting();
 
-      // 2️⃣ CORS MUST be here
+      // 2️ CORS MUST be here
       app.UseCors( "CorsPolicy" );
 
-      // 3️⃣ Auth AFTER CORS
+      // 3️ Auth AFTER CORS
       app.UseAuthorization();
 
-      // 4️⃣ Custom middleware AFTER auth
+      // 4️ Custom middleware AFTER auth
       app.UseMiddleware<BootstrapMiddleware>();
       app.UseMiddleware<OLabAuthMiddleware>();
 
